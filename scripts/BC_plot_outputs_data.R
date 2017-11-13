@@ -3,7 +3,7 @@ params_BC_MAP       <- scparMAP_BC  * sc
 params_BC_MaxL      <- scparMaxL_BC * sc
 
 dev.set()
-pdf( paste('BC_outputs_data',format(Sys.time(),"_%H_%M.pdf"),sep=""),
+pdf( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.pdf"),sep=""),
         paper="a4r", width=11, height=8 )
 
 for (s in 1:nSites) {

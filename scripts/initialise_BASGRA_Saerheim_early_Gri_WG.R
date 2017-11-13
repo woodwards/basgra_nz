@@ -2,14 +2,14 @@
 
 ## 1. GENERAL INITIALISATION ##
    dyn.load("BASGRA_WG.DLL")
-   source('initialisation/initialise_BASGRA_general.R')
+   source('scripts/initialise_BASGRA_general.R')
 
 ## 2. SITE CONDITIONS ##
    year_start     <- as.integer(  1)
    doy_start      <- as.integer(124)
    NDAYS          <- as.integer(242)
-   file_weather   <- 'weather/AP_BCM_AB1_2050_year1.txt'
-   file_params    <- 'parameters/parameters.txt'
+   file_weather   <- 'model_inputs/AP_BCM_AB1_2050_year1.txt'
+   file_params    <- 'model_inputs/parameters.txt'
      parcol       <- 6
    days_harvest[1,] <- c( 1, 150 )
    days_harvest[2,] <- c( 1, 216 )

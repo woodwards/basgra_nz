@@ -43,5 +43,5 @@ for (s in 1:nSites) {
   
 # Write the dataframe to txt-file
 write.table( df_parModes,
-			 paste('BASGRA_parModes',format(Sys.time(),"_%H_%M.txt"),sep=""),
+			 paste('model_outputs/BASGRA_parModes',format(Sys.time(),"_%H_%M.txt"),sep=""),
 			 sep="\t", row.names=F )

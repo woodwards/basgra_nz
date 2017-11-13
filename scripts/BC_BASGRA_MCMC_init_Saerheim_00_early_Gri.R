@@ -4,15 +4,15 @@
    nChain        <- as.integer(1000)
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
-   file_prior    <- "parameters/parameters_BC_Gri_Saerheim.txt"
+   file_prior    <- "model_inputs/parameters_BC_Gri_Saerheim.txt"
 
 ## LIKELIHOOD FUNCTION ##
-   source('BC/fLogL_Sivia.R')
-   source('BC/fLogL_mm_Beta.R')
+   source('scripts/fLogL_Sivia.R')
+   source('scripts/fLogL_mm_Beta.R')
    
 ## SETTINGS FOR THE DIFFERENT CALIBRATION SITES (at least one site)
-   sitesettings_filenames <- c("initialisation/initialise_BASGRA_Saerheim_00_early_Gri.R")
-   sitedata_filenames     <- c("data/data_calibration_Saerheim_00_early_Gri.txt")
+   sitesettings_filenames <- c("scripts/initialise_BASGRA_Saerheim_00_early_Gri.R")
+   sitedata_filenames     <- c("model_inputs/data_calibration_Saerheim_00_early_Gri.txt")
    nSites                 <- length(sitedata_filenames)
    sitelist               <- list() ; length(sitelist) <- nSites
 
@@ -30,4 +30,4 @@
                          # (2.38^2 / np_BC) which seems too big
 
 ## GENERAL INITIALISATION FOR MCMC
-   source('BC/BC_BASGRA_MCMC_init_general.R')
+   source('scripts/BC_BASGRA_MCMC_init_general.R')

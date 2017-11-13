@@ -120,7 +120,7 @@ plot_output <- function(
 table_output <- function(
   list_output = list(output),
   vars        = outputNames[-(1:3)],
-  file_table  = paste( "output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
+  file_table  = paste( "model_outputs/output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
   leg         = paste( "Run", 1:length(list_output) )
 ) {
   if (!is.list(list_output)) list_output <- list(list_output) ; nlist <- length(list_output)
@@ -138,7 +138,7 @@ table_output <- function(
 export_output <- function(
   list_output = list(output),
   vars        = outputNames[-(1:3)],
-  file_table  = paste( "output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
+  file_table  = paste( "model_outputs/output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
@@ -168,8 +168,8 @@ SA <- function( parname_SA = "TILTOTI",
                 ncol_plot  = ceiling( (length(vars)+1)/nrow_plot ),
                 lty        = rep(1,length(pmult)),
                 lwd        = rep(3,length(pmult)),
-                file_init  = "initialisation/initialise_BASGRA_Saerheim_00_early_Gri.R",
-                file_plot  = paste("SA_",parname_SA,format(Sys.time(),"_%H_%M.pdf"),sep="")
+                file_init  = "scripts/initialise_BASGRA_Saerheim_00_early_Gri.R",
+                file_plot  = paste("model_outputs/SA_",parname_SA,format(Sys.time(),"_%H_%M.pdf"),sep="")
 ) {
   source(file_init)
   cat( "SA initialised for:", substr(basename(file_init),1,nchar(basename(file_init))-2), "\n")
@@ -203,19 +203,19 @@ SA_BC <- function(
   ncol_plot     = ceiling( (length(vars)+1)/nrow_plot ),
   lty           = rep(1,length(pmult)),
   lwd           = rep(3,length(pmult)),
-  file_init_BC  = "BC/BC_BASGRA_MCMC_init_Gri.R",
+  file_init_BC  = "scripts/BC_BASGRA_MCMC_init_Gri.R",
   file_par      = "BASGRA_parModes.txt",
   partype       = "MAP",
-  file_plot_outputs      = paste("SA_BC_outputs"     ,format(Sys.time(),"_%H_%M.pdf"),sep=""),
-  file_plot_outputs_data = paste("SA_BC_outputs_data",format(Sys.time(),"_%H_%M.pdf"),sep=""),
-  file_plot_likelihoods  = paste("SA_BC_likelihoods" ,format(Sys.time(),"_%H_%M.pdf"),sep="") )
+  file_plot_outputs      = paste("model_outputs/SA_BC_outputs"     ,format(Sys.time(),"_%H_%M.pdf"),sep=""),
+  file_plot_outputs_data = paste("model_outputs/SA_BC_outputs_data",format(Sys.time(),"_%H_%M.pdf"),sep=""),
+  file_plot_likelihoods  = paste("model_outputs/SA_BC_likelihoods" ,format(Sys.time(),"_%H_%M.pdf"),sep="") )
 { source( file_init_BC )
   nmult <- length(pmult)
   cat( "SA initialised for:", substr(basename(file_init_BC),1,nchar(basename(file_init_BC))-2), "\n")
   parheaders  <- paste( partype, "_", as.character(1:nSites), sep="" )
   df_parModes <- read.table( file_par, header=TRUE, sep="\t" )
   # SITE CONDITIONS
-  source('BC/BC_BASGRA_MCMC_init_general.R')
+  source('scripts/BC_BASGRA_MCMC_init_general.R')
   for (s in 1:nSites) {
     params           <- as.matrix( df_parModes[ parheaders[s] ] )
     list_params[[s]] <- params
@@ -535,10 +535,10 @@ make_Setups <- function( files_init_BC  = c(file_init_BC1 ,file_init_BC2 ),
 plot_outputs_Setups <- function(
   Setups                 = Setups1,
   partype                = "MAP",
-  file_plot_outputs_data = paste("outputs_data_Setups",format(Sys.time(),"_%H_%M.pdf")),
+  file_plot_outputs_data = paste("model_outputs/outputs_data_Setups",format(Sys.time(),"_%H_%M.pdf")),
   file_table_outputs_data = NULL,
-  file_plot_outputs      = paste("outputs_Setups"     ,format(Sys.time(),"_%H_%M.pdf")),
-  file_plot_likelihoods  = paste("likelihoods_Setups" ,format(Sys.time(),"_%H_%M.pdf")),
+  file_plot_outputs      = paste("model_outputs/outputs_Setups"     ,format(Sys.time(),"_%H_%M.pdf")),
+  file_plot_likelihoods  = paste("model_outputs/likelihoods_Setups" ,format(Sys.time(),"_%H_%M.pdf")),
   file_table_likelihoods = NULL,
   leg_title              = "LEGEND" )
 { source( Setups$file_init_BC )
@@ -734,7 +734,7 @@ plot_outputs_Setups <- function(
 plot_params_Setups <- function(
   Setups           = Setups1,
   partype          = "MAP",
-  file_plot_params = paste("params_Setups",format(Sys.time(),"_%H_%M.pdf")) )
+  file_plot_params = paste("model_outputs/params_Setups",format(Sys.time(),"_%H_%M.pdf")) )
 { source( Setups$file_init_BC )
 
   nSetups  <- Setups$nSetups ; nSites <- Setups$nSites
