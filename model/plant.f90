@@ -37,6 +37,7 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILV, &
   else
     HARVFR = 1.0 - CLAI/LAI
   end if
+!  HARVFR    = DAYS_HARVEST(i,3) ./ 100  ! Simon read in percent defoliation
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT

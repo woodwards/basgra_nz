@@ -17,7 +17,7 @@ use plant
 implicit none
 
 integer               :: day, doy, i, NDAYS, NOUT, year
-integer, dimension(100,2) :: DAYS_HARVEST
+integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added harv column (percent DM removed)
 integer, parameter    :: NPAR     = 79
 #ifdef weathergen  
   integer, parameter  :: NWEATHER =  7
@@ -102,6 +102,7 @@ do day = 1, NDAYS
 #else
   call PENMAN         (LAI)
 #endif
+  !                   INPUTS                           OUTPUTS
   ! Resources
   call Light          (DAYL,DTR,LAI,PAR)
   call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,ROOTD,WAL,   EVAP,TRAN)
@@ -148,7 +149,7 @@ do day = 1, NDAYS
   y(day,13) = Fdepth
   y(day,14) = LAI
   y(day,15) = LT50
-  y(day,16) = O2
+  y(day,16) = CST / (CST + CLV) * 100  ! CSTP = stem percentage
   y(day,17) = PHEN
   y(day,18) = ROOTD
   y(day,19) = Sdepth
@@ -156,7 +157,7 @@ do day = 1, NDAYS
   y(day,21) = TILG1 + TILG2
   y(day,22) = TILV
   y(day,23) = WAL
-  y(day,24) = WAPL
+  y(day,24) = WCL * 100   ! WCL = volumetric water content pecentage
   y(day,25) = WAPS
   y(day,26) = WAS
   y(day,27) = WETSTOR
@@ -174,6 +175,13 @@ do day = 1, NDAYS
   y(day,37) =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   y(day,38) = RDRT
   y(day,39) = VERN
+
+  ! Extra variables added by Simon
+  y(day,40) = DRAIN
+  y(day,41) = RUNOFF
+  y(day,42) = EVAP
+  y(day,43) = TRAN
+  y(day,44) = PARINT / PAR * 100 ! light interception
 
   CLV     = CLV     + GLV   - DLV    - HARVLV
   CLVD    = CLVD            + DLV

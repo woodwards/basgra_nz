@@ -1,7 +1,7 @@
 ### initialise_BASGRA_general.R ##
 
 ################################################################################
-days_harvest <- matrix( as.integer(-1), nrow=100, ncol=2 )
+days_harvest <- matrix( as.integer(-1), nrow=100, ncol=3 ) # Simon added harv column
 
 ################################################################################
 ### 1. MODEL LIBRARY FILE & FUNCTION FOR RUNNING THE MODEL
@@ -62,37 +62,47 @@ read_weather_WG <- function(y = year_start,
 }
    
 ################################################################################
-### 3. OUTPUT VARIABLES
+### 3. OUTPUT VARIABLES DEFINITIONS (see BASGRA.f90)
 outputNames <- c(
   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
   "YIELD"     , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "DRYSTOR"  ,
-  "Fdepth"    , "LAI"      , "LT50"     , "O2"        , "PHEN"     , "ROOTD"    ,
-  "Sdepth"    , "TANAER"   , "TILG"     , "TILV"      , "WAL"      , "WAPL"     ,
+  "Fdepth"    , "LAI"      , "LT50"     , "CSTP"        , "PHEN"     , "ROOTD"    ,
+  "Sdepth"    , "TANAER"   , "TILG"     , "TILV"      , "WAL"      , "WCL"     ,
   "WAPS"      , "WAS"      , "WETSTOR"  , "DM"        , "RES"      , "LERG"     , 
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
-  "FRTILG2"   , "RDRT"     , "VERN"                                              )
+  "FRTILG2"   , "RDRT"     , "VERN"     ,
+  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT" )
 outputUnits <- c(
   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
   "(g DM m-2)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(mm)"     ,
-  "(m)"       , "(m2 m-2)" , "(degC)"   , "(mol m-2)" , "(-)"      , "(m)"      ,
-  "(m)"       , "(d)"      , "(m-2)"    , "(m-2)"     , "(mm)"     , "(mm)"     ,
+  "(m)"       , "(m2 m-2)" , "(degC)"   , "(%)" , "(-)"      , "(m)"      ,
+  "(m)"       , "(d)"      , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
   "(mm)"      , "(mm)"     , "(mm)"     , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
   "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
-  "(-)"       , "(d-1)"    , "(-)"                                               )
+  "(-)"       , "(d-1)"    , "(-)"      ,
+  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"  )
 NOUT <- as.integer( length(outputNames) )
-   
+chooseNames <- c(
+  "DAVTMP", "EVAP", "TRAN", "DRAIN", "RUNOFF", "WAL", "WCL",
+  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "CSTP",
+  "LINT", "LAI", "DM", "SLA", "RES", 
+  "TILTOT", "TILV", "TILG", 
+  "PHEN", "VERN", "RDRT"
+  )
+
 ################################################################################
 ### 4. FUNCTIONS FOR EXPORTING THE RESULTS TO FILE (pdf with plots, txt with table)
 
 plot_output <- function(
-  list_output = list(output),
+  # these are default inputs but get overridden
+  list_output = list(output), 
   vars        = outputNames[-(1:3)],
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
   ncol_plot   = ceiling( (length(vars)+1)/nrow_plot ),
   lty         = rep(1,length(list_output)),
-  lwd         = rep(3,length(list_output))
+  lwd         = rep(3,length(list_output)) 
 ) {
   par( mfrow=c(nrow_plot,ncol_plot), mar=c(2, 2, 2, 1) )
   if (!is.list(list_output)) list_output <- list(list_output) ; nlist <- length(list_output)
@@ -137,21 +147,30 @@ table_output <- function(
 
 export_output <- function(
   list_output = list(output),
-  vars        = outputNames[-(1:3)],
-  file_table  = paste( "model_outputs/output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
+  vars        = chooseNames,
+  #  file_table  = paste( "model_outputs/output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
+  #  file_plot   = paste( "model_outputs/plot_", format(Sys.time(),"%H_%M.png"), sep="" ),
+  file_table  = "model_outputs/output_table.txt",
+  file_plot   = "model_outputs/output_plots.png",
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
   ncol_plot   = ceiling( (length(vars)+1)/nrow_plot ),
   lty         = rep(1,length(list_output)),
-  lwd         = rep(3,length(list_output))
+  lwd         = rep(1,length(list_output)) # line width was 3
 ) {
-#   pdf( file_plot, paper="a4r", width=11, height=8 )
+  # output to screen
   plot_output(  list_output=list_output, vars=vars,
                 leg=leg, leg_title=leg_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
   table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
-#   dev.off()
+  # and save to file (Simon)
+  png(filename=file_plot, width=10, height=8, units="in", type="windows", res=300)
+  plot_output(  list_output=list_output, vars=vars,
+                leg=leg, leg_title=leg_title,
+                nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
+  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
+  dev.off()
 }
    
 ################################################################################
@@ -168,7 +187,7 @@ SA <- function( parname_SA = "TILTOTI",
                 ncol_plot  = ceiling( (length(vars)+1)/nrow_plot ),
                 lty        = rep(1,length(pmult)),
                 lwd        = rep(3,length(pmult)),
-                file_init  = "scripts/initialise_BASGRA_Saerheim_00_early_Gri.R",
+                file_init  = "initialisation/initialise_BASGRA_Saerheim_00_early_Gri.R",
                 file_plot  = paste("model_outputs/SA_",parname_SA,format(Sys.time(),"_%H_%M.pdf"),sep="")
 ) {
   source(file_init)
@@ -203,7 +222,7 @@ SA_BC <- function(
   ncol_plot     = ceiling( (length(vars)+1)/nrow_plot ),
   lty           = rep(1,length(pmult)),
   lwd           = rep(3,length(pmult)),
-  file_init_BC  = "scripts/BC_BASGRA_MCMC_init_Gri.R",
+  file_init_BC  = "BC/BC_BASGRA_MCMC_init_Gri.R",
   file_par      = "BASGRA_parModes.txt",
   partype       = "MAP",
   file_plot_outputs      = paste("model_outputs/SA_BC_outputs"     ,format(Sys.time(),"_%H_%M.pdf"),sep=""),
@@ -215,7 +234,7 @@ SA_BC <- function(
   parheaders  <- paste( partype, "_", as.character(1:nSites), sep="" )
   df_parModes <- read.table( file_par, header=TRUE, sep="\t" )
   # SITE CONDITIONS
-  source('scripts/BC_BASGRA_MCMC_init_general.R')
+  source('BC/BC_BASGRA_MCMC_init_general.R')
   for (s in 1:nSites) {
     params           <- as.matrix( df_parModes[ parheaders[s] ] )
     list_params[[s]] <- params

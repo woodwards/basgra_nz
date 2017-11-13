@@ -1,0 +1,82 @@
+PARAMETER	Scott	Name	Units	Description
+LOG10CLVI	1.8	CLVI	gC m-2	Initial value of leaves
+LOG10CRESI	1	CRESI	gC m-2	Initial value of reserves
+LOG10CRTI	1.6	CRTI	gC m-2	Initial value of roots
+CSTI	0	CSTI	gC m-2	Initial value of stems
+LOG10LAII	0.5	LAII	m2 m-2	Initial value of leaf area index
+PHENI	0.01	PHENI	-	Initial value of phenological stage
+TILTOTI	1200	TILTOTI	m-2	Initial value of tiller density
+FRTILGI	0.05	FRTILGI	-	Initial value of elongating tiller fraction
+LT50I	-4.7894	LT50I	°C	Initial value of LT50
+CLAIV	1	CLAIV	m2 leaf m-2	"Maximum LAI remaining after harvest, when no tillers elongate"
+COCRESMX	0.141155	COCRESMX	-	Maximum concentration of reserves in aboveground biomass (not stubble)
+CSTAVM	0.229575	CSTAVM	gC tiller-1	Maximum size of elongating tillers
+DAYLB	0.539664	DAYLB	d d-1	Day length below which phenological stage is reset to zero
+DAYLP	0.632348	DAYLP	d d-1	Day length below which phenological development slows down
+DLMXGE	0.936974	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1
+FSLAMIN	0.686948	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA
+FSMAX	0.693	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry
+HAGERE	0.5	HAGERE	-	Fraction of reserves in elongating tillers that is harvested
+K	0.607039	K	m2 m-2 leaf	PAR extinction coefficient
+LAICR	3.79569	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
+LAIEFT	0.2	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
+LAITIL	0.566455	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
+LFWIDG	0.0085207	LFWIDG	m	Leaf width on elongating tillers
+LFWIDV	0.00491875	LFWIDV	m	Leaf width on non-elongating tillers
+NELLVM	3	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
+PHENCR	0.495209	PHENCR	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
+PHY	63.0532	PHY	°C d	Phyllochron
+RDRSCO	0.0712247	RDRSCO	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
+RDRSMX	0.06	RDRSMX	d-1	Maximum relative death rate of leaves and non-elongating tillers due to shading
+RDRTEM	0.00102573	RDRTEM	d-1 °C-1	Proportionality of leaf senescence with temperature
+RGENMX	0.0108797	RGENMX	d-1	Maximum relative rate of tillers becoming elongating tillers
+ROOTDM	0.6	ROOTDM	m	Initial and maximum value rooting depth
+RRDMAX	0.012	RRDMAX	m d-1	Maximum root depth growth rate
+RUBISC	5.7803	RUBISC	g m-2 leaf	Rubisco content of upper leaves
+SHAPE	0.538907	SHAPE	-	Area of a leaf relative to a rectangle of same length and width
+SIMAX1T	0.00450449	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
+SLAMAX	0.06	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves
+TBASE	3.61083	TBASE	°C	Minimum value of effective temperature for leaf elongation
+TCRES	1.88986	TCRES	d	Time constant of mobilisation of reserves
+TOPTGE	12.6178	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative
+TRANCO	8	TRANCO	mm d-1	Transpiration coefficient (PTRAN at which WCCR is half)
+YG	0.841767	YG	gC gC-1	Growth yield per unit expended carbohydrate
+LAT	-37.77	LAT	degN	Latitude
+WCI	0.3	WCI	m3 m-3	Initial value of volumetric water content
+FWCAD	0.166666667	WCAD	m3 m-3	Relative saturation at air dryness
+FWCWP	0.333333333	WCWP	m3 m-3	Relative saturation at wilting point
+FWCFC	0.75	WCFC	m3 m-3	Relative saturation at field capacity
+FWCWET	0.95	WCWET	m3 m-3	Relative saturation above which transpiration is reduced
+WCST	0.6	WCST	m3 m-3	Volumetric water content at saturation
+WpoolMax	50	WpoolMax	mm	Maximum pool water (liquid plus ice)
+Dparam	0.0031796	Dparam	°C-1 d-1	Constant in the calculation of dehardening rate
+FGAS	0.4	FGAS	-	Fraction of soil volume that is gaseous
+FO2MX	0.21	FO2MX	mol O2 mol-1 gas	Maximum oxygen fraction of soil gas
+gamma	65	gamma	m-1	Temperature extinction coefficient of snow
+Hparam	0.0055925	Hparam	°C-1 d-1	Hardening parameter
+KRDRANAER	0.2	KRDRANAER	d-1	Maximum relative death rate due to anearobic conditions
+KRESPHARD	0.1	KRESPHARD	gC gC-1 °C-1	Carbohydrate requirement of hardening
+KRSR3H	1	KRSR3H	°C-1	Constant in the logistic curve for frost survival
+KRTOTAER	2	KRTOTAER	-	Ratio of total to aerobic respiration
+KSNOW	0.035	KSNOW	mm-1	Light extinction coefficient of snow
+LAMBDAsoil	172800	LAMBDAsoil	J m-1 degC-1 d-1	Thermal conductivity of soil?
+LDT50A	1.3403	LDT50A	d	Intercept of linear dependence of LD50 on lT50
+LDT50B	-2.1128	LDT50B	d °C-1	Slope of linear dependence of LD50 on LT50
+LT50MN	-26.6839	LT50MN	°C	Minimum LT50 (Lethal temperature at which 50% die)
+LT50MX	-4.7894	LT50MX	°C	Maximum LT50
+RATEDMX	2	RATEDMX	°C d-1	Maximum dehardening rate
+reHardRedDay	145	reHardRedDay	d	Duration of period over which rehardening capability disappears
+RHOnewSnow	100	RHOnewSnow	kg SWE m-3	Density of newly fallen snow
+RHOpack	0.02	RHOpack	d-1	Relative packing rate of snow
+SWret	0.1	SWret	mm mm-1 d-1	Liquid water storage capacity of snow
+SWrf	0.01	SWrf	mm d-1 °C-1	Maximum refreezing rate per degree below 'TmeltFreeze'
+THARDMX	14.7052	THARDMX	°C	Maximum surface temperature at which hardening is possible
+TmeltFreeze	0	TmeltFreeze	°C	Temperature above which snow melts
+TrainSnow	0.01	TrainSnow	°C	Temperature below which precipitation is snow
+TsurfDiff	0.62279	TsurfDiff	°C	Constant in the calculation of dehardening rate
+KLUETILG	0.5	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
+FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1 
+DAYLG1G2	0.6	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
+RGRTG1G2	0.9	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
+RDRTMIN	0.01	RDRTMIN	d-1	Minimum relative death rate of foliage
+TVERN	5	TVERN	°C	Temperature below which vernlisation occurs

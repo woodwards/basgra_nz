@@ -93,9 +93,14 @@
    scparmax_BC   <- parmax_BC / sc
    scparmod_BC   <- parmod_BC / sc
  # We use the beta distribution with parameters aa and bb estimated as follows
-   aa            <- 1. + 4 * ((scparmod_BC[1:np_BC]-scparmin_BC[1:np_BC]) / 
-                              (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
-   bb            <- 6. - aa 
+   # aa            <- 1. + 4 * ((scparmod_BC[1:np_BC]-scparmin_BC[1:np_BC]) / 
+   #                            (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
+   # bb            <- 6. - aa 
+ # Simon's method
+ # shape <-  4 # shape parameter (0=noninformative, 4=previous method)
+   relmode<- ((scparmod_BC[1:np_BC]-scparmin_BC[1:np_BC]) / (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
+   aa <- 1 + shape*relmode
+   bb <- 1 + shape*(1-relmode)
 
 ## INITIALISING THE CHAIN ##
    nBurnin       <- as.integer(nChain/10)
