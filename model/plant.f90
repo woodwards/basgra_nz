@@ -16,7 +16,7 @@ Contains
 Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILV, &
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2)
   integer :: doy,year
-  integer,dimension(100,2) :: DAYS_HARVEST
+integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added harv column (percent DM removed)
   real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILV
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1
@@ -24,20 +24,24 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILV, &
  
   HARV   = 0
   NOHARV = 1
+  HARVFR = 0.0 ! Simon
   do i=1,100    
     if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
       HARV   = 1
       NOHARV = 0	
+      HARVFR    = DAYS_HARVEST(i,3) / 100.0  ! Simon read in percent defoliation
 	end if
   end do
+  
   FRACTV = TILV/(TILG2 + TILV)
-  CLAI   = FRACTV * CLAIV
-  if (LAI <= CLAI) then
-    HARVFR = 0.0
-  else
-    HARVFR = 1.0 - CLAI/LAI
-  end if
-!  HARVFR    = DAYS_HARVEST(i,3) ./ 100  ! Simon read in percent defoliation
+  
+!  CLAI   = FRACTV * CLAIV
+!  if (LAI <= CLAI) then
+!    HARVFR = 0.0
+!  else
+!    HARVFR = 1.0 - CLAI/LAI
+!  end if
+
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT

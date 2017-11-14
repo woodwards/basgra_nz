@@ -63,13 +63,15 @@
 	 i_YIELD                <- which(data_name[[s]]=='YIELD' )
 	 i_LT50                 <- which(data_name[[s]]=='LT50'  )
 	 i_CST                  <- which(data_name[[s]]=='CST'  )  # Simon added calib variable
-	   data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])     * cv_DM[s]    , sd_DM_min[s]     )
+	 i_CLV                  <- which(data_name[[s]]=='CLV'  )  # Simon added calib variable
+	 data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])     * cv_DM[s]    , sd_DM_min[s]     )
      data_sd[[s]][i_LAI]    <- max( abs(data_value[[s]][i_LAI])    * cv_LAI[s]   , sd_LAI_min[s]    )
      data_sd[[s]][i_TILTOT] <- max( abs(data_value[[s]][i_TILTOT]) * cv_TILTOT[s], sd_TILTOT_min[s] )
   	 data_sd[[s]][i_YIELD]  <- max( abs(data_value[[s]][i_YIELD])  * cv_YIELD[s] , sd_YIELD_min[s]  )
   	 data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
   	 data_sd[[s]][i_CST]   <-                                                      sd_CST[s]
-
+  	 data_sd[[s]][i_CLV]   <-                                                      sd_CLV[s]
+  	 
      data_mm_name [[s]] <- database_mm[[s]][,1]
      data_mm_year [[s]] <- database_mm[[s]][,2]
      data_mm_doy  [[s]] <- database_mm[[s]][,3]

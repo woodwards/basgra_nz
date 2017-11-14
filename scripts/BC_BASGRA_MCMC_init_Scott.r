@@ -2,12 +2,12 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
 ## MCMC chain length
-   nChain        <- as.integer(1000)
+   nChain        <- as.integer(10000)
    # note: nBurnin       <- as.integer(nChain/10)
    
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
-   shape <- 4 # shape parameter (0=noninformative, 4=previous method)
+   shape <- 0 # shape parameter (0=noninformative, 4=previous method)
    file_prior    <- "model_inputs/parameters_BC_Scott.txt"
    # 5 columns
    # name  minimum  mode  maximum  (beta distribution)  unknown
@@ -37,10 +37,11 @@
    cv_default    <- rep( 0.2 , nSites ) # Simon change from 0.5 to 0.2
    cv_DM         <- rep( 0.05, nSites ) ; sd_DM_min     <- rep(   0, nSites )
    cv_LAI        <- rep( 0.1 , nSites ) ; sd_LAI_min    <- rep(   0, nSites )
-   cv_TILTOT     <- rep( 0.2 , nSites ) ; sd_TILTOT_min <- rep(   0, nSites )
+   cv_TILTOT     <- rep( 0.0 , nSites ) ; sd_TILTOT_min <- rep( 500, nSites )
    cv_YIELD      <- rep( 0.05, nSites ) ; sd_YIELD_min  <- rep(   0, nSites )
    sd_LT50       <- rep( 5   , nSites )
-   sd_CST        <- rep( 10   , nSites ) # need to add this because has values of 0
+   sd_CST        <- rep( 5   , nSites ) # need to add this because has values of 0
+   sd_CLV        <- rep( 20  , nSites ) 
    cv_mm_default <- rep( 0.2 , nSites )
    cv_mm_FRTILG  <- rep( 0.2 , nSites )
    
