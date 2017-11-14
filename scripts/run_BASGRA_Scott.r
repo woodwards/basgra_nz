@@ -1,7 +1,10 @@
 ## 1. INITIALISATION ##
-   source('scripts/initialise_BASGRA_Scott.r')
+  cat(file=stderr(), 'Starting run_BASGRA_scott.r', "\n")
+  rm(list=ls())
+  source('scripts/initialise_BASGRA_Scott.r')
 
 ## 2. RUNNING ##
+   cat(file=stderr(), 'Calling run_model()', "\n")
    output <- run_model()
   
    # run_model <- function(p = params,
@@ -12,6 +15,7 @@
    # }
    
 ## 3. OUTPUT ##
+   cat(file=stderr(), 'Calling export_output()', "\n")
    export_output()
    
    # export_output <- function(

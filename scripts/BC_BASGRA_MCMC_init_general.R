@@ -1,17 +1,41 @@
+##
+   cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_general.r', "\n")
+
 ## SITE CONDITIONS
    list_params       <- sitelist ; list_matrix_weather <- sitelist
    list_days_harvest <- sitelist ; list_NDAYS          <- sitelist
    for (s in 1:nSites) {
+     # set up sites
+     cat(file=stderr(), paste('Calling site init script :', sitesettings_filenames[s]), "\n")
      source( sitesettings_filenames[s] )
      list_params      [[s]] <- params       ; list_matrix_weather[[s]] <- matrix_weather
      list_days_harvest[[s]] <- days_harvest ; list_NDAYS         [[s]] <- NDAYS   
    } 
+   cat(file=stderr(), 'Finished calling site init scripts', "\n")
    
 ## MEASUREMENTS ##
    database <- sitelist      ; database_mm <- sitelist
    ndata    <- rep(0,nSites) ; ndata_mm    <- rep(0,nSites)
    for (s in 1:nSites) {
      dataset_all      <- read.table(sitedata_filenames[s],header=F,sep="")
+     
+     # Simon remove data outside sim period
+     # NDAYS and matrix_weather can tell us sim length and dates
+     NDAYS <- list_NDAYS[[s]]
+     matrix_weather <- list_matrix_weather[[s]]
+     start_year <- matrix_weather[1, 1]
+     start_doy <- matrix_weather[1, 2]
+     data_year <- dataset_all[ ,2]
+     data_doy <- dataset_all[ ,3]
+     stop_year <- matrix_weather[NDAYS, 1]
+     stop_doy <- matrix_weather[NDAYS, 2]
+     keeps <- which(
+       (data_year==start_year & data_doy>=start_doy) |
+       (data_year>start_year & data_year<stop_year) |
+       (data_year==stop_year & data_doy<=stop_doy)   
+       )
+     dataset_all <- dataset_all[keeps, ]
+     
      database   [[s]] <- dataset_all[which(dataset_all$V1!='FRTILG'),]
      database_mm[[s]] <- dataset_all[which(dataset_all$V1=='FRTILG'),]
      ndata[s]         <- dim(database   [[s]])[[1]]
@@ -29,27 +53,36 @@
      data_year [[s]] <-     database[[s]][,2]
      data_doy  [[s]] <-     database[[s]][,3]
      data_value[[s]] <-     database[[s]][,4]
-     data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s]
+     
+     # data uncertainty (these ones use Sivia distribution)
+     data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s] 
+     # special cases 
 	 i_DM                   <- which(data_name[[s]]=='DM'    )
 	 i_LAI                  <- which(data_name[[s]]=='LAI'   )
 	 i_TILTOT               <- which(data_name[[s]]=='TILTOT')
 	 i_YIELD                <- which(data_name[[s]]=='YIELD' )
 	 i_LT50                 <- which(data_name[[s]]=='LT50'  )
-     data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])     * cv_DM[s]    , sd_DM_min[s]     )
+	 i_CST                  <- which(data_name[[s]]=='CST'  )  # Simon added calib variable
+	   data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])     * cv_DM[s]    , sd_DM_min[s]     )
      data_sd[[s]][i_LAI]    <- max( abs(data_value[[s]][i_LAI])    * cv_LAI[s]   , sd_LAI_min[s]    )
      data_sd[[s]][i_TILTOT] <- max( abs(data_value[[s]][i_TILTOT]) * cv_TILTOT[s], sd_TILTOT_min[s] )
   	 data_sd[[s]][i_YIELD]  <- max( abs(data_value[[s]][i_YIELD])  * cv_YIELD[s] , sd_YIELD_min[s]  )
-     data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
-  
+  	 data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
+  	 data_sd[[s]][i_CST]   <-                                                      sd_CST[s]
+
      data_mm_name [[s]] <- database_mm[[s]][,1]
      data_mm_year [[s]] <- database_mm[[s]][,2]
      data_mm_doy  [[s]] <- database_mm[[s]][,3]
      data_mm_value[[s]] <- database_mm[[s]][,4]
      data_mm_min  [[s]] <- rep( 0, ndata_mm[s] )
      data_mm_max  [[s]] <- rep( 1, ndata_mm[s] )
+     
+     # data uncertainty (these ones use Beta distribution)
      data_mm_cv   [[s]] <- cv_mm_default[s]
-	 i_FRTILG           <- which(data_mm_name[[s]]=='FRTILG')
+     # special cases 
+     i_FRTILG           <- which(data_mm_name[[s]]=='FRTILG')
      data_mm_cv   [[s]][i_FRTILG] <- cv_mm_FRTILG[s]
+     
    }
 
 ## LINKING DATA TO MODEL OUTPUTS
@@ -115,7 +148,7 @@
 
 ## PROPOSAL DISTRIBUTION ##
  # Load library MASS, which has a routine for multivariate normal random number generation
-   library(MASS)
+   library(MASS) # Simon warning package required not mentioned
    vcovProp      <- matrix( 0, np_BC, np_BC )
    stddev_beta   <- sqrt((aa*bb)/((1+aa+bb)*(aa+bb)**2.))
    stddev_beta   <- stddev_beta * (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC])
@@ -135,15 +168,16 @@
      params[ ip_BC_site[[s]] ]    <- pValues_BC[ icol_pChain_site[[s]] ]
      output                       <- run_model(params,matrix_weather,days_harvest,NDAYS)
 	   list_output[[s]]             <- output
-     list_output_calibr_rows[[s]] <- sapply (1:ndata[s], function(i) 
-         which( output[,2]==data_year[[s]][i] & output[,3]==data_doy[[s]][i] )
-       )
-     if(dim(database_mm[[s]])[1]>0) {
-       list_output_mm_calibr_rows[[s]] <- sapply (1:ndata_mm[s], function(i) 
-         which( output[,2]==data_mm_year[[s]][i] & output[,3]==data_mm_doy[[s]][i] ) )
-     }
+	   list_output_calibr_rows[[s]] <- sapply (1:ndata[s], function(i)
+	     which( output[,2]==data_year[[s]][i] & output[,3]==data_doy[[s]][i] ) # returns NULL if data date outside sim!
+	   )
+	   if(dim(database_mm[[s]])[1]>0) {
+	     list_output_mm_calibr_rows[[s]] <- sapply (1:ndata_mm[s], function(i)
+	       which( output[,2]==data_mm_year[[s]][i] & output[,3]==data_mm_doy[[s]][i] ) )
+	   }
    }
    
+   # calculate log-likelihood for one site
    calc_logL_s <- function( s=1, output=output ) {
      output_calibr <- if(ndata[s]==1) {
                       output[list_output_calibr_rows[[s]], data_index[[s]]]
@@ -163,6 +197,7 @@
 	 return( logL_s )
    }
 
+   # loop log-likelihood across all sites
    calc_sum_logL <- function( list_output = list_output ) {
      sum_logL <- 0 ; for (s in 1:nSites) {
        sum_logL <- sum_logL + calc_logL_s( s, list_output[[s]] )
@@ -170,6 +205,9 @@
    return( sum_logL )
    }
    
+   # calculate log-likelihood across all sites
+   s <- 1 # Simon for testing function calc_logL_s
+   output <- list_output[[s]]  # Simon for testing function calc_logL_s
    logL0 <- calc_sum_logL( list_output )
 
 ## The first values for MaxL and MAP parameter vectors
@@ -361,4 +399,7 @@
   mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),
          side=3, line=1, outer=TRUE, cex=1, font=2)   
   }
+   
+   #
+   cat(file=stderr(), 'Finished BC_BASGRA_MCMC_init_general.r', "\n")
    

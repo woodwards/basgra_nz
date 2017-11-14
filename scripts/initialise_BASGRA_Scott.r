@@ -1,4 +1,5 @@
-## initialise_BASGRA_Saerheim_00_early_Gri.R ##
+## initialise_BASGRA_xxx.R ##
+   cat(file=stderr(), 'Starting initialise_BASGRA_Scott.r', "\n")
 
 ## 1. GENERAL INITIALISATION ##
    dyn.load("BASGRA_WG.DLL") # use this one to use own PET
@@ -25,3 +26,7 @@
    
 ## 5. CREATE EMPTY MATRIX y ##
    y              <- matrix(0,NDAYS,NOUT)
+   
+   #
+   cat(file=stderr(), 'Finished initialise_BASGRA_Scott.r', "\n")
+   

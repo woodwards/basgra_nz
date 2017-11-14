@@ -1,4 +1,5 @@
 ### initialise_BASGRA_general.R ##
+   cat(file=stderr(), 'Starting initialise_BASGRA_general.r', "\n")
 
 ################################################################################
 days_harvest <- matrix( as.integer(-1), nrow=100, ncol=3 ) # Simon added harv column
@@ -187,7 +188,7 @@ SA <- function( parname_SA = "TILTOTI",
                 ncol_plot  = ceiling( (length(vars)+1)/nrow_plot ),
                 lty        = rep(1,length(pmult)),
                 lwd        = rep(3,length(pmult)),
-                file_init  = "initialisation/initialise_BASGRA_Saerheim_00_early_Gri.R",
+                file_init  = "scripts/initialise_BASGRA_Saerheim_00_early_Gri.R",
                 file_plot  = paste("model_outputs/SA_",parname_SA,format(Sys.time(),"_%H_%M.pdf"),sep="")
 ) {
   source(file_init)
@@ -222,7 +223,7 @@ SA_BC <- function(
   ncol_plot     = ceiling( (length(vars)+1)/nrow_plot ),
   lty           = rep(1,length(pmult)),
   lwd           = rep(3,length(pmult)),
-  file_init_BC  = "BC/BC_BASGRA_MCMC_init_Gri.R",
+  file_init_BC  = "scripts/BC_BASGRA_MCMC_init_Gri.R",
   file_par      = "BASGRA_parModes.txt",
   partype       = "MAP",
   file_plot_outputs      = paste("model_outputs/SA_BC_outputs"     ,format(Sys.time(),"_%H_%M.pdf"),sep=""),
@@ -234,7 +235,7 @@ SA_BC <- function(
   parheaders  <- paste( partype, "_", as.character(1:nSites), sep="" )
   df_parModes <- read.table( file_par, header=TRUE, sep="\t" )
   # SITE CONDITIONS
-  source('BC/BC_BASGRA_MCMC_init_general.R')
+  source('scripts/BC_BASGRA_MCMC_init_general.R')
   for (s in 1:nSites) {
     params           <- as.matrix( df_parModes[ parheaders[s] ] )
     list_params[[s]] <- params
@@ -848,3 +849,4 @@ plot_params_Setups <- function(
 }
 
 ################################################################################
+cat(file=stderr(), 'Finished initialise_BASGRA_general.r', "\n")

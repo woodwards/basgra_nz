@@ -3,8 +3,9 @@ params_BC_MAP       <- scparMAP_BC  * sc
 params_BC_MaxL      <- scparMaxL_BC * sc
 
 dev.set()
-pdf( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.pdf"),sep=""),
-        paper="a4r", width=11, height=8 )
+pagew <- 11 ; pageh <- 8
+png( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.png"),sep=""),
+     width=pagew, height=pageh, units="in", type="windows", res=300)
 
 for (s in 1:nSites) {
   params          <- list_params      [[s]] ; matrix_weather <- list_matrix_weather[[s]]

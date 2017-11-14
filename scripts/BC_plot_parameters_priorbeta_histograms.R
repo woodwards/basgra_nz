@@ -4,8 +4,8 @@
 
  # We will write the plots to a pdf file:
    pagew <- 11 ; pageh <- 8
-   pdf( paste("model_outputs/BC_parameters_priorbeta_histograms",format(Sys.time(),"_%H_%M.pdf"),sep=""),
-        paper="A4r", width=pagew, height=pageh)
+   png( paste("model_outputs/BC_parameters_priorbeta_histograms",format(Sys.time(),"_%H_%M.png"),sep=""),
+        width=pagew, height=pageh, units="in", type="windows", res=300)
    
 ## Histogram plots ##
    nrowsPlots <- ceiling( sqrt((np_BC+1)*pageh/pagew) )
