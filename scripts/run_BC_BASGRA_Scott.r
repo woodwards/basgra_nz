@@ -1,6 +1,8 @@
 ## 1. INITIALISE MCMC ##
   cat(file=stderr(), 'Starting BC_BASGRA_Scott.r', "\n")
   #rm(list=ls()) # kills breakpoints!
+  file_params    <- 'model_inputs/parameters_Scott.txt' # can contain multiple columns
+  parcol       <- 1 # which one are we going to use? (row names are ignored)
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
 
 ## 2. RUNNING THE MCMC ##

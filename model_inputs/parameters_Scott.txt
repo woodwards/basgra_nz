@@ -1,12 +1,12 @@
 PARAMETER	Scott	Name	Units	Description
 LOG10CLVI	1.8	CLVI	gC m-2	Initial value of leaves
-LOG10CRESI	1	CRESI	gC m-2	Initial value of reserves
+LOG10CRESI	0.8	CRESI	gC m-2	Initial value of reserves
 LOG10CRTI	1.6	CRTI	gC m-2	Initial value of roots
 CSTI	0	CSTI	gC m-2	Initial value of stems
 LOG10LAII	0.5	LAII	m2 m-2	Initial value of leaf area index
 PHENI	0.01	PHENI	-	Initial value of phenological stage
 TILTOTI	1200	TILTOTI	m-2	Initial value of tiller density
-FRTILGI	0.05	FRTILGI	-	Initial value of elongating tiller fraction
+FRTILGI	0.0	FRTILGI	-	Initial value of elongating tiller fraction
 LT50I	-4.7894	LT50I	°C	Initial value of LT50
 CLAIV	1	CLAIV	m2 leaf m-2	"Maximum LAI remaining after harvest, when no tillers elongate"
 COCRESMX	0.141155	COCRESMX	-	Maximum concentration of reserves in aboveground biomass (not stubble)
@@ -79,4 +79,4 @@ FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still i
 DAYLG1G2	0.6	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
 RGRTG1G2	0.9	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.01	RDRTMIN	d-1	Minimum relative death rate of foliage
-TVERN	5	TVERN	°C	Temperature below which vernlisation occurs
+TVERN	4	TVERN	°C	Temperature below which vernlisation occurs

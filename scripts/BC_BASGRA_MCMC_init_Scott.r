@@ -2,7 +2,7 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
 ## MCMC chain length
-   nChain        <- as.integer(20000)
+   nChain        <- as.integer(10000)
    nBurnin       <- as.integer(nChain/2)
    
 

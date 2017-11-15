@@ -203,7 +203,8 @@ do day = 1, NDAYS
   TILG1   = TILG1           + TILVG1 - TILG1G2
   TILG2   = TILG2                    + TILG1G2 - HARVTILG2
   TILV    = TILV    + GTILV - TILVG1           - DTILV   
-  if (DAVTMP<TVERN) VERN = 1
+  if ((VERN==0.).and.(DAVTMP<TVERN)) VERN = 1
+!  if ((VERN==1.).and.(DAYL*24.<9.5)) VERN = 0 ! Simon simplistic vernalisation model 
   WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL +EXPLOR+IRRIG-DRAIN-RUNOFF-EVAP-TRAN
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain
   WAPS    = WAPS - THAWPS + FREEZEPL

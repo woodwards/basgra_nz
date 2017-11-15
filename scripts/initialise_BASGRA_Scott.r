@@ -9,7 +9,7 @@
    # Scott weather data is 2010-1 to 2016-366 (2557 rows)
    year_start     <- as.integer(2011)
    doy_start      <- as.integer(152) # 1 June
-   year_stop      <- as.integer(2016)
+   year_stop      <- as.integer(2014)
    doy_stop       <- as.integer(151) # 31 May
    NDAYS          <- as.integer(difftime(
      as.Date(doy_stop -1, origin=paste(year_stop ,1,1,sep='-')), 
