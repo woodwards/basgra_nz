@@ -1,0 +1,18 @@
+BASGRA Scott Farm  Calibration To Do List
+
+How to handle establishment year in data
+
+Finalise how to compare model to data.  What year are we going to calibrate/compare?
+Average across blocks?
+Calibrate to one block and validate on another?
+(this validates both the model and the data - quite demanding)
+Fit statistics (GRMSE)/visualisation
+
+Increase to 2017 to get soil water data. Get weather
+
+Organise parameters, maybe write a script for this to allow easier documentation?
+I guess all 81 parameters alwats need to be there?
+
+Organise calibration parameters - 
+I guess you only put in what paramaters you want to vary? Try to reduce size of param space
+Sensible priors
