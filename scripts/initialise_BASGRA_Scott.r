@@ -10,11 +10,11 @@
    year_start     <- as.integer(2011)
    doy_start      <- as.integer(152) # 1 June
    year_stop      <- as.integer(2015)
-   doy_stop       <- as.integer(151) # 30 May
+   doy_stop       <- as.integer(151) # 31 May
    NDAYS          <- as.integer(difftime(
      as.Date(doy_stop -1, origin=paste(year_stop ,1,1,sep='-')), 
      as.Date(doy_start-1, origin=paste(year_start,1,1,sep='-')),
-     units="days")) 
+     units="days")) + 1L
    #   NDAYS          <- as.integer(1460) # WARNING this value needs to fit within weather data!
 
    file_weather   <- 'model_inputs/weather_Scott.txt'
