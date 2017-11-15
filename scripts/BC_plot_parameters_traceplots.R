@@ -4,7 +4,9 @@
    
  # We will write the plots to a pdf file
    pagew <- 11 ; pageh <- 8
-   png( paste("model_outputs/BC_parameters_traceplots",format(Sys.time(),"_%H_%M.png"),sep=""),
+   # png( paste("model_outputs/BC_parameters_traceplots",format(Sys.time(),"_%H_%M.png"),sep=""),
+   #      width=pagew, height=pageh, units="in", type="windows", res=300)
+   png( paste("model_outputs/BC_parameters_convergence.png",sep=""),
         width=pagew, height=pageh, units="in", type="windows", res=300)
    
 ## Parameter trace plots ##

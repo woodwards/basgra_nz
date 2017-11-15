@@ -2,12 +2,12 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
 ## MCMC chain length
-   nChain        <- as.integer(10000)
-   # note: nBurnin       <- as.integer(nChain/10)
+   nChain        <- as.integer(20000)
+   nBurnin       <- as.integer(nChain/2)
    
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
-   shape <- 0 # shape parameter (0=noninformative, 4=previous method)
+   shape <- 4 # shape parameter (0=noninformative, 4=previous method)
    file_prior    <- "model_inputs/parameters_BC_Scott.txt"
    # 5 columns
    # name  minimum  mode  maximum  (beta distribution)  unknown

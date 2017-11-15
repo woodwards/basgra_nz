@@ -143,7 +143,8 @@ table_output <- function(
     table_output <- cbind( table_output, table_il ) 
   }
   colnames(table_output) <- c( "","","",rep(leg,each=nvars) )
-  write.table( table_output, file_table, sep="\t", row.names=F )
+#  write.table( table_output, file_table, sep="\t", row.names=F )
+  write.table( table_output, file_table, sep="\t", row.names=FALSE, quote=FALSE )
 }
 
 export_output <- function(
@@ -151,8 +152,8 @@ export_output <- function(
   vars        = chooseNames,
   #  file_table  = paste( "model_outputs/output_", format(Sys.time(),"%H_%M.txt"), sep="" ),
   #  file_plot   = paste( "model_outputs/plot_", format(Sys.time(),"%H_%M.png"), sep="" ),
-  file_table  = "model_outputs/output_table.txt",
-  file_plot   = "model_outputs/output_plots.png",
+  file_table  = "model_outputs/basgra_trace_table.txt",
+  file_plot   = "model_outputs/basgra_trace_plots.png",
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
@@ -164,7 +165,7 @@ export_output <- function(
   plot_output(  list_output=list_output, vars=vars,
                 leg=leg, leg_title=leg_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
-  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
+#  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
   # and save to file (Simon)
   png(filename=file_plot, width=10, height=8, units="in", type="windows", res=300)
   plot_output(  list_output=list_output, vars=vars,

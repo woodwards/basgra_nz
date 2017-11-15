@@ -138,7 +138,7 @@
    bb <- 1 + shape*(1-relmode)
 
 ## INITIALISING THE CHAIN ##
-   nBurnin       <- as.integer(nChain/10)
+#   nBurnin       <- as.integer(nChain/10)
    pChain        <- matrix( 0, nrow=nChain, ncol=np_BC )
  # We start the chain at the mode of the prior parameter distribution
    scpValues_BC  <- scparmod_BC ; pChain[1,] <- scpValues_BC

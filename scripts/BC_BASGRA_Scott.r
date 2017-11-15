@@ -14,6 +14,16 @@
    source('scripts/BC_plot_parameters_priorbeta_histograms.R')
    source('scripts/BC_plot_outputs_data.R')
   
+  # run with MAP parameters
+  cat(file=stderr(), 'Running BASGRA_Scott with BC MAP parameters', "\n")
+  file_params    <- 'model_outputs/BASGRA_parModes.txt' 
+  parcol         <- 2 
+  source('scripts/initialise_BASGRA_Scott.r')
+  cat(file=stderr(), 'Calling run_model()', "\n")
+  output <- run_model()
+  cat(file=stderr(), 'Calling export_output()', "\n")
+  export_output()
+
   #
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
   

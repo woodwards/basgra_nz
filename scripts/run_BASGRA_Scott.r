@@ -1,10 +1,12 @@
 ## 1. INITIALISATION ##
   cat(file=stderr(), 'Starting run_BASGRA_scott.r', "\n")
-  rm(list=ls())
+  #rm(list=ls())
+  file_params    <- 'model_inputs/parameters_Scott.txt' # can contain multiple columns
+  parcol       <- 1 # which one are we going to use? (row names are ignored)
   source('scripts/initialise_BASGRA_Scott.r')
 
 ## 2. RUNNING ##
-   cat(file=stderr(), 'Calling run_model()', "\n")
+  cat(file=stderr(), 'Calling run_model()', "\n")
    output <- run_model()
   
    # run_model <- function(p = params,

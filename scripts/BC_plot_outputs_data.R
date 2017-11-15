@@ -4,7 +4,9 @@ params_BC_MaxL      <- scparMaxL_BC * sc
 
 dev.set()
 pagew <- 11 ; pageh <- 8
-png( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.png"),sep=""),
+# png( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.png"),sep=""),
+#      width=pagew, height=pageh, units="in", type="windows", res=300)
+png( paste('model_outputs/BC_calibration_fits.png',sep=""),
      width=pagew, height=pageh, units="in", type="windows", res=300)
 
 for (s in 1:nSites) {
