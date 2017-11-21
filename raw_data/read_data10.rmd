@@ -1,7 +1,6 @@
 ---
 title: "Scott Farm Data"
-author: "Simon Woodward"
-date: "November 2, 2017"
+author: "Simon Woodward, DairyNZ 2017"
 output: word_document
 ---
 
@@ -167,7 +166,7 @@ data_rpm <- data_rpm %>%
 
 ```
 
-Average pre-graze growth rate = `r round(mean(data_rpm$harv, na.rm=TRUE))`
+Average harvest % = `r round(mean(data_rpm$harv, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
 ybreaks <- seq(0, round_any(max(data_rpm$harv, na.rm=TRUE), 20, ceiling), 20)
@@ -310,7 +309,7 @@ data_bc %>%
 
 ## Pasture Cuts DM%
 
-Average cut DM% = `r round(mean(data_cut$dm_pc, na.rm=TRUE))`
+Average cut dry matter % = `r round(mean(data_cut$dm_pc, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # plot DM% data
