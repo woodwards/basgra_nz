@@ -38,7 +38,7 @@ if (length(missing)>0) {
 
 # get variables for BASGRA weather file
 data2 <- data %>% 
-  select(station, year, doy, tmin_C, tmax_C, rain_mm, radn_MJ_m2, priestley_mm)
+  dplyr::select(station, year, doy, tmin_C, tmax_C, rain_mm, radn_MJ_m2, priestley_mm)
 
 # simple handling of missing data
 missing <- which(data2$radn_MJ_m2 < 0)
@@ -56,4 +56,5 @@ for (i in missing) {
 
 # write BASGRA weather file
 write_tsv(data2, 'raw_data/weather_Scott.txt')
+print('Remember to copy weather to model_inputs folder!')
 

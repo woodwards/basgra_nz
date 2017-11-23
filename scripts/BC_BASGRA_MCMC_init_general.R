@@ -23,16 +23,16 @@
      # NDAYS and matrix_weather can tell us sim length and dates
      NDAYS <- list_NDAYS[[s]]
      matrix_weather <- list_matrix_weather[[s]]
-     start_year <- matrix_weather[1, 1]
-     start_doy <- matrix_weather[1, 2]
+     # start_year <- matrix_weather[1, 1]
+     # start_doy <- matrix_weather[1, 2]
      data_year <- dataset_all[ ,2]
      data_doy <- dataset_all[ ,3]
-     stop_year <- matrix_weather[NDAYS, 1]
-     stop_doy <- matrix_weather[NDAYS, 2]
+     # stop_year <- matrix_weather[NDAYS, 1]
+     # stop_doy <- matrix_weather[NDAYS, 2]
      keeps <- which(
-       (data_year==start_year & data_doy>=start_doy) |
-       (data_year>start_year & data_year<stop_year) |
-       (data_year==stop_year & data_doy<=stop_doy)   
+       (data_year == year_start_data & data_doy  >= doy_start_data) |
+       (data_year  > year_start_data & data_year <  year_stop_data) |
+       (data_year == year_stop_data  & data_doy  <= doy_stop_data )   
        )
      dataset_all <- dataset_all[keeps, ]
      
@@ -64,13 +64,15 @@
 	 i_LT50                 <- which(data_name[[s]]=='LT50'  )
 	 i_CST                  <- which(data_name[[s]]=='CST'  )  # Simon added calib variable
 	 i_CLV                  <- which(data_name[[s]]=='CLV'  )  # Simon added calib variable
-	 data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])     * cv_DM[s]    , sd_DM_min[s]     )
+	 i_WCL                  <- which(data_name[[s]]=='WCL'  )  # Simon added calib variable
+	 data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])       * cv_DM[s]    , sd_DM_min[s]     )
      data_sd[[s]][i_LAI]    <- max( abs(data_value[[s]][i_LAI])    * cv_LAI[s]   , sd_LAI_min[s]    )
      data_sd[[s]][i_TILTOT] <- max( abs(data_value[[s]][i_TILTOT]) * cv_TILTOT[s], sd_TILTOT_min[s] )
   	 data_sd[[s]][i_YIELD]  <- max( abs(data_value[[s]][i_YIELD])  * cv_YIELD[s] , sd_YIELD_min[s]  )
   	 data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
   	 data_sd[[s]][i_CST]   <-                                                      sd_CST[s]
   	 data_sd[[s]][i_CLV]   <-                                                      sd_CLV[s]
+  	 data_sd[[s]][i_WCL]   <-                                                      sd_WCL[s]
   	 
      data_mm_name [[s]] <- database_mm[[s]][,1]
      data_mm_year [[s]] <- database_mm[[s]][,2]

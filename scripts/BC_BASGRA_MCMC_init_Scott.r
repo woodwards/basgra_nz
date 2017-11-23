@@ -42,6 +42,7 @@
    sd_LT50       <- rep( 5   , nSites )
    sd_CST        <- rep( 5   , nSites ) # need to add this because has values of 0
    sd_CLV        <- rep( 20  , nSites ) 
+   sd_WCL        <- rep(  5  , nSites ) 
    cv_mm_default <- rep( 0.2 , nSites )
    cv_mm_FRTILG  <- rep( 0.2 , nSites )
    

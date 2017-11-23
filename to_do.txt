@@ -11,8 +11,13 @@ Fit statistics (GRMSE)/visualisation
 Increase to 2017 to get soil water data. Get weather
 
 Organise parameters, maybe write a script for this to allow easier documentation?
-I guess all 81 parameters alwats need to be there?
+I guess all 81 parameters always need to be there?
 
 Organise calibration parameters - 
 I guess you only put in what paramaters you want to vary? Try to reduce size of param space
 Sensible priors
+
+Additions to model:
+- vernalisation
+- decomposition
+- establishment and loss of vigor

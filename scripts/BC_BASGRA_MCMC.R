@@ -6,7 +6,7 @@
      # Give intermediate output to the screen for tracking the progress of the MCMC
        jint <- min(1000,round(nChain/20))
        if (j%%jint == 0) cat("Iteration",j,"|",round(100*nAccepted/(j-nBurnin)),"%","|",logPrior0,"|",logL0,
-	                         ", ",date(),"\n")
+	                         ", ",base::date(),"\n")
 							 
      # Select the candidate parameter vector and calculate its prior probability
        sccandidatepValues_BC <- mvrnorm(n=1, scpValues_BC, vcovProp, tol=1e-6, empirical=FALSE)
@@ -44,4 +44,9 @@
          if (j > nBurnin) { nAccepted <- nAccepted + 1 }
        }
        pChain[j,] <- scpValues_BC
-     }
+   }
+   
+   
+   
+   
+   
