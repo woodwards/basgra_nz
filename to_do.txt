@@ -1,14 +1,18 @@
 BASGRA Scott Farm  Calibration To Do List
 
-How to handle establishment year in data
+How to handle establishment year in data? 
+
+* How to handle pseudostem. Asked Marcel. No LAI?
+
+* Combine block data. Define a nominal grazing date (or number) to group by.
+
+* Lincoln data
 
 Finalise how to compare model to data.  What year are we going to calibrate/compare?
 Average across blocks?
 Calibrate to one block and validate on another?
 (this validates both the model and the data - quite demanding)
 Fit statistics (GRMSE)/visualisation
-
-Increase to 2017 to get soil water data. Get weather
 
 Organise parameters, maybe write a script for this to allow easier documentation?
 I guess all 81 parameters always need to be there?
@@ -18,6 +22,6 @@ I guess you only put in what paramaters you want to vary? Try to reduce size of 
 Sensible priors
 
 Additions to model:
-- vernalisation
+- vernalisation (TILG should have short season only) Take mechanism from another model?
 - decomposition
 - establishment and loss of vigor

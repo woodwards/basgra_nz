@@ -9,7 +9,8 @@
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
    shape <- 4 # shape parameter (0=noninformative, 4=previous method)
    file_prior    <- "model_inputs/parameters_BC_Scott.txt"
-   # 5 columns
+   
+   # parameters file has 5 columns
    # name  minimum  mode  maximum  (beta distribution)  unknown
    # require
    # .	DLMXGE > DAYLB 

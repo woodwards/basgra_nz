@@ -62,14 +62,6 @@ file_name <- 'FD1004 Data For Modelling.xlsx'
 seed_rate_levels <- c('6kg', '12kg', '18kg', '24kg', '30kg')
 ```
 
-### Assumptions
-
-* 
-
-*
-
-*
-
 ## Rising Plate Meter
 
 ```{r include=FALSE}
@@ -118,6 +110,10 @@ data_rpm %>%
 
 ## Rising Plate Meter Growth Rate
 
+### Assumptions 
+
+* Growth rate calculated from RPM data and assumed constant between grazings.
+
 ```{r include=FALSE}
 # plot growth rate before grazing by cultivar, seed_rate and block.
 # daily dry matter growth rate is assumed to be constant between grazings.
@@ -135,7 +131,7 @@ data_rpm <- data_rpm %>%
 
 ```
 
-Average pre-graze growth rate = `r round(mean(data_rpm$growth_rate_pre, na.rm=TRUE))`
+Average growth rate = `r round(mean(data_rpm$growth_rate_pre, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
 ybreaks <- seq(round_any(min(data_rpm$growth_rate_pre, na.rm=TRUE), 25, floor), 
@@ -159,6 +155,10 @@ data_rpm %>%
 
 ## Rising Plate Meter Harvest %
 
+### Assumptions 
+
+* Assume no pasture growth between pre and post RPM.
+
 ```{r include=FALSE}
 # plot harvest % by cultivar, seed_rate and block.
 # grazing and residual mass are estimated by linear extrapolation of growth rate
@@ -167,8 +167,8 @@ data_rpm <- data_rpm %>%
   mutate(
     delay_pre = as.numeric(difftime(date_grazed, date_pre), units="days"),
     delay_post = as.numeric(difftime(date_post, date_grazed), units="days"),
-    mass_grazed = mass_pre + growth_rate_pre * delay_pre,
-    mass_resid = mass_post - growth_rate_post * delay_post, # assumes growth starts immediately
+    mass_grazed = mass_pre + growth_rate_pre * delay_pre * 0,
+    mass_resid = mass_post - growth_rate_post * delay_post * 0, 
     harv = (1 - mass_resid / mass_grazed) * 100 # proportion harvested
     )
 
@@ -265,6 +265,10 @@ data_cut %>%
 
 ## Estimate Mass Below Cutting Height
 
+### Assumptions 
+
+* Total mass at cutting assumed to be equal to pregraze RPM.
+
 ```{r include=FALSE}
 # total mass at cutting is estimated by linear extrapolation of pregrazing rpm data
 # find cut matching rpm data
@@ -281,7 +285,7 @@ data_bc <- data_rpm %>%
   filter(abs(delay)<4) %>%
   drop_na() %>%
   mutate(
-    mass_cut = mass_pre + growth_rate_pre * delay,
+    mass_cut = mass_pre + growth_rate_pre * delay * 0,
     below = mass_cut - yield
     )
          
@@ -405,9 +409,10 @@ data_bot <- data_bot %>%
     ) %>%
   mutate(
     total = leaf + stem + ann + wc + og + weed + dead, # should always be 100
+    rgfrac = 100 * (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
     month = month(dmy(paste('01', month, '2011')))
   ) %>%
-  select(leaf, stem, ann, wc, og, weed, dead, date, total, block, seed_rate, cultivar) 
+  select(leaf, stem, ann, wc, og, weed, dead, date, total, block, seed_rate, cultivar, rgfrac) 
   
 # gather
 data_bot2 <- data_bot %>%
@@ -434,7 +439,38 @@ data_bot2 %>%
 
 ```
 
+## Ryegrass Fraction
+
+### Assumptions
+
+* Ryegrass fraction calculated on green mass only.
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot ryegrass fraction
+ybreaks <- seq(0, 100, 20)
+xbreaks <- seq(floor_date(min(data_bot$date), "years"), 
+               ceiling_date(max(data_bot$date), "years"), by="1 year")
+data_bot %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight %', 
+         title=paste('Ryegrass Fraction (above 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date, y=rgfrac), colour="darkgreen") +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+```
+
 ## Estimate Botancial Mass
+
+### Assumptions 
+
+* Total mass at botanical date assumed to be equal to pregraze RPM.
+
+* Botanical composition assumed the same above and below cutting height (what's the alternative?).
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # total mass on botanical date is estimate by linear extrapolation of rpm data
@@ -453,7 +489,7 @@ data_bm <- data_bot %>%
   rename(yield_cut = yield) %>%
   mutate(
     delay = as.integer(as.Date(date_bot) - as.Date(date_cut)),
-    yield_bot = yield_cut + below + growth_rate_pre * delay # assumed on date_bot, including below mass?
+    yield_bot = yield_cut + below + growth_rate_pre * delay * 0 # assumed on date_bot, including below mass?
     )
          
 # gather
@@ -615,6 +651,7 @@ file_name <- "harvest_Scott.txt"
 data_h <- data_rpm %>%
   select(block, seed_rate, cultivar, year_grazed, doy_grazed, harv) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
+  mutate(grazing=(1:nrow(.))+length(ablock)) %>%
   drop_na()
 days_harvest <- matrix(as.integer(-1), nrow=100, ncol=3) # up to 100 harvests
 days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$harv)
@@ -650,13 +687,6 @@ temp <- data_till %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(date), 
                                  doy=yday(date), data=mean_tillers) %>% drop_na())
-
-# ryegrass fraction
-temp <- data_bot %>%
-  select(block, seed_rate, cultivar, leaf, stem, date) %>%
-  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-# data_c[[4]] <- with(temp, tibble(var='CSTP', year=year(date), 
-#                                  doy=yday(date), data=stem/(leaf+stem)*100) %>% drop_na())
 
 # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
 temp <- data_bm %>%
