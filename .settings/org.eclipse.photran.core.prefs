@@ -1,0 +1,4 @@
+EnableVPG=false
+FortranIncludePaths=\\basgra_nz\\model\n
+FortranModulePaths=\\basgra_nz\\model\n
+eclipse.preferences.version=1
