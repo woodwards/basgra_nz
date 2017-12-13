@@ -19,73 +19,81 @@
    for (s in 1:nSites) {
      dataset_all      <- read.table(sitedata_filenames[s],header=F,sep="")
      
-     # Simon remove data outside sim period
-     # NDAYS and matrix_weather can tell us sim length and dates
-     NDAYS <- list_NDAYS[[s]]
-     matrix_weather <- list_matrix_weather[[s]]
-     # start_year <- matrix_weather[1, 1]
-     # start_doy <- matrix_weather[1, 2]
-     data_year <- dataset_all[ ,2]
-     data_doy <- dataset_all[ ,3]
-     # stop_year <- matrix_weather[NDAYS, 1]
-     # stop_doy <- matrix_weather[NDAYS, 2]
+     # # Simon remove data outside sim period
+     # # NDAYS and matrix_weather can tell us sim length and dates
+     # NDAYS <- list_NDAYS[[s]]
+     # matrix_weather <- list_matrix_weather[[s]]
+     # # start_year <- matrix_weather[1, 1]
+     # # start_doy <- matrix_weather[1, 2]
+     data_year <- dataset_all[, 2]
+     data_doy <- dataset_all[, 3]
+     # # stop_year <- matrix_weather[NDAYS, 1]
+     # # stop_doy <- matrix_weather[NDAYS, 2]
      keeps <- which(
-       (data_year == year_start_data & data_doy  >= doy_start_data) |
-       (data_year  > year_start_data & data_year <  year_stop_data) |
-       (data_year == year_stop_data  & data_doy  <= doy_stop_data )   
+       (data_year == year_start & data_doy  >= doy_start) |
+       (data_year  > year_start & data_year <  year_stop) |
+       (data_year == year_stop  & data_doy  <= doy_stop )
        )
      dataset_all <- dataset_all[keeps, ]
      
-     database   [[s]] <- dataset_all[which(dataset_all$V1!='FRTILG'),]
-     database_mm[[s]] <- dataset_all[which(dataset_all$V1=='FRTILG'),]
+     database   [[s]] <- dataset_all[which(dataset_all$V6=='sd'),]
+     database_mm[[s]] <- dataset_all[which(dataset_all$V6=='mm'),]
      ndata[s]         <- dim(database   [[s]])[[1]]
      ndata_mm[s]      <- dim(database_mm[[s]])[[1]]
    }
 
-   data_name  <- sitelist ; data_mm_name  <- sitelist
-   data_value <- sitelist ; data_mm_value <- sitelist
-   data_sd    <- sitelist ; data_mm_min   <- sitelist ; data_mm_max <- sitelist ; data_mm_cv <- sitelist
-   data_year  <- sitelist ; data_mm_year  <- sitelist 
-   data_doy   <- sitelist ; data_mm_doy   <- sitelist
+   data_name   <- sitelist ; data_mm_name   <- sitelist
+   data_year   <- sitelist ; data_mm_year   <- sitelist 
+   data_doy    <- sitelist ; data_mm_doy    <- sitelist
+   data_value  <- sitelist ; data_mm_value  <- sitelist
+   data_sd     <- sitelist ; data_mm_min    <- sitelist ; data_mm_max <- sitelist ; data_mm_cv <- sitelist
+   data_type   <- sitelist ; data_mm_type   <- sitelist
+   data_weight <- sitelist ; data_mm_weight <- sitelist
    
    for (s in 1:nSites) {
-     data_name [[s]] <-     database[[s]][,1]
-     data_year [[s]] <-     database[[s]][,2]
-     data_doy  [[s]] <-     database[[s]][,3]
-     data_value[[s]] <-     database[[s]][,4]
+     data_name  [[s]] <-     database[[s]][,1]
+     data_year  [[s]] <-     database[[s]][,2]
+     data_doy   [[s]] <-     database[[s]][,3]
+     data_value [[s]] <-     database[[s]][,4]
+     data_sd    [[s]] <-     database[[s]][,5]
+     data_type  [[s]] <-     database[[s]][,6]
+     data_weight[[s]] <-     database[[s]][,7]
      
      # data uncertainty (these ones use Sivia distribution)
-     data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s] 
-     # special cases 
-	 i_DM                   <- which(data_name[[s]]=='DM'    )
-	 i_LAI                  <- which(data_name[[s]]=='LAI'   )
-	 i_TILTOT               <- which(data_name[[s]]=='TILTOT')
-	 i_YIELD                <- which(data_name[[s]]=='YIELD' )
-	 i_LT50                 <- which(data_name[[s]]=='LT50'  )
-	 i_CST                  <- which(data_name[[s]]=='CST'  )  # Simon added calib variable
-	 i_CLV                  <- which(data_name[[s]]=='CLV'  )  # Simon added calib variable
-	 i_WCL                  <- which(data_name[[s]]=='WCL'  )  # Simon added calib variable
-	 data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])       * cv_DM[s]    , sd_DM_min[s]     )
-     data_sd[[s]][i_LAI]    <- max( abs(data_value[[s]][i_LAI])    * cv_LAI[s]   , sd_LAI_min[s]    )
-     data_sd[[s]][i_TILTOT] <- max( abs(data_value[[s]][i_TILTOT]) * cv_TILTOT[s], sd_TILTOT_min[s] )
-  	 data_sd[[s]][i_YIELD]  <- max( abs(data_value[[s]][i_YIELD])  * cv_YIELD[s] , sd_YIELD_min[s]  )
-  	 data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
-  	 data_sd[[s]][i_CST]   <-                                                      sd_CST[s]
-  	 data_sd[[s]][i_CLV]   <-                                                      sd_CLV[s]
-  	 data_sd[[s]][i_WCL]   <-                                                      sd_WCL[s]
+#      data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s] 
+#      # special cases 
+# 	 i_DM                   <- which(data_name[[s]]=='DM'    )
+# 	 i_LAI                  <- which(data_name[[s]]=='LAI'   )
+# 	 i_TILTOT               <- which(data_name[[s]]=='TILTOT')
+# 	 i_YIELD                <- which(data_name[[s]]=='YIELD' )
+# 	 i_LT50                 <- which(data_name[[s]]=='LT50'  )
+# 	 i_CST                  <- which(data_name[[s]]=='CST'  )  # Simon added calib variable
+# 	 i_CLV                  <- which(data_name[[s]]=='CLV'  )  # Simon added calib variable
+# 	 i_WCL                  <- which(data_name[[s]]=='WCL'  )  # Simon added calib variable
+# 	 data_sd[[s]][i_DM]     <- max( abs(data_value[[s]][i_DM])       * cv_DM[s]    , sd_DM_min[s]     )
+#      data_sd[[s]][i_LAI]    <- max( abs(data_value[[s]][i_LAI])    * cv_LAI[s]   , sd_LAI_min[s]    )
+#      data_sd[[s]][i_TILTOT] <- max( abs(data_value[[s]][i_TILTOT]) * cv_TILTOT[s], sd_TILTOT_min[s] )
+#   	 data_sd[[s]][i_YIELD]  <- max( abs(data_value[[s]][i_YIELD])  * cv_YIELD[s] , sd_YIELD_min[s]  )
+#   	 data_sd[[s]][i_LT50]   <-                                                     sd_LT50[s]
+#   	 data_sd[[s]][i_CST]   <-                                                      sd_CST[s]
+#   	 data_sd[[s]][i_CLV]   <-                                                      sd_CLV[s]
+#   	 data_sd[[s]][i_WCL]   <-                                                      sd_WCL[s]
   	 
-     data_mm_name [[s]] <- database_mm[[s]][,1]
-     data_mm_year [[s]] <- database_mm[[s]][,2]
-     data_mm_doy  [[s]] <- database_mm[[s]][,3]
-     data_mm_value[[s]] <- database_mm[[s]][,4]
-     data_mm_min  [[s]] <- rep( 0, ndata_mm[s] )
-     data_mm_max  [[s]] <- rep( 1, ndata_mm[s] )
+     data_mm_name   [[s]] <- database_mm[[s]][,1]
+     data_mm_year   [[s]] <- database_mm[[s]][,2]
+     data_mm_doy    [[s]] <- database_mm[[s]][,3]
+     data_mm_value  [[s]] <- database_mm[[s]][,4]
+     data_mm_cv     [[s]] <- database_mm[[s]][,5]
+     data_mm_type   [[s]] <- database_mm[[s]][,6]
+     data_mm_weight [[s]] <- database_mm[[s]][,7]
+     data_mm_min    [[s]] <- rep( 0, ndata_mm[s] )
+     data_mm_max    [[s]] <- rep( 1, ndata_mm[s] )
      
      # data uncertainty (these ones use Beta distribution)
-     data_mm_cv   [[s]] <- cv_mm_default[s]
-     # special cases 
-     i_FRTILG           <- which(data_mm_name[[s]]=='FRTILG')
-     data_mm_cv   [[s]][i_FRTILG] <- cv_mm_FRTILG[s]
+     # data_mm_cv   [[s]] <- cv_mm_default[s]
+     # # special cases 
+     # i_FRTILG           <- which(data_mm_name[[s]]=='FRTILG')
+     # data_mm_cv   [[s]][i_FRTILG] <- cv_mm_FRTILG[s]
      
    }
 
@@ -184,18 +192,18 @@
    # calculate log-likelihood for one site
    calc_logL_s <- function( s=1, output=output ) {
      output_calibr <- if(ndata[s]==1) {
-                      output[list_output_calibr_rows[[s]], data_index[[s]]]
-       } else { diag( output[list_output_calibr_rows[[s]], data_index[[s]]] ) }
+                      output[unlist(list_output_calibr_rows[[s]]), data_index[[s]]]
+       } else { diag( output[unlist(list_output_calibr_rows[[s]]), data_index[[s]]] ) }
      if(dim(database_mm[[s]])[1]>0) {
          output_mm_calibr <- if(ndata_mm[s]==1) {
-                          output[list_output_mm_calibr_rows[[s]], data_mm_index[[s]]]
-           } else { diag( output[list_output_mm_calibr_rows[[s]], data_mm_index[[s]]] ) }
+                          output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ]
+           } else { diag( output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ] ) }
      }
-     logLs      <- flogL(output_calibr,data_value[[s]],data_sd[[s]])
+     logLs      <- flogL(output_calibr,data_value[[s]],data_sd[[s]],data_weight[[s]] )
      logLs_mm   <- 0
      if(dim(database_mm[[s]])[1]>0) {
        logLs_mm <- flogL_mm( output_mm_calibr, data_mm_value[[s]],
-                             data_mm_min[[s]], data_mm_max[[s]], data_mm_cv[[s]] )
+                             data_mm_min[[s]], data_mm_max[[s]], data_mm_cv[[s]], data_mm_weight[[s]])
      }
      logL_s <- logLs + logLs_mm
 	 return( logL_s )
@@ -236,7 +244,7 @@
 	 outis   <- output_calibr
 	 SSEis   <- sapply( 1:ndata[s], function(i) { (output_calibr[i]-data_value[[s]][i])^2 } )
      logLis  <- sapply( 1:ndata[s], function(i) {
-       flogL(output_calibr[i],data_value[[s]][i],data_sd[[s]][i]) } )
+       flogL(output_calibr[i],data_value[[s]][i],data_sd[[s]][i],data_weight[[s]][i]) } )
 	 datai_s <- datais
      outi_s  <- matrix( c(data_index[[s]],outis ), ncol=2 )
      SSEi_s  <- matrix( c(data_index[[s]],SSEis ), ncol=2 )
@@ -247,7 +255,7 @@
        SSEis_mm  <- sapply( 1:ndata_mm[s], function(i) { (output_mm_calibr[i]-data_mm_value[[s]][i])^2 } )
        logLis_mm <- sapply( 1:ndata_mm[s], function(i) {
          flogL_mm(output_mm_calibr[i],data_mm_value[[s]][i],
-                  data_mm_min[[s]][i],data_mm_max[[s]][i],data_mm_cv[[s]][i]) } )
+                  data_mm_min[[s]][i],data_mm_max[[s]][i],data_mm_cv[[s]][i],data_mm_weight[[s]][i]) } )
        datai_s   <- rbind( datais ,  datais_mm )
        outi_s    <- rbind( outi_s ,
                            matrix( c(data_mm_index[[s]],outis_mm ), ncol=2 ) )

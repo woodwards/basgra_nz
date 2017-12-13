@@ -665,6 +665,10 @@ write.table(days_harvest, file=file_name, row.names=FALSE, col.names=FALSE, sep=
 # file name
 file_name <- "data_calibration_Scott.txt"
 
+# calibration period
+calib_start <- ymd("20120101")
+calib_end <- ymd("20150531")
+
 ```
 
 ```{r include=FALSE}
@@ -686,7 +690,8 @@ temp <- data_till %>%
   select(block, seed_rate, cultivar, mean_tillers, date) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(date), 
-                                 doy=yday(date), data=mean_tillers) %>% drop_na())
+                                 doy=yday(date), data=mean_tillers, sd=200, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 
 # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
 temp <- data_bm %>%
@@ -694,9 +699,11 @@ temp <- data_bm %>%
   select(block, seed_rate, cultivar, leaf, stem, yield_bot, date) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[4]] <- with(temp, tibble(var='CLV', year=year(date), 
-                                 doy=yday(date), data=leaf/100*yield_bot/10*0.45) %>% drop_na())
+                                 doy=yday(date), data=leaf/100*yield_bot/10*0.45, sd=5, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 data_c[[5]] <- with(temp, tibble(var='CST', year=year(date), 
-                                 doy=yday(date), data=stem/100*yield_bot/10*0.45) %>% drop_na())
+                                 doy=yday(date), data=stem/100*yield_bot/10*0.45, sd=5, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 
 # light interception (but this includes all species!)
 temp <- data_li %>%
@@ -710,7 +717,8 @@ temp <- data_sm %>%
   select(block, seed_rate, cultivar, mean_sm, date) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date), 
-                                 doy=yday(date), data=mean_sm) %>% drop_na())
+                                 doy=yday(date), data=mean_sm, sd=2.5, type="sd",
+                                 weight=1) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)

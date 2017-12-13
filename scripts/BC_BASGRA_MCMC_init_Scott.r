@@ -35,17 +35,18 @@
 
    # Specify data uncertainties (the max of: cv for relative uncertainty, sd for absolute)   
    # These are used in BC_BASGRA_MCMC_init_general.r to set the data uncertainites
-   cv_default    <- rep( 0.2 , nSites ) # Simon change from 0.5 to 0.2
-   cv_DM         <- rep( 0.05, nSites ) ; sd_DM_min     <- rep(   0, nSites )
-   cv_LAI        <- rep( 0.1 , nSites ) ; sd_LAI_min    <- rep(   0, nSites )
-   cv_TILTOT     <- rep( 0.0 , nSites ) ; sd_TILTOT_min <- rep( 200, nSites )
-   cv_YIELD      <- rep( 0.05, nSites ) ; sd_YIELD_min  <- rep(   0, nSites )
-   sd_LT50       <- rep( 5   , nSites )
-   sd_CST        <- rep( 5   , nSites ) # need to add this because has values of 0
-   sd_CLV        <- rep( 5  , nSites ) 
-   sd_WCL        <- rep(  2.5  , nSites ) 
-   cv_mm_default <- rep( 0.2 , nSites ) # “minimum and maximum” variables
-   cv_mm_FRTILG  <- rep( 0.2 , nSites )
+   # Data uncertainties are now specified in the data file
+   # cv_default    <- rep( 0.2 , nSites ) # Simon change from 0.5 to 0.2
+   # cv_DM         <- rep( 0.05, nSites ) ; sd_DM_min     <- rep(   0, nSites )
+   # cv_LAI        <- rep( 0.1 , nSites ) ; sd_LAI_min    <- rep(   0, nSites )
+   # cv_TILTOT     <- rep( 0.0 , nSites ) ; sd_TILTOT_min <- rep( 200, nSites )
+   # cv_YIELD      <- rep( 0.05, nSites ) ; sd_YIELD_min  <- rep(   0, nSites )
+   # sd_LT50       <- rep( 5   , nSites )
+   # sd_CST        <- rep( 5   , nSites ) # need to add this because has values of 0
+   # sd_CLV        <- rep( 5  , nSites ) 
+   # sd_WCL        <- rep(  2.5  , nSites ) 
+   # cv_mm_default <- rep( 0.2 , nSites ) # “minimum and maximum” variables
+   # cv_mm_FRTILG  <- rep( 0.2 , nSites )
    
 ## PROPOSAL TUNING FACTOR  
    fPropTuning   <- 0.05 # This factor is used to modify Gelman's suggested average step length
