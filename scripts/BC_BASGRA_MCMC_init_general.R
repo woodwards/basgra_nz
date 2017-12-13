@@ -19,7 +19,7 @@
    for (s in 1:nSites) {
      dataset_all      <- read.table(sitedata_filenames[s],header=F,sep="")
      
-     # # Simon remove data outside sim period
+     # # Simon remove data outside sim period (otherwise get weird errors)
      # # NDAYS and matrix_weather can tell us sim length and dates
      # NDAYS <- list_NDAYS[[s]]
      # matrix_weather <- list_matrix_weather[[s]]
@@ -190,21 +190,27 @@
    }
    
    # calculate log-likelihood for one site
+   # Simon this function is quite fragile to errors!
    calc_logL_s <- function( s=1, output=output ) {
+     # get vector of model outputs
      output_calibr <- if(ndata[s]==1) {
-                      output[unlist(list_output_calibr_rows[[s]]), data_index[[s]]]
-       } else { diag( output[unlist(list_output_calibr_rows[[s]]), data_index[[s]]] ) }
+                      output[list_output_calibr_rows[[s]], data_index[[s]]]
+     } else { diag( output[list_output_calibr_rows[[s]], data_index[[s]]] ) }
+     # get vector of model_mm outputs
      if(dim(database_mm[[s]])[1]>0) {
          output_mm_calibr <- if(ndata_mm[s]==1) {
                           output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ]
            } else { diag( output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ] ) }
      }
+     # calculate log-likelihoods
      logLs      <- flogL(output_calibr,data_value[[s]],data_sd[[s]],data_weight[[s]] )
+     # calculate log-likelihoods_mm
      logLs_mm   <- 0
      if(dim(database_mm[[s]])[1]>0) {
        logLs_mm <- flogL_mm( output_mm_calibr, data_mm_value[[s]],
                              data_mm_min[[s]], data_mm_max[[s]], data_mm_cv[[s]], data_mm_weight[[s]])
      }
+     # add 
      logL_s <- logLs + logLs_mm
 	 return( logL_s )
    }
@@ -336,13 +342,13 @@
   plot_outputs_data_s <- function(
     isite        = 1,
     list_runs    = list_runs,
-    nruns        = length(list_runs),
+    nruns        = length(list_runs), # all the traces are in here in no particular order
   	leg_title    = "LEGEND",
 	  leg          = as.character(1:nruns),
     cols         = 1:nruns,
     lwds	       = rep(3,nruns),
 	  ltys         = rep(1,nruns),
-    col01        = c('darkgrey', 'dodgerblue3')
+    col01        = c('darkgrey', 'dodgerblue3') # colours for data points with weight 0 or 1
     ) {
    
   s <- isite  
@@ -365,17 +371,35 @@
     dcol      <- col01[as.integer(data_weight[[s]][datap])+1]
   	g_range_p <- range( sapply( 1:nruns, function(i){range(list_runs[[i]][,p])} ) )
     g_range   <- range( g_range_p, lcl, ucl )	
+    
+    # plot first series
     plot( list_runs[[1]][,1], list_runs[[1]][,p], type='l',
           xlab="", ylab="", ylim=g_range, cex.main=1,
-		      main=paste(outputNames[p]," ",outputUnits[p],sep=""),
+#          main=paste(outputNames[p]," ",outputUnits[p],sep=""),
+          main=paste(easyNames[p]," ",outputUnits[p],sep=""),
           col=cols[1], lwd=lwds[1], lty=ltys[1] )
-    if (nruns>=2) {
-	  for (i in 2:nruns) {
-	    points( list_runs[[i]][,1], list_runs[[i]][,p], type='l',
-	            col=cols[i], lwd=lwds[i], lty=ltys[i] )
-	  }
-	}
-
+    
+    # find 2 series with ltys[]==7 (this indicates polygon bounds)
+    bounds <- which(ltys==7)
+    if (length(bounds)==2){
+      x <- c(list_runs[[bounds[1]]][,1], rev(list_runs[[bounds[2]]][,1]))
+      y <- c(list_runs[[bounds[1]]][,p], rev(list_runs[[bounds[2]]][,p]))
+      polygon(x, y, col=cols[bounds[1]], border=cols[bounds[1]], density=50)
+    }
+    
+    # plot other series
+    other <- which(ltys!=7)
+    other <- other[other!=1] 
+    # if (nruns>=2) {
+    #   for (i in 2:nruns) {
+    if (length(other)>0) {
+      for (i in other) {
+        points( list_runs[[i]][,1], list_runs[[i]][,p], type='l',
+  	            col=cols[i], lwd=lwds[i], lty=ltys[i] )
+  	    }
+    }
+    
+    # add data points
     points( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, data_value[[s]][datap],
             col=dcol, lwd=2, cex=1 )
     arrows( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, ucl,
@@ -393,7 +417,8 @@
       g_range   <- range( g_range_p, lcl, ucl )	
       plot( list_runs[[1]][,1], list_runs[[1]][,p], type='l',
             xlab="", ylab="", ylim=g_range, cex.main=1,
-		        main=paste(outputNames[p]," ",outputUnits[p],sep=""),
+#            main=paste(outputNames[p]," ",outputUnits[p],sep=""),
+            main=paste(easyNames[p]," ",outputUnits[p],sep=""),
             col=cols[1], lwd=lwds[1], lty=ltys[1] )
     if (nruns>=2) {
 	  for (i in 2:nruns) {

@@ -73,6 +73,15 @@ outputNames <- c(
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
   "FRTILG2"   , "RDRT"     , "VERN"     ,
   "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT" )
+easyNames <- c(
+  "Time", "Year", "Day of Year", "Av. Temp.", "Leaf C", "Dead Leaf C",
+  "Yield", "Reserve C", "Root C", "Stem C", "Stubble C", "Dry Snow",
+  "Frost Depth", "LAI", "Leaf Death Temp.", "Rain", "Phen. Stage", "Root Depth",
+  "Snow Depth", "Elong. Tillers", "Vernalised Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
+  "Surface Ice", "Soil Ice", "Wet Snow", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
+  "Elong. Leaves", "Rel. Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
+  "Frac. Elong. Tillers", "Rel. Leaf Death Rate", "Vernalisation",
+  "Drainage", "Runoff", "Evaporation", "Transpiration", "Light Intercep." )
 outputUnits <- c(
   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
   "(g DM m-2)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(mm)"     ,
@@ -114,7 +123,8 @@ plot_output <- function(
     g_range <- range( sapply( 1:nlist, function(il){range(list_output[[il]][,c])} ) )
     plot( list_output[[1]][,1], list_output[[1]][,c],
           xlab="", ylab="", cex.main=1,
-          main=paste(outputNames[c]," ",outputUnits[c],sep=""),
+#          main=paste(outputNames[c]," ",outputUnits[c],sep=""),
+          main=paste(easyNames[c]," ",outputUnits[c],sep=""),
           type='l', col=1, lty=lty[1], lwd=lwd[1], ylim=g_range )
     if (nlist >= 2) {
       for (il in 2:nlist) {

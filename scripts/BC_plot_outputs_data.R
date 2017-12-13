@@ -46,8 +46,8 @@ for (s in 1:nSites) {
                        leg_title   = "BC",
                        leg         = c("Prior","MaxL","MAP", "q5", "q95"),
                        cols        = c(NA,  NA, "firebrick3", "firebrick3", "firebrick3" ),
-                       lwds        = c( 3, 2, 3, 2, 2 ),
-                       ltys        = c( 1, 1, 1, 3, 3 ),
+                       lwds        = c( 2, 2, 2, 1, 1 ),
+                       ltys        = c( 1, 1, 1, 7, 7 ), # ltys==7 in 2 series draws a ploygon
                        col01       = c('darkgrey', 'dodgerblue3')
                        )   
 }

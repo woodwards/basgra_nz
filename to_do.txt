@@ -1,18 +1,19 @@
 BASGRA Scott Farm  Calibration To Do List
 
-* How to handle establishment year in data? 
 * How to handle pseudostem. -> It's there but not counted.
-* Combine block data. Define a nominal grazing date (or number) to group by.
+* Fit blocks separately?
 * Lincoln data
 * Post grazing dissection data from Katherine Tozer. Adjust harvest % by fraction.
 * Darren.Kriticos@csiro.au population model DYMEX
 * Do we want APSIM-AgPasture? Ask Iris.
 * Nicer parameter handling.
-* Rename graphs more user friendly.
 * Vernalisation model required.
-* Estimate data errors from data (read_data12.rmd)
+* Check uncertainty bounds 
+* Look at BC parameters and adjust bounds to hit higher growth rate.
+* Plot residuals
 
 Finalise how to compare model to data.  What year are we going to calibrate/compare?
+Fit blocks separately (BASGRA can do this)
 Average across blocks?
 Calibrate to one block and validate on another?
 (this validates both the model and the data - quite demanding)
@@ -27,5 +28,5 @@ Sensible priors
 
 Additions to model:
 - vernalisation (TILG should have short season only) Take mechanism from another model?
-- decomposition (already there?)
+- decomposition (already in new version)
 - establishment and loss of vigor
