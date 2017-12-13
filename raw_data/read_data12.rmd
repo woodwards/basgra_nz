@@ -667,7 +667,7 @@ file_name <- "data_calibration_Scott.txt"
 
 # calibration period
 calib_start <- ymd("20120101")
-calib_end <- ymd("20150531")
+calib_end <- ymd("20140531")
 
 ```
 

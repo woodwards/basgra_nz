@@ -341,7 +341,9 @@
 	  leg          = as.character(1:nruns),
     cols         = 1:nruns,
     lwds	       = rep(3,nruns),
-	  ltys         = rep(1,nruns) ) {
+	  ltys         = rep(1,nruns),
+    col01        = c('darkgrey', 'dodgerblue3')
+    ) {
    
   s <- isite  
     
@@ -360,6 +362,7 @@
     datap     <- which( data_name[[s]] == as.character(outputNames[p]) )
     lcl       <- data_value[[s]][datap] - data_sd[[s]][datap]
     ucl       <- data_value[[s]][datap] + data_sd[[s]][datap]	
+    dcol      <- col01[as.integer(data_weight[[s]][datap])+1]
   	g_range_p <- range( sapply( 1:nruns, function(i){range(list_runs[[i]][,p])} ) )
     g_range   <- range( g_range_p, lcl, ucl )	
     plot( list_runs[[1]][,1], list_runs[[1]][,p], type='l',
@@ -372,11 +375,12 @@
 	            col=cols[i], lwd=lwds[i], lty=ltys[i] )
 	  }
 	}
+
     points( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, data_value[[s]][datap],
-            col='blue', lwd=1, cex=1 )
+            col=dcol, lwd=2, cex=1 )
     arrows( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, ucl,
             data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, lcl,
-            col='blue', lwd=1, angle=90, code=3, length=0.05 )
+            col=dcol, lwd=2, angle=90, code=3, length=0.05 )
   }
    
   if(dim(database_mm[[s]])[1]>0) {
@@ -384,6 +388,7 @@
       datap     <- which( data_mm_name[[s]] == as.character(outputNames[p]) )
       ucl       <- data_mm_max[[s]][datap]
       lcl       <- data_mm_min[[s]][datap]
+      dcol      <- col01[as.integer(data_mm_weight[[s]][datap])+1]
       g_range_p <- range( sapply( 1:nruns, function(i){range(list_runs[[i]][,p])} ) )
       g_range   <- range( g_range_p, lcl, ucl )	
       plot( list_runs[[1]][,1], list_runs[[1]][,p], type='l',
@@ -398,10 +403,10 @@
 	}
 
       points( data_mm_year[[s]][datap]+(data_mm_doy[[s]][datap]-0.5)/366, data_mm_value[[s]][datap],
-              col='blue', lwd=1, cex=1 )
+              col=dcol, lwd=2, cex=1 )
       arrows( data_mm_year[[s]][datap]+(data_mm_doy[[s]][datap]-0.5)/366, ucl,
               data_mm_year[[s]][datap]+(data_mm_doy[[s]][datap]-0.5)/366, lcl,
-              col='blue', lwd=1, angle=90, code=3, length=0.05 )
+              col=dcol, lwd=2, angle=90, code=3, length=0.05 )
     }
   }
   plot(1,type='n', axes=FALSE, xlab="", ylab="")

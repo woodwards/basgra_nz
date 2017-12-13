@@ -40,13 +40,15 @@ for (s in 1:nSites) {
   q95 <- sapply( 1:NOUT, function(i) sapply(1:NDAYS,function(j)quantile(outputSample[,j,i],0.95,na.rm=TRUE)) )
 
 # Plot
-  list_runs <- list( outputPriorMode, outputMAP, outputMaxL, q5, q95 )
+  list_runs <- list( outputPriorMode, outputMaxL, outputMAP, q5, q95 )
   plot_outputs_data_s( isite       = s,
                        list_runs   = list_runs,
                        leg_title   = "BC",
-                       leg         = c("Prior","MAP","MaxL","q5", "q95"),
-                       cols        = c( "red", "black", "green", "black", "black" ),
-                       lwds        = c( 3, 3, 2, 2, 2 ),
-                       ltys        = c( 1, 1, 1, 3, 3 ) )   
+                       leg         = c("Prior","MaxL","MAP", "q5", "q95"),
+                       cols        = c(NA,  NA, "firebrick3", "firebrick3", "firebrick3" ),
+                       lwds        = c( 3, 2, 3, 2, 2 ),
+                       ltys        = c( 1, 1, 1, 3, 3 ),
+                       col01       = c('darkgrey', 'dodgerblue3')
+                       )   
 }
 dev.off()   
