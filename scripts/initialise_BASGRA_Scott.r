@@ -2,16 +2,17 @@
    cat(file=stderr(), 'Starting initialise_BASGRA_Scott.r', "\n")
 
 ## 1. GENERAL INITIALISATION ##
-   dyn.load("BASGRA_WG.DLL") # use this one to use own PET
+   BASGRA_DLL <- "Release/BASGRA_WG.DLL" # use _WG version to use own PET
+   dyn.load(BASGRA_DLL) 
    source('scripts/initialise_BASGRA_general.R')
-
+   
 ## 2. SITE CONDITIONS ##
    
    # run model for this period
    # Scott weather data is 2010-1 to 2017-318 (14 Nov)
    year_start     <- as.integer(2011)
    doy_start      <- as.integer(152) # 1 June
-   year_stop      <- as.integer(2017)
+   year_stop      <- as.integer(2015)
    doy_stop       <- as.integer(151) # 31 May
 
    # calculate sim length --- WARNING this needs to fit within weather data!
@@ -24,7 +25,7 @@
    # use data in this period
    year_start_data     <- as.integer(2012)
    doy_start_data      <- as.integer(1) # 1 Jan
-   year_stop_data      <- as.integer(2017)
+   year_stop_data      <- as.integer(2014)
    doy_stop_data       <- as.integer(151) # 31 May
    
    file_weather   <- 'model_inputs/weather_Scott.txt'

@@ -112,7 +112,7 @@ do day = 1, NDAYS
                                                        DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS)
   call O2status       (O2,ROOTD)
   ! Plant
-  call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILV, &
+  call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &     ! Simon added TILG1
                                                        GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2)
   call Biomass        (CLV,CRES,CST)
   call Phenology      (DAYL,PHEN,                      DPHEN,GPHEN)
@@ -149,12 +149,12 @@ do day = 1, NDAYS
   y(day,13) = Fdepth
   y(day,14) = LAI
   y(day,15) = LT50
-  y(day,16) = CST / (CST + CLV) * 100  ! CSTP = stem percentage
+  y(day,16) = RAIN  ! Simon
   y(day,17) = PHEN
   y(day,18) = ROOTD
   y(day,19) = Sdepth
-  y(day,20) = TANAER
-  y(day,21) = TILG1 + TILG2
+  y(day,20) = TILG2 ! Simon
+  y(day,21) = TILG1 ! Simon
   y(day,22) = TILV
   y(day,23) = WAL
   y(day,24) = WCL * 100   ! WCL = volumetric water content pecentage

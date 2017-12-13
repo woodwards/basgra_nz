@@ -67,8 +67,8 @@ read_weather_WG <- function(y = year_start,
 outputNames <- c(
   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
   "YIELD"     , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "DRYSTOR"  ,
-  "Fdepth"    , "LAI"      , "LT50"     , "CSTP"        , "PHEN"     , "ROOTD"    ,
-  "Sdepth"    , "TANAER"   , "TILG"     , "TILV"      , "WAL"      , "WCL"     ,
+  "Fdepth"    , "LAI"      , "LT50"     , "PRECIP"    , "PHEN"     , "ROOTD"    ,
+  "Sdepth"    , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
   "WAPS"      , "WAS"      , "WETSTOR"  , "DM"        , "RES"      , "LERG"     , 
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
   "FRTILG2"   , "RDRT"     , "VERN"     ,
@@ -76,18 +76,19 @@ outputNames <- c(
 outputUnits <- c(
   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
   "(g DM m-2)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(mm)"     ,
-  "(m)"       , "(m2 m-2)" , "(degC)"   , "(%)" , "(-)"      , "(m)"      ,
-  "(m)"       , "(d)"      , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
+  "(m)"       , "(m2 m-2)" , "(degC)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
+  "(m)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
   "(mm)"      , "(mm)"     , "(mm)"     , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
   "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
   "(-)"       , "(d-1)"    , "(-)"      ,
   "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"  )
 NOUT <- as.integer( length(outputNames) )
+# subset to display
 chooseNames <- c(
-  "DAVTMP", "EVAP", "TRAN", "DRAIN", "RUNOFF", "WAL", "WCL",
-  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "CSTP",
+  "DAVTMP", "PRECIP", "EVAP", "TRAN", "RUNOFF", "DRAIN", "WAL", "WCL",
+  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", 
   "LINT", "LAI", "DM", "SLA", "RES", 
-  "TILTOT", "TILV", "TILG", 
+  "TILTOT", "TILV", "TILG1", "TILG2", 
   "PHEN", "VERN", "RDRT"
   )
 

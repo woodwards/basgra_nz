@@ -115,8 +115,7 @@ data_rpm %>%
 * Growth rate calculated from RPM data and assumed constant between grazings.
 
 ```{r include=FALSE}
-# plot growth rate before grazing by cultivar, seed_rate and block.
-# daily dry matter growth rate is assumed to be constant between grazings.
+# calculate growth rate before grazing by cultivar, seed_rate and block.
 data_rpm <- data_rpm %>%
   group_by(block, cultivar, seed_rate) %>%
   arrange(date_grazed) %>%
@@ -134,6 +133,7 @@ data_rpm <- data_rpm %>%
 Average growth rate = `r round(mean(data_rpm$growth_rate_pre, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
+# plot growth rate
 ybreaks <- seq(round_any(min(data_rpm$growth_rate_pre, na.rm=TRUE), 25, floor), 
                round_any(max(data_rpm$growth_rate_pre, na.rm=TRUE), 25, ceiling), 25)
 xbreaks <- seq(floor_date(min(data_rpm$date_pre), "years"), 
@@ -160,8 +160,7 @@ data_rpm %>%
 * Assume no pasture growth between pre and post RPM.
 
 ```{r include=FALSE}
-# plot harvest % by cultivar, seed_rate and block.
-# grazing and residual mass are estimated by linear extrapolation of growth rate
+# calculate harvest % by cultivar, seed_rate and block.
 data_rpm <- data_rpm %>%
   group_by(block, cultivar, seed_rate) %>%
   mutate(
@@ -177,6 +176,7 @@ data_rpm <- data_rpm %>%
 Average harvest % = `r round(mean(data_rpm$harv, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
+# plot harvest %
 ybreaks <- seq(0, round_any(max(data_rpm$harv, na.rm=TRUE), 20, ceiling), 20)
 xbreaks <- seq(floor_date(min(data_rpm$date_pre), "years"), 
                ceiling_date(max(data_rpm$date_post), "years"), by="1 year")
@@ -198,7 +198,7 @@ data_rpm %>%
 ## Pasture Cut Mass
 
 ```{r include=FALSE}
-# read and plot cut mass data. Cuts were to 4-5 cm.
+# read cut mass data. Cuts were to 4-5 cm.
 data_cut1 <- read_xlsx(file_name, sheet='Cut Yield Data Year1 2011to12')
 data_cut2 <- read_xlsx(file_name, sheet='Cut Yield Data Year2 onwards')
 names(data_cut1) <- ensnakeify(names(data_cut1))
@@ -246,7 +246,7 @@ closest_date_cut <- function(date){ # return index of closest date_cut
 Average cut mass = `r round(mean(data_cut$yield, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
-# plot yield data
+# plot cut yield data
 ybreaks <- seq(0, round_any(max(data_cut$yield, na.rm=TRUE), 1000, ceiling), 1000)
 xbreaks <- seq(floor_date(min(data_cut$date), "years"), 
                ceiling_date(max(data_cut$date), "years"), by="1 year")
@@ -272,7 +272,6 @@ data_cut %>%
 * Total mass at cutting assumed to be equal to pregraze RPM.
 
 ```{r include=FALSE}
-# total mass at cutting is estimated by linear extrapolation of pregrazing rpm data
 # find cut matching rpm data
 data_rpm$date_cut_i <- lapply(data_rpm$date_pre, closest_date_cut)
 data_rpm$date_cut <- date_cut[unlist(data_rpm$date_cut_i)]
@@ -348,7 +347,7 @@ data_cut %>%
 ## Tiller Density
 
 ```{r include=FALSE}
-# read and plot tiller data
+# read tiller data
 data_till <- read_xlsx(file_name, sheet='Tiller density data Waikato')
 names(data_till) <- ensnakeify(names(data_till))
 
@@ -367,7 +366,7 @@ data_till <- data_till %>%
 Average tiller density = `r round(mean(data_till$mean_tillers, na.rm=TRUE))`
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
-# plot tiller data ~(mg~L^{-1})
+# plot tiller data 
 ybreaks <- seq(0, round_any(max(data_till$mean_tillers, na.rm=TRUE), 2500, ceiling), 2500)
 xbreaks <- seq(floor_date(min(data_till$date), "years"), 
                ceiling_date(max(data_till$date), "years"), by="1 year")
@@ -475,7 +474,6 @@ data_bot %>%
 * Botanical composition assumed the same above and below cutting height (what's the alternative?).
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
-# total mass on botanical date is estimate by linear extrapolation of rpm data
 # it's not clear how best to extrapolate botanical % above 4 cm to botancial mass above ground
 # find cut matching botanical data
 data_bot$date_cut_i <- lapply(data_bot$date, closest_date_cut)
@@ -526,7 +524,7 @@ data_bm2 %>%
 ## Light Interception
 
 ```{r include=FALSE}
-# read and plot li data
+# read li data
 data_li <- read_xlsx(file_name, sheet='Waikato LightInterception')
 names(data_li) <- ensnakeify(names(data_li))
 
@@ -571,7 +569,7 @@ data_li %>%
 ## Soil Moisture
 
 ```{r include=FALSE}
-# read and plot soil moisture data
+# read soil moisture data
 data_sm <- read_xlsx(file_name, sheet='Soil moisture data')
 names(data_sm) <- ensnakeify(names(data_sm))
 
@@ -613,7 +611,7 @@ data_sm %>%
 
 ```{r include=FALSE}
 # additional calculations to prepare data for model calibration
-# move post harvest measurements if on grazing day
+# move post harvest measurements if on grazing day since model does harvest at start of day
 data_rpm$date_post2 <- as.Date(with(data_rpm,
                             ifelse(date_post > date_grazed, 
                                    as.Date(date_post), 

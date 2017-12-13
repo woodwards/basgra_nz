@@ -35,16 +35,16 @@ for (s in 1:nSites) {
     params[ip_BC_s]    <- params_j[icol_pChain_s]
     outputSample[ii,,] <- run_model(params,matrix_weather,days_harvest,NDAYS)
   } # end of sample loop
-# Analyse the posterior output sample: calculate quantiles 5% and 95%
-  q5  <- sapply( 1:NOUT, function(i) sapply(1:NDAYS,function(j)quantile(outputSample[,j,i],0.05)) )
-  q95 <- sapply( 1:NOUT, function(i) sapply(1:NDAYS,function(j)quantile(outputSample[,j,i],0.95)) )
+# Analyse the posterior output sample: calculate quantiles 5% and 95%. Simon added na.rm=TRUE
+  q5  <- sapply( 1:NOUT, function(i) sapply(1:NDAYS,function(j)quantile(outputSample[,j,i],0.05,na.rm=TRUE)) ) 
+  q95 <- sapply( 1:NOUT, function(i) sapply(1:NDAYS,function(j)quantile(outputSample[,j,i],0.95,na.rm=TRUE)) )
 
 # Plot
   list_runs <- list( outputPriorMode, outputMAP, outputMaxL, q5, q95 )
   plot_outputs_data_s( isite       = s,
                        list_runs   = list_runs,
                        leg_title   = "BC",
-                       leg         = c("Prior","MAP","MaxL"),
+                       leg         = c("Prior","MAP","MaxL","q5", "q95"),
                        cols        = c( "red", "black", "green", "black", "black" ),
                        lwds        = c( 3, 3, 2, 2, 2 ),
                        ltys        = c( 1, 1, 1, 3, 3 ) )   

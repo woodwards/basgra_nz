@@ -13,11 +13,11 @@ real :: RATEH,reHardPeriod,TV2TIL
 Contains
 
 !Subroutine Harvest(CLV,CRES,CST,doy,LAI,PHEN,TILG,TILV, &
-Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILV, &
+Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2)
   integer :: doy,year
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added harv column (percent DM removed)
-  real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILV
+  real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV  ! Simon added TILG1
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1
   integer :: HARV,i
@@ -29,27 +29,31 @@ integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added harv column (percent
     if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
       HARV   = 1
       NOHARV = 0	
-      HARVFR    = DAYS_HARVEST(i,3) / 100.0  ! Simon read in percent defoliation
+      HARVFR    = DAYS_HARVEST(i,3) / 100.0  ! Simon read in proportion of leaf havested
 	end if
   end do
   
-  FRACTV = TILV/(TILG2 + TILV)
+!  FRACTV = TILV/(TILG2 + TILV) ! Simon why is TILG1 missing here?
+  FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! Simon = Fraction non-elongating tillers
   
-!  CLAI   = FRACTV * CLAIV
-!  if (LAI <= CLAI) then
-!    HARVFR = 0.0
-!  else
-!    HARVFR = 1.0 - CLAI/LAI
-!  end if
+  CLAI   = FRACTV * CLAIV
+  if (LAI <= CLAI) then
+    HARVFR = 0.0
+  else
+    HARVFR = 1.0 - CLAI/LAI  ! Fraction of Leaf that is harvested
+  end if
+
+! Simon - HAGERE is Fraction of reserves in elongating tillers that is harvested
+! Simon - Or is it fraction of stem that is harvested? (both reserve and structure)? Seems more consistent?
 
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
-  HARVPH    = (HARV   * PHEN        ) / DELT
-  TV1       = (HARVFR * FRACTV) + (1-FRACTV)*HAGERE
+  HARVPH    = (HARV   * PHEN        ) / DELT  ! Simon PHEN zeroed after each harvest
+  TV1       = (HARVFR * FRACTV) + (HAGERE * (1-FRACTV)) ! Proportion of CRES harvested
   HARVRE    = (HARV   * TV1 * CRES  ) / DELT
-  HARVST    = (HARV   * CST         ) / DELT
-  GSTUB     =  HARVST * (1-HAGERE)
-  HARVTILG2 = (HARV   * TILG2       ) / DELT
+  HARVST    = (HARV   * CST         ) / DELT  ! Simon CST zeroed after each harvest
+  GSTUB     = (1-HAGERE) * HARVST             ! Simon the non-res portion of CST becomes CSTUB?
+  HARVTILG2 = (HARV   * TILG2       ) / DELT  ! Simon TILG2 zeroed after each harvest
 end Subroutine Harvest
 
 Subroutine Biomass(CLV,CRES,CST)

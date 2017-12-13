@@ -1,7 +1,7 @@
 BASGRA Scott Farm  Calibration To Do List
 
 * How to handle establishment year in data? 
-* How to handle pseudostem. Asked Marcel. No LAI?
+* How to handle pseudostem. -> It's there but not counted.
 * Combine block data. Define a nominal grazing date (or number) to group by.
 * Lincoln data
 * Post grazing dissection data from Katherine Tozer. Adjust harvest % by fraction.
@@ -27,5 +27,5 @@ Sensible priors
 
 Additions to model:
 - vernalisation (TILG should have short season only) Take mechanism from another model?
-- decomposition
+- decomposition (already there?)
 - establishment and loss of vigor
