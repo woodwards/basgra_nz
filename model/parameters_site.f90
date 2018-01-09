@@ -9,7 +9,7 @@ module parameters_site
   real                  :: LAT
 
 ! Atmospheric conditions
-  real, parameter       :: CO2A   = 350   
+  real, parameter       :: CO2A   = 350   ! CO2 concentration in atmosphere (ppm)
 
 ! Soil
   real, parameter       :: DRATE  =  50

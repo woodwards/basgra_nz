@@ -5,7 +5,7 @@ use parameters_plant
 implicit none
 real      :: pa(81)
 
-! Initial constants
+! Initial values
 LOG10CLVI  = pa(1)
 LOG10CRESI = pa(2)
 LOG10CRTI  = pa(3)

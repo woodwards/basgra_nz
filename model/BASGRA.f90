@@ -16,9 +16,10 @@ use soil
 use plant
 implicit none
 
-integer               :: day, doy, i, NDAYS, NOUT, year
+! Model inputs
+integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added harv column (percent DM removed)
-integer, parameter    :: NPAR     = 79
+integer, parameter    :: NPAR     = 81
 #ifdef weathergen  
   integer, parameter  :: NWEATHER =  7
 #else
@@ -27,6 +28,9 @@ integer, parameter    :: NPAR     = 79
 real                  :: PARAMS(NPAR)
 real                  :: MATRIX_WEATHER(NMAXDAYS,NWEATHER)
 real                  :: y(NDAYS,NOUT)
+
+! Time variables
+integer               :: day, doy, i, year
 
 ! State variables
 real :: CLV, CLVD, YIELD, CRES, CRT, CST, CSTUB, DRYSTOR, Fdepth, LAI, LT50, O2, PHEN

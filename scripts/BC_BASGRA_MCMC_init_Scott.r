@@ -57,8 +57,7 @@
 ## PROPOSAL TUNING FACTOR  
    fPropTuning   <- 0.05 # This factor is used to modify Gelman's suggested average step length
                          # (2.38^2 / np_BC) which seems too big
-#   fPropTuning   <- 1 # simon try to get more diffusion happening
-   
+
 ## GENERAL INITIALISATION FOR MCMC
    source('scripts/BC_BASGRA_MCMC_init_general.R')
 
