@@ -9,10 +9,6 @@
   }
   rm(list=ls()) # kills breakpoints!
   
-  # point to parameters
-  file_params    <- 'model_inputs/parameters_Scott.txt' # can contain multiple columns
-  parcol       <- 1 # which one are we going to use? (row names are ignored)
-  
   # initialise BC
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
 
@@ -25,19 +21,26 @@
   source('scripts/BC_export_parModes.R')
   source('scripts/BC_plot_parameters_traceplots.R') # can be slow!
   source('scripts/BC_plot_parameters_priorbeta_histograms.R')
+  outputMax[which(outputNames=="CLV")] <- 100 # it's pretty awkward to set these programmatically
+  outputMax[which(outputNames=="CST")] <- 50
+  outputMax[which(outputNames=="TILTOT")] <- 8000
+  outputMax[which(outputNames=="WCL")] <- 50
   source('scripts/BC_plot_outputs_data.R')
   
   # run with MAP parameters
-  cat(file=stderr(), 'Running BASGRA_Scott with BC MAP parameters', "\n")
-  file_params    <- 'model_outputs/BASGRA_parModes.txt' 
-  parcol         <- 2 
-  source('scripts/initialise_BASGRA_Scott.r')
-  cat(file=stderr(), 'Calling run_model()', "\n")
-  output <- run_model()
-  cat(file=stderr(), 'Calling export_output()', "\n")
-  export_output()
-
+  for (s in 1:nSites){
+    cat(file=stderr(), paste('Running BASGRA_Scott with BC MAP parameters, site',s), "\n")
+    file_params    <- 'model_outputs/BASGRA_parModes.txt' 
+    temp <- read.csv(file_params, sep="\t")
+    parcol         <- 2 + 8*(s-1)
+    source(sitesettings_filenames[[s]])
+    output <- run_model()
+    file_table  = paste("model_outputs/basgra_trace_table_",s,".txt", sep="")
+    file_plot   = paste("model_outputs/basgra_trace_plots_",s,".png", sep="")
+    export_output(file_table=file_table, file_plot=file_plot)
+  }
+  
   #
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
-  dyn.unload(BASGRA_DLL) 
+  # dyn.unload(BASGRA_DLL) 
   

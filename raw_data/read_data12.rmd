@@ -33,6 +33,7 @@ ensnakeify <- function(x) {
     str_replace_all(pattern="\\s+", replacement="_") # convert remaining spaces to underscore
 }
 
+# rounding function that works on dates
 round_any = function(x, accuracy, f=round){
   if (is.Date(x)){
     switch(f,
@@ -489,7 +490,7 @@ data_bm <- data_bot %>%
   rename(yield_cut = yield) %>%
   mutate(
     delay = as.integer(as.Date(date_bot) - as.Date(date_cut)),
-    yield_bot = yield_cut + below + growth_rate_pre * delay * 0 # assumed on date_bot, including below mass?
+    yield_bot = yield_cut + below * 0 + growth_rate_pre * delay * 0 # assumed on date_bot, including below mass?
     )
          
 # gather
@@ -639,47 +640,33 @@ data_rpm <- data_rpm %>%
 # choose data
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
+calib_start <- ymd("20120101") # period for data weight = 1
+calib_end <- ymd("20140531") # period for data weight = 1
 ablock <- 3
 
-# file name
-file_name <- "harvest_Scott.txt"
+for (ablock in c(2,3,4)) { # loop through data sets
 
-```
-
-```{r include=FALSE}
 # write harvest dates and harvest % for selected series
+file_name <- paste("harvest_Scott_", ablock, ".txt", sep="")
 data_h <- data_rpm %>%
   select(block, seed_rate, cultivar, year_grazed, doy_grazed, harv) %>%
-  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
-  mutate(grazing=(1:nrow(.))+length(ablock)) %>%
+  filter(block == ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
   drop_na()
 days_harvest <- matrix(as.integer(-1), nrow=100, ncol=3) # up to 100 harvests
 days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$harv)
 write.table(days_harvest, file=file_name, row.names=FALSE, col.names=FALSE, sep='\t')
 
-```
+# write calibration data
+file_name <- paste("data_calibration_Scott_", ablock, ".txt", sep="")
 
-## Write Calibration Data
-
-```{r results="hide"}
-# file name
-file_name <- "data_calibration_Scott.txt"
-
-# calibration period
-calib_start <- ymd("20120101")
-calib_end <- ymd("20140531")
-
-```
-
-```{r include=FALSE}
 # collect the data in this list
 data_c <- vector("list", 6) 
 
 # pre and post mass (but this includes other species!)
-temp <- data_rpm %>%
-  select(block, seed_rate, cultivar, mass_pre, year_pre, doy_pre, 
-         mass_post, year_post, doy_post) %>%
-  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# temp <- data_rpm %>%
+#   select(block, seed_rate, cultivar, mass_pre, year_pre, doy_pre, 
+#          mass_post, year_post, doy_post) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 # data_c[[1]] <- with(temp, tibble(var='DM', year=year_pre, 
 #                                  doy=doy_pre, data=mass_pre/10) %>% drop_na())
 # data_c[[2]] <- with(temp, tibble(var='DM', year=year_post, 
@@ -706,9 +693,9 @@ data_c[[5]] <- with(temp, tibble(var='CST', year=year(date),
                                  weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 
 # light interception (but this includes all species!)
-temp <- data_li %>%
-  select(block, seed_rate, cultivar, li, date) %>%
-  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# temp <- data_li %>%
+#   select(block, seed_rate, cultivar, li, date) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 # data_c[[5]] <- with(temp, tibble(var='LINT', year=year(date), 
 #                                  doy=yday(date), data=li) %>% drop_na())
 
@@ -724,6 +711,8 @@ data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date),
 data_calib <- bind_rows(data_c)
 data_calib <- arrange(data_calib, var, year, doy)
 write.table(data_calib, file=file_name, row.names=FALSE, col.names=FALSE, sep='\t', quote=FALSE)
+
+} # end data set loop
 
 ```
 

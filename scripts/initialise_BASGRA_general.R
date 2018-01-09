@@ -1,5 +1,4 @@
 ### initialise_BASGRA_general.R ##
-   cat(file=stderr(), 'Starting initialise_BASGRA_general.r', "\n")
 
 ################################################################################
 days_harvest <- matrix( as.integer(-1), nrow=100, ncol=3 ) # Simon added harv column
@@ -92,6 +91,8 @@ outputUnits <- c(
   "(-)"       , "(d-1)"    , "(-)"      ,
   "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"  )
 NOUT <- as.integer( length(outputNames) )
+outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max scale for each variable plotting
+outputMax <- rep( as.double(NA), length(outputNames))
 # subset to display
 chooseNames <- c(
   "DAVTMP", "PRECIP", "EVAP", "TRAN", "RUNOFF", "DRAIN", "WAL", "WCL",
@@ -861,4 +862,3 @@ plot_params_Setups <- function(
 }
 
 ################################################################################
-cat(file=stderr(), 'Finished initialise_BASGRA_general.r', "\n")

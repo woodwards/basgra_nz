@@ -2,8 +2,8 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
 ## MCMC chain length
-   nChain        <- as.integer(10000)
-   nBurnin       <- as.integer(nChain/2)
+   nBurnin       <- as.integer(10000)
+   nChain        <- as.integer(50000) + nBurnin
    
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
@@ -28,8 +28,14 @@
    source('scripts/fLogL_mm_Beta.R')
    
 ## SETTINGS FOR THE DIFFERENT CALIBRATION SITES (at least one site)
-   sitesettings_filenames <- c("scripts/initialise_BASGRA_Scott.r")
-   sitedata_filenames     <- c("model_inputs/data_calibration_Scott.txt")
+   sitesettings_filenames <- c("scripts/initialise_BASGRA_Scott_2.r",
+                               "scripts/initialise_BASGRA_Scott_3.r",
+                               "scripts/initialise_BASGRA_Scott_4.r"
+                               )
+   sitedata_filenames     <- c("model_inputs/data_calibration_Scott_2.txt",
+                               "model_inputs/data_calibration_Scott_3.txt",
+                               "model_inputs/data_calibration_Scott_4.txt"
+                               )
    nSites                 <- length(sitedata_filenames)
    sitelist               <- list() ; length(sitelist) <- nSites
 
@@ -51,7 +57,8 @@
 ## PROPOSAL TUNING FACTOR  
    fPropTuning   <- 0.05 # This factor is used to modify Gelman's suggested average step length
                          # (2.38^2 / np_BC) which seems too big
-
+#   fPropTuning   <- 1 # simon try to get more diffusion happening
+   
 ## GENERAL INITIALISATION FOR MCMC
    source('scripts/BC_BASGRA_MCMC_init_general.R')
 

@@ -16,7 +16,7 @@
    par(mar=c(2, 2, 2, 1))
    for (i in seq(1,np_BC)){
         plot( pChain[,i] * sc[i],
-		      type='l', xlab="", ylab="",
+		      type='l', xlab="", ylab="", col=rgb(0,0,0,0.3), 
           main=paste(titles[i],parsites_BC[i]), cex.main=1 )
         abline( v=nBurnin, col='red', lwd=2, lty=2 )
    }

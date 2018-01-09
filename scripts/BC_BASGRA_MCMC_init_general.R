@@ -46,7 +46,9 @@
    data_year   <- sitelist ; data_mm_year   <- sitelist 
    data_doy    <- sitelist ; data_mm_doy    <- sitelist
    data_value  <- sitelist ; data_mm_value  <- sitelist
-   data_sd     <- sitelist ; data_mm_min    <- sitelist ; data_mm_max <- sitelist ; data_mm_cv <- sitelist
+   data_sd     <- sitelist ; data_mm_cv     <- sitelist
+                             data_mm_min    <- sitelist  
+                             data_mm_max    <- sitelist 
    data_type   <- sitelist ; data_mm_type   <- sitelist
    data_weight <- sitelist ; data_mm_weight <- sitelist
    
@@ -58,7 +60,7 @@
      data_sd    [[s]] <-     database[[s]][,5]
      data_type  [[s]] <-     database[[s]][,6]
      data_weight[[s]] <-     database[[s]][,7]
-     
+
      # data uncertainty (these ones use Sivia distribution)
 #      data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s] 
 #      # special cases 
@@ -97,6 +99,18 @@
      
    }
 
+   # Now find the maximum value for each variable across the whole database
+   BCvarname <- NULL
+   for (s in 1:nSites) BCvarname <- c( BCvarname, data_name[[s]] )
+   BCvarname <- unique( BCvarname ) ; nBCvar <- length( BCvarname )
+   BCvarmax  <- rep( 0, nBCvar )
+   for (s in 1:nSites) {
+     for (v in 1:nBCvar) {
+       iv <- which( data_name[[s]]==BCvarname[v] )
+       if( length(iv)>0 ) BCvarmax[v] <- max( BCvarmax[v], data_value[[s]][iv] )
+     }
+   }
+   
 ## LINKING DATA TO MODEL OUTPUTS
  # The list of outputNames, which is defined in the generic initialisation file
  # "initialise_BASGRA_general.R", lists the names of all model outputs.
@@ -111,15 +125,24 @@
                                    which(as.character(outputNames)==data_mm_name[[s]][i]) )
      data_index   [[s]] <- nextdata_index
      data_mm_index[[s]] <- nextdata_mm_index
+     # simon calc min and max
+     for (i in 1:ndata[s]) {
+       tempmin <- data_value[[s]][i] # - data_sd[[s]][i]
+       if (is.na(outputMin[nextdata_index[i]])) outputMin[nextdata_index[i]] <- tempmin 
+       else if (tempmin<outputMin[nextdata_index[i]]) outputMin[nextdata_index[i]] <- tempmin
+       tempmax <- data_value[[s]][i] # + data_sd[[s]][i]
+       if (is.na(outputMax[nextdata_index[i]])) outputMax[nextdata_index[i]] <- tempmax
+       else if (tempmax>outputMax[nextdata_index[i]]) outputMax[nextdata_index[i]] <- tempmax
+     }
    }
 
 ## PRIOR DISTRIBUTION FOR THE PARAMETERS ##
    df_params_BC <- read.table( file_prior, header=F, sep="" )
-   parname_BC   <-               df_params_BC[,1]
+   parname_BC   <-               df_params_BC[,1] # parameter that this BC line refers to
    parmin_BC    <-               df_params_BC[,2]
    parmod_BC    <-               df_params_BC[,3]
    parmax_BC    <-               df_params_BC[,4]
-   parsites_BC  <- as.character( df_params_BC[,5] )
+   parsites_BC  <- as.character( df_params_BC[,5] ) # text field listing which sites this BC line applies to?
    ip_BC        <- match( parname_BC, row.names(df_params) )
    np_BC        <- length(ip_BC)
    
@@ -199,8 +222,8 @@
      # get vector of model_mm outputs
      if(dim(database_mm[[s]])[1]>0) {
          output_mm_calibr <- if(ndata_mm[s]==1) {
-                          output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ]
-           } else { diag( output[unlist(list_output_mm_calibr_rows[[s]]), data_mm_index[[s]] ] ) }
+                          output[list_output_mm_calibr_rows[[s]], data_mm_index[[s]] ]
+           } else { diag( output[list_output_mm_calibr_rows[[s]], data_mm_index[[s]] ] ) }
      }
      # calculate log-likelihoods
      logLs      <- flogL(output_calibr,data_value[[s]],data_sd[[s]],data_weight[[s]] )
@@ -364,13 +387,18 @@
   ncolsPlots           <- ceiling((noutputsMeasured+1)/nrowsPlots)
   par(mfrow=c(nrowsPlots,ncolsPlots),omi=c(0,0,0.5,0), mar=c(2, 2, 2, 1) )
 
-  for (p in outputsMeasured) {
-    datap     <- which( data_name[[s]] == as.character(outputNames[p]) )
+  p <- outputsMeasured[[1]]
+  for (p in outputsMeasured) { # loop through output variables
+    datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
     lcl       <- data_value[[s]][datap] - data_sd[[s]][datap]
     ucl       <- data_value[[s]][datap] + data_sd[[s]][datap]	
+#    ymax      <- data_max[[s]][datap][[1]] # simon get maximum data value
+    modelp    <- which( data_index[[s]] == p ) # which model points are this variable?
+    mod       <- diag(list_runs[[3]][list_output_calibr_rows[[s]],data_index[[s]]])[modelp] # extract model, 3 = MAP
     dcol      <- col01[as.integer(data_weight[[s]][datap])+1]
   	g_range_p <- range( sapply( 1:nruns, function(i){range(list_runs[[i]][,p])} ) )
-    g_range   <- range( g_range_p, lcl, ucl )	
+    g_range   <- range( g_range_p, lcl, ucl) 
+    g_range   <- range( 0, outputMax[p]) # simon set range externally
     
     # plot first series
     plot( list_runs[[1]][,1], list_runs[[1]][,p], type='l',
@@ -399,12 +427,18 @@
   	    }
     }
     
-    # add data points
+    # data points
     points( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, data_value[[s]][datap],
             col=dcol, lwd=2, cex=1 )
+    # residuals
+    arrows( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, data_value[[s]][datap],
+            data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, mod,
+            col='black', lwd=2, angle=45, code=2, length=0.05 )
+    # data_sd
     arrows( data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, ucl,
             data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366, lcl,
             col=dcol, lwd=2, angle=90, code=3, length=0.05 )
+    
   }
    
   if(dim(database_mm[[s]])[1]>0) {
@@ -420,12 +454,12 @@
 #            main=paste(outputNames[p]," ",outputUnits[p],sep=""),
             main=paste(easyNames[p]," ",outputUnits[p],sep=""),
             col=cols[1], lwd=lwds[1], lty=ltys[1] )
-    if (nruns>=2) {
-	  for (i in 2:nruns) {
-	    points( list_runs[[i]][,1], list_runs[[i]][,p], type='l',
-	            col=cols[i], lwd=lwds[i], lty=ltys[i] )
-	  }
-	}
+      if (nruns>=2) {
+  	  for (i in 2:nruns) {
+  	    points( list_runs[[i]][,1], list_runs[[i]][,p], type='l',
+  	            col=cols[i], lwd=lwds[i], lty=ltys[i] )
+    	  }
+    	}
 
       points( data_mm_year[[s]][datap]+(data_mm_doy[[s]][datap]-0.5)/366, data_mm_value[[s]][datap],
               col=dcol, lwd=2, cex=1 )
@@ -434,7 +468,8 @@
               col=dcol, lwd=2, angle=90, code=3, length=0.05 )
     }
   }
-  plot(1,type='n', axes=FALSE, xlab="", ylab="")
+  
+  plot(1,type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
   legend( "bottomright", title = leg_title, legend=leg,
           col=cols, lty=ltys, lwd=lwds )
   sitenames <- gsub( ".R", "", sub(".*BASGRA_","",sitesettings_filenames) )

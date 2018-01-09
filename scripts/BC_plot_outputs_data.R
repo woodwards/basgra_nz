@@ -6,10 +6,12 @@ dev.set()
 pagew <- 11 ; pageh <- 8
 # png( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.png"),sep=""),
 #      width=pagew, height=pageh, units="in", type="windows", res=300)
-png( paste('model_outputs/BC_calibration_fits.png',sep=""),
-     width=pagew, height=pageh, units="in", type="windows", res=300)
 
 for (s in 1:nSites) {
+  
+  png( paste('model_outputs/BC_calibration_fits_', s, '.png',sep=""),
+       width=pagew, height=pageh, units="in", type="windows", res=300)
+  
   params          <- list_params      [[s]] ; matrix_weather <- list_matrix_weather[[s]]
   days_harvest    <- list_days_harvest[[s]] ; NDAYS          <- list_NDAYS         [[s]]
   ip_BC_s         <- ip_BC_site       [[s]]
@@ -25,9 +27,10 @@ for (s in 1:nSites) {
   outputMaxL      <- run_model(params,matrix_weather,days_harvest,NDAYS)
 # Calculate model output for a sample from the posterior
 # Take a sample (of size nSample) from the chain generated using MCMC
-  nSample         <- 100
+  nSample         <- 1000
   nStep           <- (nChain-nBurnin) / nSample
   outputSample    <- array( 0, c(nSample,NDAYS,NOUT) )
+  print(paste("Running", nSample, "posteriors of", nChain-nBurnin, ", site", s, "of", nSites))
   ii              <- 0   
   for (j in seq(nBurnin+nStep, nChain, nStep)) {
     ii <- ii+1
@@ -41,6 +44,15 @@ for (s in 1:nSites) {
 
 # Plot
   list_runs <- list( outputPriorMode, outputMaxL, outputMAP, q5, q95 )
+  isite       = s
+  list_runs   = list_runs
+  nruns        = length(list_runs)
+  leg_title   = "BC"
+  leg         = c("Prior","MaxL","MAP", "q5", "q95")
+  cols        = c("lightgrey",  "lightpink", "firebrick3", "firebrick3", "firebrick3" )
+  lwds        = c( 2, 2, 2, 1, 1 )
+  ltys        = c( 1, 1, 1, 7, 7 ) # ltys==7 in 2 series draws a ploygon
+  col01       = c('darkgrey', 'dodgerblue3')
   plot_outputs_data_s( isite       = s,
                        list_runs   = list_runs,
                        leg_title   = "BC",
@@ -50,5 +62,5 @@ for (s in 1:nSites) {
                        ltys        = c( 1, 1, 1, 7, 7 ), # ltys==7 in 2 series draws a ploygon
                        col01       = c('darkgrey', 'dodgerblue3')
                        )   
-}
 dev.off()   
+}
