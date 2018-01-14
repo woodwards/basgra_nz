@@ -17,7 +17,7 @@ DLMXGE	0.936974	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1
 FSLAMIN	0.686948	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA
 FSMAX	0.693	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry
 HAGERE	0.5	HAGERE	-	Fraction of reserves in elongating tillers that is harvested
-K	0.607039	K	m2 m-2 leaf	PAR extinction coefficient
+KLAI	0.607039	K	m2 m-2 leaf	PAR extinction coefficient
 LAICR	3.79569	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
 LAIEFT	0.2	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
 LAITIL	0.566455	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
@@ -33,7 +33,7 @@ RGENMX	0.0108797	RGENMX	d-1	Maximum relative rate of tillers becoming elongating
 ROOTDM	0.6	ROOTDM	m	Initial and maximum value rooting depth
 RRDMAX	0.012	RRDMAX	m d-1	Maximum root depth growth rate
 RUBISC	5.7803	RUBISC	g m-2 leaf	Rubisco content of upper leaves
-SHAPE	0.538907	SHAPE	-	Area of a leaf relative to a rectangle of same length and width
+LSHAPE	0.538907	SHAPE	-	Area of a leaf relative to a rectangle of same length and width
 SIMAX1T	0.00450449	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
 SLAMAX	0.06	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves
 TBASE	3.61083	TBASE	°C	Minimum value of effective temperature for leaf elongation
@@ -52,7 +52,7 @@ WpoolMax	50	WpoolMax	mm	Maximum pool water (liquid plus ice)
 Dparam	0.0031796	Dparam	°C-1 d-1	Constant in the calculation of dehardening rate
 FGAS	0.4	FGAS	-	Fraction of soil volume that is gaseous
 FO2MX	0.21	FO2MX	mol O2 mol-1 gas	Maximum oxygen fraction of soil gas
-gamma	65	gamma	m-1	Temperature extinction coefficient of snow
+KTSNOW	65	gamma	m-1	Temperature extinction coefficient of snow
 Hparam	0.0055925	Hparam	°C-1 d-1	Hardening parameter
 KRDRANAER	0.2	KRDRANAER	d-1	Maximum relative death rate due to anearobic conditions
 KRESPHARD	0.1	KRESPHARD	gC gC-1 °C-1	Carbohydrate requirement of hardening
@@ -75,7 +75,7 @@ TmeltFreeze	0	TmeltFreeze	°C	Temperature above which snow melts
 TrainSnow	0.01	TrainSnow	°C	Temperature below which precipitation is snow
 TsurfDiff	0.62279	TsurfDiff	°C	Constant in the calculation of dehardening rate
 KLUETILG	0.5	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
-FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1 
+FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1
 DAYLG1G2	0.6	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
 RGRTG1G2	0.9	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.01	RDRTMIN	d-1	Minimum relative death rate of foliage

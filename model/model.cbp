@@ -38,7 +38,20 @@
 				</Linker>
 			</Target>
 		</Build>
-		<Unit filename="main.f90" />
+		<Unit filename="BASGRA.DLL" />
+		<Unit filename="BASGRA.f90" />
+		<Unit filename="BASGRA_WG.DLL" />
+		<Unit filename="compile_BASGRA_gfortran.bat" />
+		<Unit filename="compile_BASGRA_gfortran_WG.bat" />
+		<Unit filename="environment.f90" />
+		<Unit filename="parameters_BC_example.txt" />
+		<Unit filename="parameters_example.txt" />
+		<Unit filename="parameters_plant.f90" />
+		<Unit filename="parameters_site.f90" />
+		<Unit filename="plant.f90" />
+		<Unit filename="resources.f90" />
+		<Unit filename="set_params.f90" />
+		<Unit filename="soil.f90" />
 		<Extensions>
 			<code_completion />
 			<envvars />

@@ -3,7 +3,7 @@
   #rm(list=ls())
   file_params    <- 'model_inputs/parameters_Scott.txt' # can contain multiple columns
   parcol       <- 1 # which one are we going to use? (row names are ignored)
-  source('scripts/initialise_BASGRA_Scott.r')
+  source('scripts/initialise_BASGRA_Scott_3.r')
 
 ## 2. RUNNING ##
   cat(file=stderr(), 'Calling run_model()', "\n")
