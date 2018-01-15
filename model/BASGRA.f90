@@ -176,7 +176,7 @@ do day = 1, NDAYS
   y(day,24) = WCL * 100    ! WCL = volumetric water content pecentage (Simon changed)
   y(day,25) = WAPS         ! mm Pool water amount solid (ice)
   y(day,26) = DELTA        ! (Simon changed)
-  y(day,27) = HARVFR * 100 ! (Simon changed)
+  y(day,27) = HARVFR * 100 * HARV ! (Simon changed)
 
   ! Extra derived variables for calibration
   y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40   ! "DM"      = Aboveground dry matter in g m-2 (includes CSTUB but excludes CLVD)
