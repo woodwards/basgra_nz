@@ -23,7 +23,7 @@
   source('scripts/BC_plot_parameters_priorbeta_histograms.R')
   outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
   outputMax[which(outputNames=="CST")] <- 100
-  outputMax[which(outputNames=="TILTOT")] <- 9000
+  outputMax[which(outputNames=="TILTOT")] <- 10000
   outputMax[which(outputNames=="WCL")] <- 60
   source('scripts/BC_plot_outputs_data.R')
   
@@ -42,5 +42,5 @@
   
   #
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
-  # dyn.unload(BASGRA_DLL) 
+  dyn.unload(BASGRA_DLL) 
   

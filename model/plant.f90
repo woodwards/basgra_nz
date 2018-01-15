@@ -6,17 +6,18 @@ use environment
 
 implicit none
 
-! Plan variables
+! Plant variables
 integer :: NOHARV
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT
 real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
+real :: DELTA
 
 contains
 
-! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2
+! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2)
+                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV  ! Simon added TILG1
@@ -46,6 +47,7 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
 !    HARVFR = 1.0 - CLAI/LAI  ! Fraction of leaf that is harvested
 !  end if
   HARVFR = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1-FRACTV) ! Simon version
+  HARVFR = HARVFR * HARV
 ! HARVFR = Fraction of leaf and reservse in non-elongating tillers that is harvested
 ! 1.0    = Fraction of leaf              in     elongating tillers that is harvested (I think)
 ! HAGERE = Fraction of stem and reserves in     elongating tillers that is harvested
@@ -274,7 +276,7 @@ end Subroutine Senescence
    end Subroutine Hardening
 
 ! Calculate decompositon of dead leaf (added by Simon)
-Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD)
+Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,DELTA)
   real :: CLVD,DAVTMP,WCL
   real :: DLVD
   real :: PSIA,PSIB,SWCS,BD,PSIS,DELD,DELE

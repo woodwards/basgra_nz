@@ -68,7 +68,7 @@ outputNames <- c(
   "YIELD"     , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "DRYSTOR"  ,
   "Fdepth"    , "LAI"      , "LT50"     , "PRECIP"    , "PHEN"     , "ROOTD"    ,
   "Sdepth"    , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
-  "WAPS"      , "WAS"      , "WETSTOR"  , "DM"        , "RES"      , "LERG"     , 
+  "WAPS"      , "DELTA"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
   "FRTILG2"   , "RDRT"     , "VERN"     ,
   "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT" )
@@ -77,7 +77,7 @@ easyNames <- c(
   "Yield", "Reserve C", "Root C", "Stem C", "Stubble C", "Dry Snow",
   "Frost Depth", "LAI", "Leaf Death Temp.", "Rain", "Phen. Stage", "Root Depth",
   "Snow Depth", "Elong. Tillers", "Vernalised Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
-  "Surface Ice", "Soil Ice", "Wet Snow", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
+  "Surface Ice", "Decomposition", "Harvest Fraction", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
   "Elong. Leaves", "Rel. Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
   "Frac. Elong. Tillers", "Rel. Leaf Death Rate", "Vernalisation",
   "Drainage", "Runoff", "Evaporation", "Transpiration", "Light Intercep." )
@@ -86,7 +86,7 @@ outputUnits <- c(
   "(g DM m-2)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(mm)"     ,
   "(m)"       , "(m2 m-2)" , "(degC)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
   "(m)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
-  "(mm)"      , "(mm)"     , "(mm)"     , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
+  "(mm)"      , "(d-1)"     , "(%)"      , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
   "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
   "(-)"       , "(d-1)"    , "(-)"      ,
   "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"  )
@@ -97,9 +97,9 @@ outputMax <- rep( as.double(NA), length(outputNames))
 chooseNames <- c(
   "DAVTMP", "PRECIP", "EVAP", "TRAN", "RUNOFF", "DRAIN", "WAL", "WCL",
   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", 
-  "LINT", "LAI", "DM", "SLA", "RES", 
+  "LINT", "LAI", "DM", "SLA", "RES", "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", 
-  "PHEN", "VERN", "RDRT"
+  "PHEN", "VERN", "RDRT", "DELTA"
   )
 
 ################################################################################

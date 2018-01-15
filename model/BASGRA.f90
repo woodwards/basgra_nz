@@ -44,7 +44,7 @@ integer :: VERN, NEWVERN
 ! Define intermediate and rate variables
 real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR ! Simon added DLVD
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
-real :: HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
+real :: HARVFR, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN ! Simon exposed HARVFR
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RESMOB, RGRTV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 
@@ -128,7 +128,7 @@ do day = 1, NDAYS
 
   ! Plant
   call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &     ! Simon added TILG1
-                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2)
+                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR) ! Simon added HARVFR
   call Biomass        (CLV,CRES,CST)
   call Phenology      (DAYL,PHEN,                      DPHEN,GPHEN)
   call Vernalisation  (DAYL,DAVTMP,VERN,               NEWVERN)       ! Simon vernalisation function
@@ -140,7 +140,7 @@ do day = 1, NDAYS
   call PlantRespiration(FO2,RESPHARD)
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
-  call Decomposition  (CLVD,DAVTMP,WCL,                DLVD)           ! Simon decomposition function
+  call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,DELTA)    ! Simon decomposition function
   call Foliage2       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN, &
                                                        GLAI,GTILV,TILVG1,TILG1G2)
   ! Soil 2
@@ -175,8 +175,8 @@ do day = 1, NDAYS
   y(day,23) = WAL          ! mm Soil water amount liquid
   y(day,24) = WCL * 100    ! WCL = volumetric water content pecentage (Simon changed)
   y(day,25) = WAPS         ! mm Pool water amount solid (ice)
-  y(day,26) = WAS          ! mm Soild water amount solid (ice)
-  y(day,27) = WETSTOR      ! mm Liquid water in snow
+  y(day,26) = DELTA        ! (Simon changed)
+  y(day,27) = HARVFR * 100 ! (Simon changed)
 
   ! Extra derived variables for calibration
   y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40   ! "DM"      = Aboveground dry matter in g m-2 (includes CSTUB but excludes CLVD)
