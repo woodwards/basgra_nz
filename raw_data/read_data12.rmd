@@ -490,7 +490,7 @@ data_bm <- data_bot %>%
   rename(yield_cut = yield) %>%
   mutate(
     delay = as.integer(as.Date(date_bot) - as.Date(date_cut)),
-    yield_bot = yield_cut + below * 0 + growth_rate_pre * delay * 0 # assumed on date_bot, including below mass?
+    yield_bot = yield_cut + below + growth_rate_pre * delay * 0 # assumed on date_bot, including below mass?
     )
          
 # gather

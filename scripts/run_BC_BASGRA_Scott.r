@@ -7,7 +7,7 @@
     pkgs = paste('package:', pkgs, sep = "")
     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
   }
-  rm(list=ls()) # kills breakpoints!
+  rm(list=ls()) # kills breakpoints! frees memory.
   
   # initialise BC
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
@@ -21,10 +21,10 @@
   source('scripts/BC_export_parModes.R')
   source('scripts/BC_plot_parameters_traceplots.R') # can be slow!
   source('scripts/BC_plot_parameters_priorbeta_histograms.R')
-  outputMax[which(outputNames=="CLV")] <- 100 # it's pretty awkward to set these programmatically
-  outputMax[which(outputNames=="CST")] <- 50
-  outputMax[which(outputNames=="TILTOT")] <- 8000
-  outputMax[which(outputNames=="WCL")] <- 50
+  outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
+  outputMax[which(outputNames=="CST")] <- 100
+  outputMax[which(outputNames=="TILTOT")] <- 9000
+  outputMax[which(outputNames=="WCL")] <- 60
   source('scripts/BC_plot_outputs_data.R')
   
   # run with MAP parameters
