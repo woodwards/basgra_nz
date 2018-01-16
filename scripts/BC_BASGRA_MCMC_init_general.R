@@ -258,7 +258,7 @@
    logMAP       <- logPrior0 + logL0
    
 ################################################################################
-## FUNCTION FOR LIKELIHOOD CALCULATION for each variable separately
+## FUNCTION FOR LIKELIHOOD CALCULATION for each data point separately
    
   calc_statsi_s <- function( s=1, output=output ) {
      output_calibr <- if(ndata[s]==1) {

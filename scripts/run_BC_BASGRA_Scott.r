@@ -13,9 +13,11 @@
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
 
 ## 2. RUNNING THE MCMC ##
-  cat(file=stderr(), 'Calling  BC_BASGRA_MCMC.r', "\n")
-  source('scripts/BC_BASGRA_MCMC.R')
-
+  # cat(file=stderr(), 'Calling  BC_BASGRA_MCMC.r', "\n")
+  # source('scripts/BC_BASGRA_MCMC.R')
+  cat(file=stderr(), 'Calling  BC_BASGRA_BT.r', "\n")
+  source('scripts/BC_BASGRA_BT.R')
+  
 ## 3. PRINTING AND PLOTTING ##
   cat(file=stderr(), 'Calling BC output scripts', "\n")
   source('scripts/BC_export_parModes.R')

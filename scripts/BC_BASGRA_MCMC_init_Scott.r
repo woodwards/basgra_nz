@@ -1,9 +1,11 @@
 ## BC_BASGRA_MCMC_init_xxx.R ##
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
-## MCMC chain length
-   nBurnin       <- as.integer(10000)
-   nChain        <- as.integer(50000) + nBurnin
+## MCMC chain length (total number of iterations across all chains)
+   nChains       <- 4 
+   nBurnin       <- as.integer(5000 * nChains) # need to check that chains actually do converge in this time
+   nSampling     <- as.integer(5000 * nChains)
+   nChain        <- nBurnin + nSampling
    
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
