@@ -2,9 +2,9 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_Scott.r', "\n")
 
 ## MCMC chain length (total number of iterations across all chains)
-   nChains       <- 4 
-   nBurnin       <- as.integer(5000 * nChains) # need to check that chains actually do converge in this time
-   nSampling     <- as.integer(5000 * nChains)
+   nChains       <- 2 # chains for repeatability testing
+   nBurnin       <- as.integer(12000 * nChains) # need to check convergence
+   nSampling     <- as.integer(3000 * nChains)
    nChain        <- nBurnin + nSampling
    
 

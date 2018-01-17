@@ -1,15 +1,18 @@
 # Bayesian calibration of BASGRA model using BayesianTools package
 # https://cran.r-project.org/web/packages/BayesianTools/vignettes/BayesianTools.html
+# https://www.rdocumentation.org/packages/BayesianTools/versions/0.1.3/topics/VSEM
+
+#
 library(BayesianTools)
 
 #
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
 
-# construct names
+# parameter names
 bt_names <- parname_BC
 
-# construct likelihood
-bt_likelihood <- function(par, sum=TRUE){
+# likelihood function
+bt_likelihood <- function(par){
   # use loop from BC_BASGRA_MCMC.R  
   candidatepValues_BC   <- par
   for (s in 1:nSites) {
@@ -24,12 +27,8 @@ bt_likelihood <- function(par, sum=TRUE){
     list_output[[s]]          <- output
   }
   # use functions from BC_BASGRA_init_general.R
-  if (sum==TRUE){
-    logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
-    return(logL1)
-  } else {
-    stop() # FIXME currently don't have this information
-  }
+  logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
+  return(logL1)
 }
 
 # construct priors
@@ -44,7 +43,11 @@ bt_setup <- createBayesianSetup(likelihood=bt_likelihood,
                                 )
 
 # construct settings (note: DREAMzs has startValue=3 internal chains by default)
-bt_settings <- list(startValue=nChains, iterations=nChain, nrChains=1, burnin=0)
+nInternal   <- 3 # internal chains for DREAMzs
+bt_settings <- list(startValue=nInternal, 
+                    iterations=nChain/nChains, 
+                    nrChains=nChains, 
+                    burnin=nBurnin/nChains*0) # burnin gets discarded but this causes a crash
 
 # run BT
 bt_out <- runMCMC(bayesianSetup=bt_setup, 
@@ -53,12 +56,6 @@ bt_out <- runMCMC(bayesianSetup=bt_setup,
 
 # get samples
 pChain <- getSample(bt_out)
+cat(file=stderr(), "\n", paste("pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
 
-# display results
-summary(bt_out)
-# plot(bt_out)
-# marginalPlot(bt_out)
-# # correlationPlot(bt_out) # too many parameters
-# gelmanDiagnostics(bt_out, plot=TRUE)
-
-
+# results are generated in BC_BASGRA_BT_results.R
