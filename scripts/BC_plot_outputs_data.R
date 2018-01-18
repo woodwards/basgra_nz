@@ -7,6 +7,7 @@ pagew <- 11 ; pageh <- 8
 # png( paste('model_outputs/BC_outputs_data',format(Sys.time(),"_%H_%M.png"),sep=""),
 #      width=pagew, height=pageh, units="in", type="windows", res=300)
 
+s <- 1
 for (s in 1:nSites) {
   
   png( paste('model_outputs/BC_calibration_fits_', s, '.png',sep=""),
@@ -32,7 +33,8 @@ for (s in 1:nSites) {
   outputSample    <- array( 0, c(nSample,NDAYS,NOUT) )
   print(paste("Running", nSample, "posteriors of", nChain-nBurnin, ", site", s, "of", nSites))
   ii              <- 0   
-  for (j in seq(nBurnin+nStep, nChain, nStep)) {
+  jj              <- as.integer(seq(from=nBurnin+nStep, to=nChain, length.out=nSample))
+  for (j in jj) {
     ii <- ii+1
     params_j           <- pChain[j,] * sc
     params[ip_BC_s]    <- params_j[icol_pChain_s]
@@ -57,7 +59,7 @@ for (s in 1:nSites) {
                        list_runs   = list_runs,
                        leg_title   = "BC",
                        leg         = c("Prior","MaxL","MAP", "q5", "q95"),
-                       cols        = c(NA,  NA, "firebrick3", "firebrick3", "firebrick3" ),
+                       cols        = c("lightgrey",  "lightpink", "firebrick3", "firebrick3", "firebrick3" ),
                        lwds        = c( 2, 2, 2, 1, 1 ),
                        ltys        = c( 1, 1, 1, 7, 7 ), # ltys==7 in 2 series draws a ploygon
                        col01       = c('darkgrey', 'dodgerblue3')

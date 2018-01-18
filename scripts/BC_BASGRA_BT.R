@@ -11,10 +11,10 @@ cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
 # parameter names
 bt_names <- parname_BC
 
-# likelihood function
+# likelihood function (work with scaled parameters)
 bt_likelihood <- function(par){
   # use loop from BC_BASGRA_MCMC.R  
-  candidatepValues_BC   <- par
+  candidatepValues_BC   <- par * sc
   for (s in 1:nSites) {
     params         <- list_params        [[s]] # get site parameters initial values (in parameters.txt)
     matrix_weather <- list_matrix_weather[[s]] # get site weather
@@ -28,10 +28,16 @@ bt_likelihood <- function(par){
   }
   # use functions from BC_BASGRA_init_general.R
   logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
+  # update MaxL
+  if (logL1 > logMaxL) {
+    logMaxL      <<- logL1
+    scparMaxL_BC <<- as.numeric(par)
+  }
+  # return likelihood
   return(logL1)
 }
 
-# construct priors
+# construct priors (scaled parameter space)
 bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 
 # construct setup
@@ -53,9 +59,11 @@ bt_settings <- list(startValue=nInternal,
 bt_out <- runMCMC(bayesianSetup=bt_setup, 
                   sampler = "DREAMzs", 
                   settings=bt_settings)
+cat(file=stderr(), " ", "\n")
 
-# get samples
-pChain <- getSample(bt_out)
-cat(file=stderr(), "\n", paste("pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
+# return samples (scaled parameter space)
+pChain       <- getSample(bt_out) 
+scparMAP_BC  <- MAP(bt_out)$parametersMAP 
+cat(file=stderr(), paste("Stored pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
 
 # results are generated in BC_BASGRA_BT_results.R

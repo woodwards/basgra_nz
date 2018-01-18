@@ -14,9 +14,10 @@
 
 ## 2. RUNNING THE MCMC ##
   # cat(file=stderr(), 'Calling  BC_BASGRA_MCMC.r', "\n")
-  # source('scripts/BC_BASGRA_MCMC.R')
+  # source('scripts/BC_BASGRA_MCMC.R') # old solver
   cat(file=stderr(), 'Calling  BC_BASGRA_BT.r', "\n")
-  source('scripts/BC_BASGRA_BT.R')
+  source('scripts/BC_BASGRA_BT.R') # new solver
+  source('scripts/BC_BASGRA_BT_results.R') # new solver results
   
 ## 3. PRINTING AND PLOTTING ##
   cat(file=stderr(), 'Calling BC output scripts', "\n")
