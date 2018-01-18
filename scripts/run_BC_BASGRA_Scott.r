@@ -8,6 +8,7 @@
     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
   }
   rm(list=ls()) # kills breakpoints! frees memory.
+  graphics.off() # closes all graphics
   
   # initialise BC
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
@@ -47,3 +48,8 @@
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
   # dyn.unload(BASGRA_DLL) 
   
+  # save workspace since it takes a long time to generate
+  cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")
+  file_save <- 'model_outputs/BASGRA_Workspace.RData' 
+  save.image(file_save)
+  # load(file_save)

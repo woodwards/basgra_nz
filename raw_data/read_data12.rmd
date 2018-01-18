@@ -686,7 +686,7 @@ temp <- data_bm %>%
   select(block, seed_rate, cultivar, leaf, stem, yield_bot, date) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[4]] <- with(temp, tibble(var='CLV', year=year(date), 
-                                 doy=yday(date), data=leaf/100*yield_bot/10*0.45, sd=5, type="sd",
+                                 doy=yday(date), data=leaf/100*yield_bot/10*0.45, sd=10, type="sd",
                                  weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 data_c[[5]] <- with(temp, tibble(var='CST', year=year(date), 
                                  doy=yday(date), data=stem/100*yield_bot/10*0.45, sd=5, type="sd",

@@ -28,7 +28,7 @@ bt_likelihood <- function(par){
   }
   # use functions from BC_BASGRA_init_general.R
   logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
-  # update MaxL
+  # update scparMaxL_BC, which is in globalenv()
   if (logL1 > logMaxL) {
     logMaxL      <<- logL1
     scparMaxL_BC <<- as.numeric(par)
