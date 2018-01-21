@@ -4,8 +4,7 @@
 cat(file=stderr(), 'Results of calibrating BASGRA using BayesianTools package', "\n")
 suppressMessages({
   library(tidyverse)
-  library(grid)
-  library(gridBase)
+  library(coda)
 })
 
 # summary and correlation matrix
@@ -43,9 +42,10 @@ if (TRUE){
 
 # gelman convergence plots (multiple plots)
 if (FALSE){
-  gelmanDiagnostics(bt_out, plot=TRUE, 
-                    start=1, 
-                    end=nChain/(nInternal*nChains)) # Rhat for each parameter
+  # gelmanDiagnostics(bt_out, plot=TRUE, 
+  #                   start=1, 
+  #                   end=nChain/(nInternal*nChains)) # Rhat for each parameter
+  gelman.plot(getSample(bt_out, coda=TRUE), ylim=c(1.0,1.5))
 }
 
 # prediction function

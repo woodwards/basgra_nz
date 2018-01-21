@@ -17,13 +17,14 @@ contains
 
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR)
+                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV  ! Simon added TILG1
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1
-  integer :: HARV,i
+  integer :: HARV
+  integer :: i
 
   HARV   = 0
   NOHARV = 1
@@ -75,9 +76,10 @@ Subroutine Phenology(DAYL,PHEN, DPHEN,GPHEN)
   real :: DPHEN,GPHEN
   GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) ) ! basically degree days * day length
   DPHEN = 0.
-  if (DAYL < DAYLB) DPHEN = PHEN / DELT                        ! reset PHEN to zero whenever DAYL < DAYLB (Simon)
+  ! Simon redefined DAYLB to be a fraction of DLMXGE to avoid DAYLB>DLMXGE
+  if (DAYL < DAYLB*DLMXGE) DPHEN = PHEN / DELT                 ! reset PHEN to zero whenever DAYL < DAYLB (Simon)
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
-  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation
+  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB*DLMXGE)/(DLMXGE - DAYLB*DLMXGE) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation
 end Subroutine Phenology
 
 ! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers

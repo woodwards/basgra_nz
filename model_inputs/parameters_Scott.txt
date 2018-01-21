@@ -11,7 +11,7 @@ LT50I	-4.7894	LT50I	°C	Initial value of LT50
 CLAIV	1	CLAIV	m2 leaf m-2	"Maximum LAI remaining after harvest, when no tillers elongate"
 COCRESMX	0.141155	COCRESMX	-	Maximum concentration of reserves in aboveground biomass (not stubble)
 CSTAVM	0.229575	CSTAVM	gC tiller-1	Maximum size of elongating tillers
-DAYLB	0.539664	DAYLB	d d-1	Day length below which phenological stage is reset to zero
+DAYLB	0.539664	DAYLB	d d-1	Day length below which phenological stage is reset to zero (Simon changed this to be fraction of DLMXGE)
 DAYLP	0.632348	DAYLP	d d-1	Day length below which phenological development slows down
 DLMXGE	0.936974	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1
 FSLAMIN	0.686948	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA

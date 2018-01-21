@@ -44,7 +44,7 @@ bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
                                 names=bt_names, 
-                                parallel=TRUE, 
+                                parallel=T, 
                                 parallelOptions=list(dlls=list(BASGRA_DLL))
                                 )
 
