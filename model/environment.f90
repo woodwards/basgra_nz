@@ -116,11 +116,7 @@ end Subroutine MicroClimate
            real :: DRYSTOR
            real :: SnowMelt
            real :: Melt
-           if (LAT > 0) then
-             Melt = Bias + Ampl * sin( Freq * (doy-(174.-91.)) )
-           else
-             Melt = Bias + Ampl * sin( Freq * (doy-(174.-91.+183.)) ) ! adjust for Southern Hemisphere
-           end if
+           Melt = Bias + Ampl * DAYL
            if (DAVTMP > TmeltFreeze) then ! TmeltFreeze is a parameter ~ 0.0 deg C?
              SnowMelt = max( 0., min( DRYSTOR/DELT, Melt*(DAVTMP-TmeltFreeze) ))
            else
@@ -221,16 +217,16 @@ Subroutine DDAYL(doy)
 ! Author - Marcel van Oijen (CEH-Edinburgh)
 !=============================================================================
   integer :: doy                                                      ! (d)
-  real    :: DEC, DECC, RAD, BOUND
+  real    :: DEC, DECC, RAD, DECLIM
   RAD  = pi / 180.                                                    ! (radians deg-1)
   DEC  = -asin (sin (23.45*RAD)*cos (2.*pi*(doy+10.)/365.))           ! (radians)
 !  DECC = max(atan(-1./tan(RAD*LAT)),min( atan( 1./tan(RAD*LAT)),DEC)) ! (radians) (Old version)
   if (LAT == 0.) then
-    BOUND = pi/2.
+    DECLIM = pi/2.
   else
-    BOUND = abs(atan(1./tan(LAT*rad)))
+    DECLIM = abs(atan(1./tan(LAT*rad)))
   end if
-  DECC = min(BOUND, max(-BOUND, DEC))                                 ! correct for polar regions (Simon)
+  DECC = max(-DECLIM, min(DECLIM, DEC))                                 ! correct for polar regions (Simon)
   DAYL = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECC)) / pi )        ! (d d-1)
 end Subroutine DDAYL
 

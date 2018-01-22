@@ -137,10 +137,10 @@ Subroutine HardeningSink(CLV,DAYL,doy,LT50,Tsurf)
   integer :: doy
   real :: CLV,DAYL,LT50,Tsurf
   real :: doySinceStart, reHardRedStart
-  if (LAT>0) then ! correct for hemisphere
-    reHardRedStart = modulo( reHardRedEnd-reHardRedDay, 365. ) ! Rehardening reduction start
+  if ( LAT > 0 ) then ! correct for hemisphere
+    reHardRedStart = modulo( reHardRedEnd - reHardRedDay, 365. ) ! Rehardening reduction start
   else
-    reHardRedStart = modulo( reHardRedEnd+183-reHardRedDay, 365. ) ! Rehardening reduction start FIXME for hemisphere
+    reHardRedStart = modulo( reHardRedEnd + 183 - reHardRedDay, 365. ) ! Rehardening reduction start FIXME for hemisphere
   end if
   doySinceStart  = modulo( doy-reHardRedStart       , 365. )
   if ( doySinceStart < (reHardRedDay+0.5*(365.-reHardRedDay)) ) then
@@ -175,8 +175,8 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF, GLV,GRES,GRT,GST,RESMOB
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
   NELLVG   = PHENRF * NELLVM
   GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
-  GLVSI    = (GLAISI * NOHARV / SLANEW) / YG                        ! gC m-2 d-1 Potential growth rate of leaf mass
-  GSTSI    = (SINK1T * TILG2 * TRANRF * NOHARV) / YG                ! gC m-2 d-1 Potential growth rate of stems
+  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass
+  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems
   call Allocation(ALLOTOT,GRESSI, GRES,GRT,GLV,GST)
 end Subroutine Growth
 
@@ -274,7 +274,11 @@ end Subroutine Senescence
      RDRFROST   = min( 0.5, 1. - RSRDAY )             ! d-1 Relative death rate due to frost
      RATED      = min( Dparam*(LT50MX-LT50)*(Tsurf+TsurfDiff), (LT50MX-LT50)/DELT ) ! °C d-1 Potential rate of dehardening, if below limit set by RATEDMX
      DeHardRate = max(0.,min( RATEDMX, RATED ))
-     HardRate   = RESPHARD / (CLV * KRESPHARD)
+     if ( CLV > 0.0 ) then
+       HardRate   = RESPHARD / (CLV * KRESPHARD)
+     else
+       HardRate   = 0.0
+     end if
    end Subroutine Hardening
 
 ! Calculate decompositon of dead leaf (added by Simon)

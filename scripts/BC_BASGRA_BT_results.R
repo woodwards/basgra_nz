@@ -9,6 +9,7 @@ suppressMessages({
 
 # summary and correlation matrix
 if (TRUE){
+  cat(file=stderr(), 'Correlation plot', "\n")
   invisible(capture.output(cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
                            file=paste("model_outputs/BC_summary_BT.txt",sep=""))) # and export text summary
   # correlation plot (for most correlated parameters)
@@ -34,6 +35,7 @@ if (FALSE){
 
 # prior and posterior histograms
 if (TRUE){
+  cat(file=stderr(), 'Prior/posterior histograms', "\n")
   png( paste("model_outputs/BC_parameters_histograms_BT.png",sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
   marginalPlot(bt_out) # prior and posterior histograms (scaled parameters)
@@ -50,8 +52,9 @@ if (FALSE){
 
 # prediction function
 # https://github.com/florianhartig/BayesianTools/blob/master/Examples/PlotTimeSeriesResults.Rmd
-if (FALSE){
+if (TRUE){
   
+  cat(file=stderr(), 'Model predictions against data', "\n")
   bt_samples <- pChain[(nBurnin+1):nChain, ]
   bt_predict <- function(par){
     # use loop from BC_BASGRA_MCMC.R  
@@ -102,32 +105,84 @@ if (FALSE){
       bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
       bt_obs_wts <- rep( 0, NDAYS )
       bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
-      bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
+      # bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
       bt_obs_errs <- rep( as.double(NA), NDAYS )
       bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
       bt_error_constant <- data_sd[[s]][datap][1] 
       # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
       bt_pred_MAP <- bt_predict(scparMAP_BC)
+      bt_pred_MAP_obs <- bt_pred_MAP
+      bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
+      bt_pred_ML <- bt_predict(scparMaxL_BC)
+      scparMode_BC <- parmod_BC / sc
+      bt_pred_Mode <- bt_predict(scparMode_BC)
       if (TRUE){
         pred <- getPredictiveIntervals(parMatrix=bt_samples,
                                        model=bt_predict,
                                        numSamples=1000,
                                        quantiles=c(0.025, 0.5, 0.975),
                                        error=bt_error)
+        plotTimeSeries <- function(observed = NULL, predicted = NULL, x = NULL, xlim = NULL,
+                                   confidenceBand = NULL, predictionBand = NULL, 
+                                   xlab = "Time", ylab = "Observed / predicted values", ...){
+          ylim = range(observed, predicted, confidenceBand, predictionBand,na.rm=TRUE)
+          if (is.null(x)){
+            if(!is.null(observed)) x = 1:length(observed)
+            else if(!is.null(predicted)) x = 1:length(predicted)
+            else stop("either observed or predicted must be supplied")
+          }
+          len = length(x)
+          plot(x, y=rep(0,len), xlim = xlim, ylim = ylim, type = "n", xlab = xlab, ylab = ylab, ...)
+          if(!is.null(predictionBand)) 
+            polygon(c(x,rev(x)),c(predictionBand[1,],predictionBand[2,len:1]),col="moccasin",border=NA)
+          # polygon(c(1:len,len:1),c(predictionBand[1,],predictionBand[2,len:1]),col="moccasin",border=NA)
+          if(!is.null(confidenceBand)) 
+            polygon(c(x,rev(x)),c(confidenceBand[1,],confidenceBand[2,len:1]),col="#99333380",border=NA)    
+          # polygon(c(1:len,len:1),c(confidenceBand[1,],confidenceBand[2,len:1]),col="#99333380",border=NA)    
+          if(!is.null(predicted)) lines(x, predicted, col = "red")
+          if(!is.null(observed)) points(x, observed, col = "black", pch = 3, cex = 0.6)
+        }
         plotTimeSeries(       observed=bt_obs_vals, 
                               predicted = pred$posteriorPredictivePredictionInterval[2,],
                               confidenceBand = pred$posteriorPredictiveCredibleInterval[c(1,3),],
                               predictionBand = pred$posteriorPredictivePredictionInterval[c(1,3),],
                               x=bt_pred_times,
-                              main=paste("Site", s, "Variable", data_name[[s]][datap][1])
+                              xlim=c(2012,2015), # show only a subset of time line (else = NULL)
+                              main=paste(easyNames[data_col], outputUnits[data_col])
         )
+        # plot key prediction lines
+        lines(x=bt_pred_times, y=bt_pred_Mode, col="lightgrey")
+        lines(x=bt_pred_times, y=bt_pred_ML, col="lightblue")
+        lines(x=bt_pred_times, y=bt_pred_MAP, col="blue")
+        # plot all data
+        keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts==0)
+        x_obs <- bt_pred_times[keeps]
+        arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+               x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+               col="black", lwd=1.5, angle=45, length=0.05) # residual
+        arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+               x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+               col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        points( x=x_obs, y=bt_obs_vals[keeps], 
+                pch=16, col="grey", cex=1.5)
+        # plot weighted data
+        keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts>0)
+        x_obs <- bt_pred_times[keeps]
+        arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+               x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+               col="black", lwd=1.5, angle=45, length=0.05) # residual
+        arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+               x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+               col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        points( x=x_obs, y=bt_obs_vals[keeps], 
+                pch=16, col="darkblue", cex=1.5)
       }
       if (FALSE){ # this doesn't work with par(mfrow) but gives analysis of residuals
         try(plotTimeSeriesResults(sampler=bt_samples,
                                   model=bt_predict,
                                   observed=bt_obs_vals,
                                   error=bt_error,
-                                  main=paste("Site", s, "Variable", data_name[[s]][datap][1])
+                                  main=paste("Site", s, easyNames[data_col]," ",outputUnits[data_col])
                                   ),
             silent=TRUE
         )
@@ -135,7 +190,18 @@ if (FALSE){
 
     } # next data_col
     
-    dev.off() # close figure
+    # legend and title
+    plot(1, type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
+    legend( "bottomright", title="Predictions", 
+            legend=c("Prior Mode", "Median", "Max L",      "MAP",      "Calib Data", "Other Data", "Residuals"),
+            col   =c("lightgrey",  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
+            lty=1, lwd=1)
+    sitenames <- gsub( ".R", "", sub(".*BASGRA_","",sitesettings_filenames) )
+    mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),
+           side=3, line=1, outer=TRUE, cex=1, font=2)   
+    
+    # close figure
+    dev.off() 
     par(oldpar)
     
   } # next site

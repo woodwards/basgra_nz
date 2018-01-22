@@ -52,4 +52,11 @@
   cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")
   file_save <- 'model_outputs/BASGRA_Workspace.RData' 
   save.image(file_save)
-  # load(file_save)
+  
+  # reload workspace
+  if (FALSE){
+    file_save <- 'model_outputs/BASGRA_Workspace.RData' 
+    load(file_save)  
+    BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
+    dyn.load(BASGRA_DLL) 
+  }
