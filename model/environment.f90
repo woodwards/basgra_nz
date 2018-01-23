@@ -13,7 +13,7 @@ real :: TMMNI(NMAXDAYS), TMMXI(NMAXDAYS), VPI(NMAXDAYS)  , WNI(NMAXDAYS)
 #ifdef weathergen
 real :: PETI(NMAXDAYS)
 #endif
-real :: DAVTMP,DAYL,DTR,PAR,PERMgas,PEVAP,poolRUNOFF,PTRAN,pWater,RAIN,RNINTC
+real :: DAVTMP,DAYL,YDAYL,DTR,PAR,PERMgas,PEVAP,poolRUNOFF,PTRAN,pWater,RAIN,RNINTC
 real :: runOn,StayWet,WmaxStore,Wsupply
 #ifdef weathergen
 real :: PET
@@ -226,8 +226,9 @@ Subroutine DDAYL(doy)
   else
     DECLIM = abs(atan(1./tan(LAT*rad)))
   end if
-  DECC = max(-DECLIM, min(DECLIM, DEC))                                 ! correct for polar regions (Simon)
-  DAYL = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECC)) / pi )        ! (d d-1)
+  DECC = max(-DECLIM, min(DECLIM, DEC))                                ! correct for polar regions (Simon)
+  YDAYL = DAYL                                                         ! record yesterday length (Simon)
+  DAYL  = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECC)) / pi )        ! (d d-1)
 end Subroutine DDAYL
 
 ! Calculate PEVAP and PTRAN = potential evaporation and transpiration rates

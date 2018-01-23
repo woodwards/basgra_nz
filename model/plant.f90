@@ -11,7 +11,7 @@ integer :: NOHARV
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT
 real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
-real :: DELTA
+real :: RDLVD
 
 contains
 
@@ -41,7 +41,7 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
 ! CLAI	m2 leaf m-2	Maximum LAI remaining after harvest
 ! (1-FRACTV) * CLAIV = LAI on elongating tillers, assumed to all be harvested
   FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! = Fraction non-elongating tillers (Simon added TILG1)
-!  CLAI   = FRACTV * CLAIV                        ! = Maximum LAI remaining after harvest
+!  CLAI   = FRACTV * CLAIV                       ! = Maximum LAI remaining after harvest
 !  if (LAI <= CLAI) then
 !    HARVFR = 0.0             ! Simon but what about (1-FRACTV)*LAI?
 !  else
@@ -66,29 +66,59 @@ end Subroutine Harvest
 ! Calculate RESNOR (relative amount of CRES)
 Subroutine Biomass(CLV,CRES,CST)
   real :: CLV, CRES, CST
-  CRESMX = COCRESMX*(CLV + CRES + CST)   ! Maximum reserves in aboveground biomass (not stubble)
-  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES as a propotion of maximum
+  CRESMX = COCRESMX*(CLV + CRES + CST)      ! Maximum reserves in aboveground biomass (not stubble)
+  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES as a proportion of maximum
 end Subroutine Biomass
 
 ! Calculate phenological changes
-Subroutine Phenology(DAYL,PHEN, DPHEN,GPHEN)
-  real :: DAYL,PHEN
-  real :: DPHEN,GPHEN
-  GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) ) ! basically degree days * day length
+Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
+  real :: DAYL,PHEN, AGE
+  real :: DPHEN,GPHEN,HARVPH,FAGE
+  FAGE  = min(1.0, exp( -KAGE * (AGE - AGEH) ))                               ! Function of sward age (Simon)
+  GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! basically degree days * day length (Simon)
   DPHEN = 0.
   ! Simon redefined DAYLB to be a fraction of DLMXGE to avoid DAYLB>DLMXGE
-  if (DAYL < DAYLB*DLMXGE) DPHEN = PHEN / DELT                 ! reset PHEN to zero whenever DAYL < DAYLB (Simon)
+  if (DAYL < DAYLB*DLMXGE) then ! reset PHEN to zero whenever DAYL < DAYLB*DLMXGE (Simon)
+    GPHEN  = 0.0
+    DPHEN  = PHEN / DELT
+    HARVPH = 0.0
+  end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
   DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB*DLMXGE)/(DLMXGE - DAYLB*DLMXGE) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation
 end Subroutine Phenology
 
-! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers
-Subroutine Vernalisation(DAYL,DAVTMP,VERN,               NEWVERN) ! (Simon)
-  real :: DAYL, DAVTMP
-  integer :: VERN, NEWVERN
-  NEWVERN = VERN
-  if ((VERN==1).and.(DAVTMP> 20.0)) NEWVERN = 0     ! Switch off around January FIXME
-  if ((VERN==0).and.(DAVTMP<TVERN)) NEWVERN = 1     ! Switch on when cold enough
+! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers (Simon)
+Subroutine Vernalisation(DAYL,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
+  real :: DAYL, YDAYL, TMMN, TMMX
+  integer :: VERN
+  real :: VERND, DVERND
+  real :: X, Y
+  ! assume no change in vernalisation
+  DVERND = 0.
+  ! accumulate sum of cold temperatures
+  if (VERN==0) then
+    if (TVERN.le.TMMN) then
+      DVERND = 0.0
+    else if (TVERN.ge.TMMX) then
+      DVERND = 1.0
+	else
+	  Y      = (TVERN-TMMN)/(TMMX-TMMN) * 2.0 - 1.0   ! TVERN relative to max and min
+	  X      = acos(Y)                                ! position on first half of cos wave
+      DVERND = 1.0 - X / pi                           ! proportion of day below TVERN
+	end if
+  end if
+  ! does vernalisation occur?
+  if ((VERN==0).and.(VERND .ge. TVERND)) then
+	VERN = 1
+ 	VERND = 0.0
+    DVERND = 0.0
+  end if
+  ! reset vernalisation using same logic as PHEN switch?
+  if ((VERN==1).and.(DAYL < DAYLB*DLMXGE).and.(DAYL<YDAYL)) then
+	VERN = 0
+	VERND = 0.0
+    DVERND = 0.0
+  end if
 end Subroutine Vernalisation
 
 ! Calculate leaf elongation rates LERV, LERG and SLANEW of new leaves
@@ -282,12 +312,12 @@ end Subroutine Senescence
    end Subroutine Hardening
 
 ! Calculate decompositon of dead leaf (added by Simon)
-Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,DELTA)
+Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   real :: CLVD,DAVTMP,WCL
   real :: DLVD
   real :: PSIA,PSIB,SWCS,BD,PSIS,DELD,DELE
   real :: EBIOMASSMAX,EBIOMASS,CT,CP,WORMS
-  real :: DTEMP,DWATER,DECOMP,DELTA
+  real :: DTEMP,DWATER,DECOMP,RDLVD
   EBIOMASSMAX = 131.0
   PSIA    = 3.0e-3                 ! Te Kowhai silt loam
   PSIB    = 7.75                   ! Te Kowhai silt loam
@@ -321,13 +351,13 @@ Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,DELTA)
   if (RAIN > 0.0) DWATER = 1.0       ! decomp on rain days even if dry soil, McCall 1984
   DECOMP  = DELD * DTEMP * DWATER  ! total relative decomposition rate
   ! Total relative dead matter disappearence rate
-  DELTA   = DECOMP + WORMS
-  DLVD    = CLVD    * DELTA
+  RDLVD   = DECOMP + WORMS
+  DLVD    = CLVD    * RDLVD
 end Subroutine Decomposition
 
 ! Calculate GLAI,GTILV,TILVG1,TILG1G2
-Subroutine Foliage2(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN, GLAI,GTILV,TILVG1,TILG1G2)
-  real    :: DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf
+Subroutine Foliage2(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,TILVG1,TILG1G2)
+  real    :: DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,FAGE
   integer :: VERN
   real    :: GLAI,GTILV,TILVG1,TILG1G2
   real    :: RGRTV,RGRTVG1,TGE,TV1,TV2

@@ -5,7 +5,7 @@ use parameters_plant
 
 implicit none
 
-real      :: pa(81)
+real      :: pa(85) ! Note: NPAR is also hardwired in BASGRA.f90
 
 ! Initial values
 LOG10CLVI  = pa(1)
@@ -93,6 +93,10 @@ DAYLG1G2     = pa(78)
 RGRTG1G2     = pa(79)
 RDRTMIN      = pa(80)
 TVERN        = pa(81)
+TVERND       = pa(82)
+AGEH         = pa(83)
+KAGE         = pa(84)
+RDRROOT      = pa(85)
 
 ! Initial value transformations
 CLVI  = 10**LOG10CLVI

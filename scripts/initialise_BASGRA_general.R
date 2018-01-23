@@ -65,41 +65,41 @@ read_weather_WG <- function(y = year_start,
 ### 3. OUTPUT VARIABLES DEFINITIONS (see BASGRA.f90)
 outputNames <- c(
   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
-  "YIELD"     , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "DRYSTOR"  ,
+  "TRANRF"    , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "VERND"    ,
   "Fdepth"    , "LAI"      , "LT50"     , "PRECIP"    , "PHEN"     , "ROOTD"    ,
   "Sdepth"    , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
   "WAPS"      , "DELTA"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
   "FRTILG2"   , "RDRT"     , "VERN"     ,
-  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT" )
+  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT"     , "FAGE" )
 easyNames <- c(
   "Time", "Year", "Day of Year", "Av. Temp.", "Leaf C", "Dead Leaf C",
-  "Yield", "Reserve C", "Root C", "Stem C", "Stubble C", "Dry Snow",
+  "Transpir. Factor", "Reserve C", "Root C", "Stem C", "Stubble C", "Vern. Days",
   "Frost Depth", "LAI", "Leaf Death Temp.", "Rain", "Phen. Stage", "Root Depth",
   "Snow Depth", "Elong. Tillers", "Vernalised Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
   "Surface Ice", "Decomposition", "Harvest Fraction", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
   "Elong. Leaves", "Rel. Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
-  "Frac. Elong. Tillers", "Rel. Leaf Death Rate", "Vernalisation",
-  "Drainage", "Runoff", "Evaporation", "Transpiration", "Light Intercep." )
+  "Frac. Elong. Tillers", "Rel. Leaf Death Rate", "Vernalised",
+  "Drainage", "Runoff", "Evaporation", "Transpiration", "Light Intercep.", "Age Factor" )
 outputUnits <- c(
   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
-  "(g DM m-2)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(mm)"     ,
+  "(%)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(d)"     ,
   "(m)"       , "(m2 m-2)" , "(degC)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
   "(m)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
   "(mm)"      , "(d-1)"     , "(%)"      , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
   "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
   "(-)"       , "(d-1)"    , "(-)"      ,
-  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"  )
+  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"      , "(%)" )
 NOUT <- as.integer( length(outputNames) )
 outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max scale for each variable plotting
 outputMax <- rep( as.double(NA), length(outputNames))
 # subset to display
 chooseNames <- c(
-  "DAVTMP", "PRECIP", "EVAP", "TRAN", "RUNOFF", "DRAIN", "WAL", "WCL",
-  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", 
+  "DAVTMP", "PRECIP", "EVAP", "TRAN", "DRAIN", "TRANRF", "WAL", "WCL",
+  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
   "LINT", "LAI", "DM", "SLA", "RES", "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", 
-  "PHEN", "VERN", "RDRT", "DELTA"
+  "PHEN", "VERND", "VERN", "RDRT", "DELTA", "FAGE"
   )
 
 ################################################################################

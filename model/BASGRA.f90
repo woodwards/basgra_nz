@@ -20,8 +20,8 @@ implicit none
 
 ! Define model inputs
 integer               :: NDAYS, NOUT
-integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
-integer, parameter    :: NPAR     = 81
+integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
+integer, parameter    :: NPAR     = 85        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -36,13 +36,14 @@ real                  :: y(NDAYS,NOUT)
 integer               :: day, doy, i, year
 
 ! Define state variables
-real :: CLV, CLVD, YIELD, CRES, CRT, CST, CSTUB, DRYSTOR, Fdepth, LAI, LT50, O2, PHEN
+real :: CLV, CLVD, YIELD, CRES, CRT, CST, CSTUB, DRYSTOR, Fdepth, LAI, LT50, O2, PHEN, AGE
 real ::            YIELD_LAST
 real :: ROOTD, Sdepth, TILG1, TILG2, TILV, TANAER, WAL, WAPL, WAPS, WAS, WETSTOR
-integer :: VERN, NEWVERN
+integer :: VERN
+real :: VERND, DVERND
 
 ! Define intermediate and rate variables
-real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR ! Simon added DLVD
+real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE ! Simon added DLVD, FAGE
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
 real :: HARVFR, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN ! Simon exposed HARVFR
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RESMOB, RGRTV
@@ -50,7 +51,7 @@ real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN,
 integer :: HARV
 
 ! Extract parameters
-call set_params(PARAMS)  ! Note: NPAR is hardwired in set_params()
+call set_params(PARAMS)
 
 ! Extract calendar and weather data
 YEARI  = MATRIX_WEATHER(:,1)
@@ -68,12 +69,14 @@ TMMXI  = MATRIX_WEATHER(:,5)
 #endif
 
 ! Initialise state variables
+AGE     = 0.0
 CLV     = CLVI
 CLVD    = CLVDI
 CRES    = CRESI
 CRT     = CRTI
 CST     = CSTI
 CSTUB   = CSTUBI
+DAYL    = 0.5        ! Simon used to initialise YDAYL
 DRYSTOR = DRYSTORI
 Fdepth  = FdepthI
 LAI     = LAII
@@ -87,6 +90,7 @@ TILG1   = TILTOTI *       FRTILGI *    FRTILGG1I
 TILG2   = TILTOTI *       FRTILGI * (1-FRTILGG1I)
 TILV    = TILTOTI * (1. - FRTILGI)
 VERN    = 0
+VERND   = 0.0        ! Simon initialise count of cold days
 YIELD   = YIELDI
 YIELD_LAST = YIELDI
 WAL     = 1000. * ROOTDM * WCI
@@ -94,6 +98,7 @@ WAPL    = WAPLI
 WAPS    = WAPSI
 WAS     = WASI
 WETSTOR = WETSTORI
+YDAYL   = 0.5        ! Simon used to initialise YDAYL
 
 ! Loop through days
 do day = 1, NDAYS
@@ -118,8 +123,8 @@ do day = 1, NDAYS
 
   ! Resources
   call Light          (DAYL,DTR,LAI,PAR)                             ! calculate Light interception DTRINT,PARINT,PARAV
-  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,ROOTD,WAL,WCL,EVAP,TRAN)   ! calculate EVAP,TRAN,TRANRF (Simon passed WCL)
-  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,           EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR (Simon passed WCL)
+  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)   ! calculate EVAP,TRAN,TRANRF (Simon passed WCL)
+  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,      EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR (Simon passed WCL)
 
   ! Soil
   call FRDRUNIR       (EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
@@ -131,8 +136,8 @@ do day = 1, NDAYS
   call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &     ! Simon added TILG1
                                                        GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV) ! Simon added HARVFR
   call Biomass        (CLV,CRES,CST)
-  call Phenology      (DAYL,PHEN,                      DPHEN,GPHEN)
-  call Vernalisation  (DAYL,DAVTMP,VERN,               NEWVERN)       ! Simon vernalisation function
+  call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
+  call Vernalisation  (DAYL,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
   call Foliage1
   call LUECO2TM       (PARAV)
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)
@@ -141,8 +146,8 @@ do day = 1, NDAYS
   call PlantRespiration(FO2,RESPHARD)
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
-  call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,DELTA)    ! Simon decomposition function
-  call Foliage2       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN, &
+  call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,RDLVD)    ! Simon decomposition function
+  call Foliage2       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
                                                        GLAI,GTILV,TILVG1,TILG1G2)
   ! Soil 2
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
@@ -157,12 +162,12 @@ do day = 1, NDAYS
 
   y(day, 5) = CLV
   y(day, 6) = CLVD
-  y(day, 7) = YIELD_LAST
+  y(day, 7) = TRANRF * 100.0
   y(day, 8) = CRES
   y(day, 9) = CRT
   y(day,10) = CST
   y(day,11) = CSTUB
-  y(day,12) = DRYSTOR      ! mm Snow amount as SWE (Soil Water Equivalent)
+  y(day,12) = VERND        ! (Simon changed)
   y(day,13) = Fdepth       ! m Soil frost layer depth
   y(day,14) = LAI
   y(day,15) = LT50         ! deg C Temperature that kills half the plants in a day
@@ -174,14 +179,14 @@ do day = 1, NDAYS
   y(day,21) = TILG1        ! (Simon changed)
   y(day,22) = TILV
   y(day,23) = WAL          ! mm Soil water amount liquid
-  y(day,24) = WCL * 100    ! WCL = volumetric water content pecentage (Simon changed)
+  y(day,24) = WCL * 100.0    ! WCL = volumetric water content pecentage (Simon changed)
   y(day,25) = WAPS         ! mm Pool water amount solid (ice)
-  y(day,26) = DELTA        ! (Simon changed)
-  y(day,27) = HARVFR * 100 * HARV ! (Simon changed)
+  y(day,26) = RDLVD        ! (Simon changed)
+  y(day,27) = HARVFR * 100.0 * HARV ! (Simon changed)
 
   ! Extra derived variables for calibration
-  y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40   ! "DM"      = Aboveground dry matter in g m-2 (includes CSTUB but excludes CLVD)
-  y(day,29) = (CRES/0.40) / y(day,28)            ! "RES"     = Reserves in g g-1 aboveground dry matter
+  y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45     ! "DM"  = Aboveground dry matter in g m-2 (Simon included CLVD)
+  y(day,29) = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in g g-1 aboveground green matter
   y(day,30) = LERG                               ! = m d-1 Leaf elongation rate per leaf for generative tillers
   y(day,31) = NELLVG                             ! = tiller-1 Number of growing leaves per elongating tiller
   y(day,32) = RLEAF                              ! = leaves tiller-1 d-1 Leaf appearance rate per tiller
@@ -199,14 +204,16 @@ do day = 1, NDAYS
   y(day,42) = EVAP
   y(day,43) = TRAN
   y(day,44) = PARINT / PAR * 100                 ! = Percentage light interception
+  y(day,45) = FAGE * 100.
 
   ! Update state variables
+  AGE     = AGE     + 1.0
   CLV     = CLV     + GLV   - DLV    - HARVLV
   CLVD    = CLVD            + DLV    - DLVD                ! Simon, no decomposition of dead material FIXME
   YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon, separated HARVST and GSTUB
   if (YIELD>0) YIELD_LAST = YIELD
   CRES    = CRES    + GRES  - RESMOB - HARVRE
-  CRT     = CRT     + GRT   - DRT
+  CRT     = CRT     + GRT   - DRT * (2.0 - FAGE)
   CST     = CST     + GST            - HARVST - GSTUB      ! Simon, separated HARVST and GSTUB
   CSTUB   = CSTUB   + GSTUB - DSTUB
   DRYSTOR = DRYSTOR + reFreeze + Psnow - SnowMelt
@@ -214,14 +221,15 @@ do day = 1, NDAYS
   LAI     = LAI     + GLAI - DLAI   - HARVLA
   LT50    = LT50    + DeHardRate - HardRate
   O2      = O2      + O2IN - O2OUT
-  PHEN    = min(1., PHEN + GPHEN - DPHEN - HARVPH)
+  PHEN    = max(0.0, min(1.0, PHEN + GPHEN - DPHEN - HARVPH))
   ROOTD   = ROOTD   + RROOTD
   Sdepth  = Sdepth  + Psnow/RHOnewSnow - PackMelt
   TANAER  = TANAER  + dTANAER
   TILG1   = TILG1           + TILVG1 - TILG1G2
   TILG2   = TILG2                    + TILG1G2 - HARVTILG2
   TILV    = TILV    + GTILV - TILVG1           - DTILV
-  VERN    = NEWVERN
+  VERN    = VERN
+  VERND   = VERND   + DVERND
   WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL +EXPLOR+IRRIG-DRAIN-RUNOFF-EVAP-TRAN
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain
   WAPS    = WAPS - THAWPS + FREEZEPL

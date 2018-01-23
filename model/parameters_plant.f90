@@ -19,12 +19,12 @@ implicit none
   real :: LFWIDV  , NELLVM  , PHENCR, PHY     , RDRSCO  , RDRSMX , RDRTEM, RGENMX
   real :: RGRTG1G2, ROOTDM  , RRDMAX, RUBISC  , LSHAPE  , SIMAX1T, SLAMAX, SLAMIN ! Simon renamed SHAPE as LSHAPE
   real :: TBASE   , TCRES   , TOPTGE, TRANCO  , YG
-  real :: RDRTMIN , TVERN
+  real :: RDRTMIN , TVERN   , TVERND, AGEH    , KAGE    , RDRROOT                 ! Simon added age parameters
 
 ! Process parameters, continued
   real            :: Dparam, Hparam, KRDRANAER, KRESPHARD, KRSR3H
   real            :: LDT50A, LDT50B, LT50MN, LT50MX, RATEDMX
-  real, parameter :: RDRROOT      =  0.005 ! relative death rate of root CRT. Root currently doesn't do anything in the model. FIXME
+!  real, parameter :: RDRROOT      =  0.005 ! relative death rate of root CRT. Root currently doesn't do anything in the model. FIXME
   real, parameter :: RDRSTUB      =  0.2   ! relative death rate of stubble CSTUB. Stubble currently doesn't do anything in the model. FIXME
   real            :: reHardRedDay
   real, parameter :: reHardRedEnd = 91.    ! end date of rehardening reduction period for Northern hemisphere. Adjusted in HardeningSink(). FIXME

@@ -10,6 +10,7 @@
      source( sitesettings_filenames[s] )
      list_params      [[s]] <- params       ; list_matrix_weather[[s]] <- matrix_weather
      list_days_harvest[[s]] <- days_harvest ; list_NDAYS         [[s]] <- NDAYS   
+     cat(file=stderr(), paste('Check parameters =', length(params)), "\n")
    } 
    cat(file=stderr(), 'Finished calling site init scripts', "\n")
    

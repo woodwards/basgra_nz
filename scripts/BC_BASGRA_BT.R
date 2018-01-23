@@ -4,12 +4,14 @@
 
 #
 library(BayesianTools)
+library(coda)
 
 #
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
 
 # parameter names
 bt_names <- parname_BC
+cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 
 # likelihood function (work with scaled parameters)
 bt_likelihood <- function(par){
@@ -60,6 +62,13 @@ bt_out <- runMCMC(bayesianSetup=bt_setup,
                   sampler = "DREAMzs", 
                   settings=bt_settings)
 cat(file=stderr(), " ", "\n")
+
+# report convergence
+cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
+psf <- gelmanDiagnostics(bt_out)$psrf[,1]
+print(round(psf,3))
+conv <- gelmanDiagnostics(bt_out)$mpsrf
+cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(conv,3)), "\n")
 
 # return samples (scaled parameter space)
 pChain       <- getSample(bt_out) 

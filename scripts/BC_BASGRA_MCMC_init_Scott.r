@@ -9,7 +9,7 @@
    
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
-   shape <- 4 # shape parameter (0=noninformative, 4=previous method)
+   shape <- 0 # shape parameter (0=noninformative, 4=previous method)
    file_prior    <- "model_inputs/parameters_BC_Scott.txt"
    
    # parameters file has 5 columns

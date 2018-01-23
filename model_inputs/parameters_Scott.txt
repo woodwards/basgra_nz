@@ -39,7 +39,7 @@ SLAMAX	0.06	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves
 TBASE	3.61083	TBASE	°C	Minimum value of effective temperature for leaf elongation
 TCRES	1.88986	TCRES	d	Time constant of mobilisation of reserves
 TOPTGE	12.6178	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative
-TRANCO	8	TRANCO	mm d-1	Transpiration coefficient (PTRAN at which WCCR is half)
+TRANCO	0.008	TRANCO	mm d-1 g-1 m2	Transpiration effect of root mass
 YG	0.841767	YG	gC gC-1	Growth yield per unit expended carbohydrate
 LAT	-37.77	LAT	degN	Latitude
 WCI	0.3	WCI	m3 m-3	Initial value of volumetric water content
@@ -75,8 +75,12 @@ TmeltFreeze	0	TmeltFreeze	°C	Temperature above which snow melts
 TrainSnow	0.01	TrainSnow	°C	Temperature below which precipitation is snow
 TsurfDiff	0.62279	TsurfDiff	°C	Constant in the calculation of dehardening rate
 KLUETILG	0.5	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
-FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1 
+FRTILGG1I	0.5	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1
 DAYLG1G2	0.6	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
 RGRTG1G2	0.9	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.01	RDRTMIN	d-1	Minimum relative death rate of foliage
-TVERN	7	TVERN	°C	Temperature below which vernlisation occurs
+TVERN	6	TVERN	°C	Temperature below which vernalisation advances
+TVERND	15.0	TVERND	d	Days of cold after which vernalisation completed
+AGEH	730.0	AGEH	d	Age at which persistence is half
+KAGE	0.01	KAGE	d-1	Curvature of persistence
+RDRROOT	0.005	RDRROOT	d-1	Relatuive death rate of root mass CRT

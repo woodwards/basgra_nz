@@ -9,7 +9,7 @@ suppressMessages({
 
 # summary and correlation matrix
 if (TRUE){
-  cat(file=stderr(), 'Correlation plot', "\n")
+  cat(file=stderr(), 'Plot largest cells of posterior correlation grid', "\n")
   invisible(capture.output(cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
                            file=paste("model_outputs/BC_summary_BT.txt",sep=""))) # and export text summary
   # correlation plot (for most correlated parameters)
@@ -34,8 +34,8 @@ if (FALSE){
 }
 
 # prior and posterior histograms
-if (TRUE){
-  cat(file=stderr(), 'Prior/posterior histograms', "\n")
+if (FALSE){
+  cat(file=stderr(), 'Plot prior/posterior histograms', "\n")
   png( paste("model_outputs/BC_parameters_histograms_BT.png",sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
   marginalPlot(bt_out) # prior and posterior histograms (scaled parameters)
@@ -54,7 +54,7 @@ if (FALSE){
 # https://github.com/florianhartig/BayesianTools/blob/master/Examples/PlotTimeSeriesResults.Rmd
 if (TRUE){
   
-  cat(file=stderr(), 'Model predictions against data', "\n")
+  cat(file=stderr(), 'Plot model predictions against data', "\n")
   bt_samples <- pChain[(nBurnin+1):nChain, ]
   bt_predict <- function(par){
     # use loop from BC_BASGRA_MCMC.R  
@@ -88,7 +88,7 @@ if (TRUE){
     # pdf( paste('model_outputs/BC_calibration_fits_BT_', s, '.pdf',sep=""),
     #      width=pagew, height=pageh)
     png( paste('model_outputs/BC_calibration_fits_BT_', s, '.png',sep=""),
-         width=pagew, height=pageh, units="in", type="windows", res=300)
+         width=11, height=8, units="in", type="windows", res=300)
 
     # set up plot grid
     noutputsMeasured     <- length(unique(data_index[[s]]))
@@ -120,7 +120,7 @@ if (TRUE){
         pred <- getPredictiveIntervals(parMatrix=bt_samples,
                                        model=bt_predict,
                                        numSamples=1000,
-                                       quantiles=c(0.025, 0.5, 0.975),
+                                       quantiles=c(0.05, 0.5, 0.95),
                                        error=bt_error)
         plotTimeSeries <- function(observed = NULL, predicted = NULL, x = NULL, xlim = NULL,
                                    confidenceBand = NULL, predictionBand = NULL, 
@@ -147,7 +147,7 @@ if (TRUE){
                               confidenceBand = pred$posteriorPredictiveCredibleInterval[c(1,3),],
                               predictionBand = pred$posteriorPredictivePredictionInterval[c(1,3),],
                               x=bt_pred_times,
-                              xlim=c(2012,2015), # show only a subset of time line (else = NULL)
+                              # xlim=c(2012,2015), # show only a subset of time line (else = NULL)
                               main=paste(easyNames[data_col], outputUnits[data_col])
         )
         # plot key prediction lines

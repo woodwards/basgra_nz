@@ -23,21 +23,21 @@
 ## 3. PRINTING AND PLOTTING ##
   cat(file=stderr(), 'Calling BC output scripts', "\n")
   source('scripts/BC_export_parModes.R')
-  source('scripts/BC_plot_parameters_traceplots.R') # can be slow!
+  source('scripts/BC_plot_parameters_traceplots.R') # can be slow! useful for convergence check
   source('scripts/BC_plot_parameters_priorbeta_histograms.R')
-  outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
-  outputMax[which(outputNames=="CST")] <- 100
-  outputMax[which(outputNames=="TILTOT")] <- 10000
-  outputMax[which(outputNames=="WCL")] <- 60
-  source('scripts/BC_plot_outputs_data.R')
+  # outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
+  # outputMax[which(outputNames=="CST")] <- 100
+  # outputMax[which(outputNames=="TILTOT")] <- 10000
+  # outputMax[which(outputNames=="WCL")] <- 60
+  # source('scripts/BC_plot_outputs_data.R')
   
   # run with MAP parameters
   for (s in 1:nSites){
     cat(file=stderr(), paste('Running BASGRA_Scott with BC MAP parameters, site',s), "\n")
     file_params    <- 'model_outputs/BASGRA_parModes.txt' 
-    temp <- read.csv(file_params, sep="\t")
+    # temp <- read.csv(file_params, sep="\t")
     parcol         <- 2 + 8*(s-1)
-    source(sitesettings_filenames[[s]])
+    source(sitesettings_filenames[[s]]) # sets params <- df_params[,parcol] from file_params
     output <- run_model()
     file_table  = paste("model_outputs/basgra_trace_table_",s,".txt", sep="")
     file_plot   = paste("model_outputs/basgra_trace_plots_",s,".png", sep="")
@@ -46,7 +46,7 @@
   
   #
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
-  # dyn.unload(BASGRA_DLL) 
+  dyn.unload(BASGRA_DLL) 
   
   # save workspace since it takes a long time to generate
   cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")

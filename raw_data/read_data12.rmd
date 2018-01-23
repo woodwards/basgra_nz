@@ -641,7 +641,7 @@ data_rpm <- data_rpm %>%
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
 calib_start <- ymd("20120101") # period for data weight = 1
-calib_end <- ymd("20140531") # period for data weight = 1
+calib_end <- ymd("20170531") # period for data weight = 1
 ablock <- 3
 
 for (ablock in c(2,3,4)) { # loop through data sets
