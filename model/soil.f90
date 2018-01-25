@@ -24,11 +24,12 @@ Subroutine SoilWaterContent(Fdepth,ROOTD,WAL)
 end Subroutine SoilWaterContent
 
 ! Calculate Tsurf = soil surface temperature, and fPerm = not used
+! See equations in Thorsen et al 2010
 Subroutine Physics(DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)
   real :: DAVTMP,Fdepth,ROOTD,Sdepth,WAS
   real :: Frate
   if (Fdepth > 0.) then
-    Tsurf = DAVTMP / (1. + 10. * (Sdepth / Fdepth) ) ! Temperature extinction under snow when soil is frozen? FIXME
+    Tsurf = DAVTMP / (1. + 10. * (Sdepth / Fdepth) ) ! Temperature extinction under snow when soil is frozen (Eqn 15)
     fPerm = 0. ! Not used
   else
     Tsurf = DAVTMP * exp(-KTSNOW*Sdepth) ! Temperature extinction under snow (KTSNOW = gamma ~ 65 m-1)
@@ -38,6 +39,7 @@ Subroutine Physics(DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)
 end Subroutine Physics
 
    ! Calculate Frate = m d-1 Rate of increase of frost layer depth
+   ! See equations in Thorsen et al Polar Research 29 2010 110–126
    Subroutine FrozenSoil(Fdepth,ROOTD,WAS, Frate)
      real :: Fdepth,ROOTD,WAS
      real :: Frate
@@ -51,12 +53,11 @@ end Subroutine Physics
        WCeff = WCL
      end if
      ! Calculating potential frost rate 'PFrate'
-!     if ((Fdepth == 0.).and.(Tsurf>0.)) then ! No soil frost present AND no frost starting
      if (((Fdepth == 0.).and.(Tsurf>0.)).or.(WCeff == 0.)) then ! No soil frost present AND no frost starting
        PFrate = 0.
      else
        alpha  = LAMBDAsoil / ( RHOwater * WCeff * LatentHeat )
-       PFrate = sqrt( max(0.,Fdepth**2 - 2.*alpha*Tsurf) ) - Fdepth
+       PFrate = sqrt( max(0.,Fdepth**2 - 2.*alpha*Tsurf) ) - Fdepth ! (Eqn 12)
      end if
      if ((PFrate >= 0.).and.(Fdepth > 0.).and.(Fdepth < ROOTD)) then
        Frate = PFrate * (0.001*WAS/Fdepth) / WCFC ! Soil frost increasing

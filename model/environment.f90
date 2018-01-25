@@ -69,6 +69,7 @@ Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETS
   end if
 end Subroutine MicroClimate
 
+   ! See equation in Marcel van Oijen and Peter Leffelaar Crop Ecology 2010
    Subroutine RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
        FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain)
      integer :: doy
@@ -77,7 +78,7 @@ end Subroutine MicroClimate
      real :: PINFIL
      call precForm(Psnow)
      call WaterSnow(doy,DRYSTOR,Psnow,Sdepth,WETSTOR, PackMelt,reFreeze,SnowMelt,Wremain)
-     RNINTC = min( Wsupply, 0.25*LAI ) ! Leaf can intercept 0.25 mm of water
+     RNINTC = min( Wsupply, 0.25*LAI ) ! Leaf can intercept 0.25 mm of water (Eqn 12)
      PINFIL = Wsupply - RNINTC         ! Not-intercepted fraction
      call INFILrunOn(Fdepth,PINFIL, INFIL)
      call SurfacePool(Fdepth,Frate,Tsurf,WAPL,WAPS, &
@@ -226,8 +227,8 @@ Subroutine DDAYL(doy)
   else
     DECLIM = abs(atan(1./tan(LAT*rad)))
   end if
-  DECC = max(-DECLIM, min(DECLIM, DEC))                                ! correct for polar regions (Simon)
-  YDAYL = DAYL                                                         ! record yesterday length (Simon)
+  DECC = max(-DECLIM, min(DECLIM, DEC))                                ! Simon corrected for polar regions
+  YDAYL = DAYL                                                         ! Simon recorded yesterday DAYL
   DAYL  = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECC)) / pi )        ! (d d-1)
 end Subroutine DDAYL
 

@@ -38,14 +38,14 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Unit filename="../model_inputs/parameters_BC_Scott.txt" />
+		<Unit filename="../model_inputs/parameters_Scott.txt" />
 		<Unit filename="BASGRA.DLL" />
 		<Unit filename="BASGRA.f90" />
 		<Unit filename="BASGRA_WG.DLL" />
 		<Unit filename="compile_BASGRA_gfortran.bat" />
 		<Unit filename="compile_BASGRA_gfortran_WG.bat" />
 		<Unit filename="environment.f90" />
-		<Unit filename="parameters_BC_example.txt" />
-		<Unit filename="parameters_example.txt" />
 		<Unit filename="parameters_plant.f90" />
 		<Unit filename="parameters_site.f90" />
 		<Unit filename="plant.f90" />

@@ -55,13 +55,26 @@ nInternal   <- 3 # internal chains for DREAMzs
 bt_settings <- list(startValue=nInternal, 
                     iterations=nChain/nChains, 
                     nrChains=nChains, 
-                    burnin=nBurnin/nChains*0) # burnin gets discarded but this causes a crash
+                    burnin=nBurnin/nChains*0, # burnin gets discarded but this causes a crash
+                    parallel=TRUE,
+                    message=TRUE) 
 
 # run BT
 bt_out <- runMCMC(bayesianSetup=bt_setup, 
                   sampler = "DREAMzs", 
                   settings=bt_settings)
 cat(file=stderr(), " ", "\n")
+
+# rerun BT
+if (FALSE){
+  while ((gelmanDiagnostics(bt_out)$mpsrf>1.1)&(bt_out[[1]]$settings$runtime[3]<1800)){
+    conv <- gelmanDiagnostics(bt_out)$mpsrf
+    cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(conv,3)), "\n")
+    cat(file=stderr(), paste("Continuing..."), "\n")
+    bt_out <- runMCMC(bayesianSetup=bt_out)
+    cat(file=stderr(), " ", "\n")
+  }
+}
 
 # report convergence
 cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
@@ -72,7 +85,13 @@ cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(conv,3)), "\n")
 
 # return samples (scaled parameter space)
 pChain       <- getSample(bt_out) 
-scparMAP_BC  <- MAP(bt_out)$parametersMAP 
 cat(file=stderr(), paste("Stored pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
+
+# store best par
+scparMAP_BC  <- MAP(bt_out)$parametersMAP 
+params_BC_MAP <- scparMAP_BC * sc
+names(params_BC_MAP) <- parname_BC
+cat(file=stderr(), paste("MAP parameter values"), "\n")
+print(round(params_BC_MAP,4))
 
 # results are generated in BC_BASGRA_BT_results.R

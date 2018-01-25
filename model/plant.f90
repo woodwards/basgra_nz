@@ -8,7 +8,7 @@ implicit none
 
 ! Plant variables
 integer :: NOHARV
-real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT
+real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RESMOB
 real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
 real :: RDLVD
@@ -20,7 +20,7 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
-  real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV  ! Simon added TILG1
+  real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1
   integer :: HARV
@@ -33,34 +33,35 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
     if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
       HARV   = 1
       NOHARV = 0
-      HARVFR = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction of leaf havested
+      HARVFR = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction havested (however this is defined)
 	end if
   end do
 
 ! CLAIV	m2 leaf m-2 Maximum LAI remaining after harvest, when no tillers elongate
 ! CLAI	m2 leaf m-2	Maximum LAI remaining after harvest
 ! (1-FRACTV) * CLAIV = LAI on elongating tillers, assumed to all be harvested
-  FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! = Fraction non-elongating tillers (Simon added TILG1)
+  FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! = Fraction non-elongating tillers (Simon included TILG1)
 !  CLAI   = FRACTV * CLAIV                       ! = Maximum LAI remaining after harvest
 !  if (LAI <= CLAI) then
-!    HARVFR = 0.0             ! Simon but what about (1-FRACTV)*LAI?
+!    HARVFR = 0.0             ! Forgot to harvest (1-FRACTV)*LAI?
 !  else
 !    HARVFR = 1.0 - CLAI/LAI  ! Fraction of leaf that is harvested
 !  end if
-  HARVFR = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1-FRACTV) ! Simon version
-  HARVFR = HARVFR * HARV
+  HARVFR = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1-FRACTV)    ! Simon included harvest of TILG2 leaf in harvest logic
+  TV1    = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + HAGERE * (1-FRACTV) ! Simon calculated proportion of CRES harvested
+  HARVFR = HARVFR * HARV                                           ! Simon only return HARVFR on HARV days
 ! HARVFR = Fraction of leaf and reservse in non-elongating tillers that is harvested
-! 1.0    = Fraction of leaf              in     elongating tillers that is harvested (I think)
+! 1.0    = Fraction of leaf              in     elongating tillers that is harvested (I think, or is it HAGERE?)
 ! HAGERE = Fraction of stem and reserves in     elongating tillers that is harvested
 
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
-  HARVPH    = (HARV   * PHEN        ) / DELT           ! Simon PHEN zeroed after each harvest
-  TV1       = (HARVFR * FRACTV) + (HAGERE * (1-FRACTV))! Proportion of CRES harvested
+  HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
+!  TV1       = (HARVFR * FRACTV) + (HAGERE * (1-FRACTV))! Proportion of CRES harvested
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
-  HARVST    = (HARV   * CST * HAGERE) / DELT           ! Simon CST zero after each harvest
-  GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Simon the non harvested portion of CST becomes CSTUB
-  HARVTILG2 = (HARV   * TILG2       ) / DELT           ! Simon TILG2 zeroed after each harvest
+  HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
+  GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB
+  HARVTILG2 = (HARV   * TILG2       ) / DELT           ! TILG2 zeroed after each harvest
 end Subroutine Harvest
 
 ! Calculate RESNOR (relative amount of CRES)
@@ -74,20 +75,21 @@ end Subroutine Biomass
 Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
   real :: DAYL,PHEN, AGE
   real :: DPHEN,GPHEN,HARVPH,FAGE
-  FAGE  = min(1.0, exp( -KAGE * (AGE - AGEH) ))                               ! Function of sward age (Simon)
-  GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! basically degree days * day length (Simon)
-  DPHEN = 0.
-  ! Simon redefined DAYLB to be a fraction of DLMXGE to avoid DAYLB>DLMXGE
-  if (DAYL < DAYLB*DLMXGE) then ! reset PHEN to zero whenever DAYL < DAYLB*DLMXGE (Simon)
+  FAGE  = min(1.0, exp( -KAGE * (AGE - AGEH) ))                               ! Simon added effect of sward age factor
+  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
+  if (DAYL < DAYLB) then                     ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
     GPHEN  = 0.0
     DPHEN  = PHEN / DELT
     HARVPH = 0.0
+  else
+    GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! Basically degree days * day length
+	DPHEN = 0.
   end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
-  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB*DLMXGE)/(DLMXGE - DAYLB*DLMXGE) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation
 end Subroutine Phenology
 
-! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers (Simon)
+! Simon added vernalisation function
+! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers
 Subroutine Vernalisation(DAYL,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
   real :: DAYL, YDAYL, TMMN, TMMX
   integer :: VERN
@@ -113,29 +115,31 @@ Subroutine Vernalisation(DAYL,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
  	VERND = 0.0
     DVERND = 0.0
   end if
-  ! reset vernalisation using same logic as PHEN switch?
-  if ((VERN==1).and.(DAYL < DAYLB*DLMXGE).and.(DAYL<YDAYL)) then
+  ! reset vernalisation
+  if ((VERN==1).and.(DAYL<YDAYL).and.(DAYL<DAYLG1G2)) then ! Reset vernalisation when daylength shortens after Solstice
 	VERN = 0
 	VERND = 0.0
     DVERND = 0.0
   end if
 end Subroutine Vernalisation
 
+! Simon renamed Foliage1() to SLA()
 ! Calculate leaf elongation rates LERV, LERG and SLANEW of new leaves
-Subroutine Foliage1
+Subroutine SLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
   LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongatino rate on vegetative tillers
   LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! m d-1 leaf elongatino rate on generative tillers
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR*(SLAMAX-SLAMIN)                ! SLA of new leaves (depends on CRES)
-end Subroutine Foliage1
+end Subroutine SLA
 
 ! Calculate light use efficiency LUEMXQ
 Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
 !=============================================================================
 ! Calculate LUEMXQ (mol CO2 mol-1 PAR quanta)
 ! Inputs : PARAV (micromol PAR quanta m-2 s-1)
+! See equations in M. van Oijen et al. / Ecological Modelling 179 (2004) 39–60
 !=============================================================================
   real :: PARAV
   real :: CO2I, EA, EAKMC, EAKMO, EAVCMX, EFF, GAMMAX, KC25, KMC, KMC25
@@ -151,15 +155,15 @@ Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
   KOKC   =      0.21                                         ! Catalytic efficiency ratio Rubisco oxygenation/carboxylation
   O2     =     21                                            ! % O2	Oxygen concentration in chloroplasts
   R      =      8.314                                        ! J K-1 mol-1 Universal gas constant
-  CO2I   = 0.7 * CO2A                                        ! ppm CO2 concentration in chloroplasts
-  VCMAX  = RUBISCN * KC25 * exp((1/298.-1/(T+273))*EAVCMX/R) ! micromol CO2 m-2 leaf s-1 Maximum carboxylation rate in upper leaves
-  KMC    =         KMC25 * exp((1/298.-1/(T+273))*EAKMC /R)  ! ppm CO2 Km-value Rubisco for carboxylation
-  KMO    =         KMO25 * exp((1/298.-1/(T+273))*EAKMO /R)  ! % O2	Km-value Rubisco for oxygenation
-  GAMMAX = 0.5 * KOKC * KMC * O2 / KMO                       ! ppm CO2)	CO2 compensation point at no mitochondrial respiration
-  PMAX   = VCMAX * (CO2I-GAMMAX) / (CO2I + KMC * (1+O2/KMO)) ! micromol CO2 m-2 s-1	Photosynthesis rate of upper leaves at light saturation
+  CO2I   = 0.7 * CO2A                                        ! ppm CO2 concentration in chloroplasts (Eqn 8)
+  VCMAX  = RUBISCN * KC25 * exp((1/298.-1/(T+273))*EAVCMX/R) ! micromol CO2 m-2 leaf s-1 Maximum carboxylation rate in upper leaves (Eqn 7a)
+  KMC    =         KMC25 * exp((1/298.-1/(T+273))*EAKMC /R)  ! ppm CO2 Km-value Rubisco for carboxylation (Eqn 7b)
+  KMO    =         KMO25 * exp((1/298.-1/(T+273))*EAKMO /R)  ! % O2	Km-value Rubisco for oxygenation (Eqn 7c)
+  GAMMAX = 0.5 * KOKC * KMC * O2 / KMO                       ! ppm CO2)	CO2 compensation point at no mitochondrial respiration (Eqn 7d)
+  PMAX   = VCMAX * (CO2I-GAMMAX) / (CO2I + KMC * (1+O2/KMO)) ! micromol CO2 m-2 s-1	Photosynthesis rate of upper leaves at light saturation (Eqn 6a)
   TMPFAC = max( 0., min( 1., (T+4.)/5. ) )                   ! Linear decrease of photosynthetic quantum yield at low temperature
-  EFF    = TMPFAC * (1/2.1) * (CO2I-GAMMAX) / (4.5*CO2I+10.5*GAMMAX) ! mol CO2 mol-1 PAR quanta	Quantum yield of photosynthesis
-  LUEMXQ = EFF*PMAX*(1+KLUETILG*(1-FRACTV)) / (EFF*KLAI*PARAV + PMAX)   ! mol CO2 mol-1 PAR Light-use efficiency
+  EFF    = TMPFAC * (1/2.1) * (CO2I-GAMMAX) / (4.5*CO2I+10.5*GAMMAX) ! mol CO2 mol-1 PAR quanta	Quantum yield of photosynthesis (Eqn 6b)
+  LUEMXQ = EFF*PMAX*(1+KLUETILG*(1-FRACTV)) / (EFF*KLAI*PARAV + PMAX)   ! mol CO2 mol-1 PAR Light-use efficiency (Eqn 5)
 end Subroutine LUECO2TM
 
 ! Calculate RESPHARDSI respiration for use in Growth()
@@ -170,7 +174,7 @@ Subroutine HardeningSink(CLV,DAYL,doy,LT50,Tsurf)
   if ( LAT > 0 ) then ! correct for hemisphere
     reHardRedStart = modulo( reHardRedEnd - reHardRedDay, 365. ) ! Rehardening reduction start
   else
-    reHardRedStart = modulo( reHardRedEnd + 183 - reHardRedDay, 365. ) ! Rehardening reduction start FIXME for hemisphere
+    reHardRedStart = modulo( reHardRedEnd + 183 - reHardRedDay, 365. ) ! Rehardening reduction adjusted for hemisphere
   end if
   doySinceStart  = modulo( doy-reHardRedStart       , 365. )
   if ( doySinceStart < (reHardRedDay+0.5*(365.-reHardRedDay)) ) then
@@ -187,12 +191,14 @@ Subroutine HardeningSink(CLV,DAYL,doy,LT50,Tsurf)
 end Subroutine HardeningSink
 
 ! Calculate all the growth rates
-Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF, GLV,GRES,GRT,GST,RESMOB)
+Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF
-  real :: GLV,GRES,GRT,GST,RESMOB
+  real :: GLV,GRES,GRT,GST
   real :: ALLOTOT,CSTAV,GLAISI,GRESSI,SOURCE,SINK1T
-  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis
-  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves
+  PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (Simon removed NOHARV switch)
+!  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis
+  RESMOB   = (CRES / TCRES) * max(0.,min( 1.,DAVTMP/5. ))          ! gC m-2 d-1	Mobilisation of reserves (Simon removed NOHARV switch)
+!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
@@ -249,7 +255,7 @@ Subroutine PlantRespiration(FO2,RESPHARD)
   RplantAer = fAer * ( RESPGRT + RESPGSH + RESPHARD )
 end Subroutine PlantRespiration
 
-! Calculate
+! Calculate death rates
 Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                  DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
   integer :: doy
@@ -311,7 +317,8 @@ end Subroutine Senescence
      end if
    end Subroutine Hardening
 
-! Calculate decompositon of dead leaf (added by Simon)
+! Simon added decomposition function
+! Calculate decompositon of dead leaf
 Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   real :: CLVD,DAVTMP,WCL
   real :: DLVD
@@ -355,8 +362,9 @@ Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   DLVD    = CLVD    * RDLVD
 end Subroutine Decomposition
 
+! Simon renamed Foliage2() to Tillering()
 ! Calculate GLAI,GTILV,TILVG1,TILG1G2
-Subroutine Foliage2(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,TILVG1,TILG1G2)
+Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,TILVG1,TILG1G2)
   real    :: DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,FAGE
   integer :: VERN
   real    :: GLAI,GTILV,TILVG1,TILG1G2
@@ -365,20 +373,22 @@ Subroutine Foliage2(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,T
   if (Tsurf < TBASE) then
     TV1   = 0.
   else
-    TV1   = Tsurf/PHY ! Soil surface T divided by phyllochron
+    TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF*(1-FRACTV) ) ! d-1 Leaf appearance rate per tiller
-  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                ! d-1 Maxmimum ratio of tiller and leaf apearance, at unlimited reserves
-  RGRTV   = max( 0.       , TV2 * RESNOR * RLEAF )                     ! d-1 Relative rate of vegetative tiller appearence?
-  GTILV   = TILV  * RGRTV
-  TGE     = max( 0.       , 1 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE)) ! Temperature effect on initiation of elongation in tillers
-  RGRTVG1 = min( 1.-TV2TIL, NOHARV * DAYLGE * TGE * RGENMX ) * VERN    ! d-1 Relative rate of generative tiller appearence?
+  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate (Simon moved NOHARV switch)
+!  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate
+  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! d-1 Ratio of tiller and leaf apearance
+  RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
+  GTILV   = TILV  * RGRTV * NOHARV                                            ! Simon moved NOHARV switch to here
+  TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
+  RGRTVG1 = NOHARV * DAYLGE * TGE * RGENMX * VERN                             ! d-1 Relative rate of vegetative tiller conversion to generative
+  RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day
   TILVG1  = TILV  * RGRTVG1
-  if (DAYL > DAYLG1G2) then
-    TILG1G2 = TILG1 * RGRTG1G2
+  if (DAYL > DAYLG1G2) then                                                   ! Generative tiller conversion controlled by DAYL
+    TILG1G2 = TILG1 * RGRTG1G2                                                ! d-1 Rate of generative tiller conversion to elongating
   else
-    TILG1G2 = 0.
+    TILG1G2 = TILG1                                                           ! Simon converted all remaining tillers
   end if
-end Subroutine Foliage2
+end Subroutine Tillering
 
 end module plant

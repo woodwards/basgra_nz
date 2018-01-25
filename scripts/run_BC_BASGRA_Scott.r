@@ -23,7 +23,7 @@
 ## 3. PRINTING AND PLOTTING ##
   cat(file=stderr(), 'Calling BC output scripts', "\n")
   source('scripts/BC_export_parModes.R')
-  source('scripts/BC_plot_parameters_traceplots.R') # can be slow! useful for convergence check
+  # source('scripts/BC_plot_parameters_traceplots.R') # very slow! but useful for convergence check
   source('scripts/BC_plot_parameters_priorbeta_histograms.R')
   # outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
   # outputMax[which(outputNames=="CST")] <- 100
@@ -46,7 +46,7 @@
   
   #
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
-  dyn.unload(BASGRA_DLL) 
+  # dyn.unload(BASGRA_DLL) 
   
   # save workspace since it takes a long time to generate
   cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")

@@ -26,24 +26,27 @@ Subroutine Light(DAYL,DTR,LAI,PAR)
 end Subroutine Light
 
 ! Calculate EVAP,TRAN,TRANRF
-Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN) ! Simon linked CRT to TRAN
+! See equations in Marcel van Oijen and Peter Leffelaar Crop Ecology 2010
+! Chapter 10(B): Lintul-2: water limited crop growth
+Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
   real :: Fdepth, PEVAP, PTRAN, CRT,ROOTD, WAL,WCL,  EVAP, TRAN
   real :: AVAILF, FR, WAAD, WCCR
-!  real :: WCL
+!  real :: WCL ! Simon use previously calculated WCL
 !  if (Fdepth < ROOTD) then
 !    WCL = WAL*0.001 / (ROOTD-Fdepth)
 !  else
 !    WCL = 0
 !  end if                                                       ! (m3 m-3)
   EVAP = PEVAP * max(0., min(1., (WCL-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Evaporation of water from soil surface
-!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Water content below which transpiration is reduced (Simon modified slightly)
-  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO*CRT))  ! = m3 m-3 Water content below which transpiration is reduced (Simon modified)
-  if (WCL > WCCR) then                                          ! Not limited by dryness
+  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
+!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO*1000)) ! Simon made TRANCO 1000x smaller
+!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO*CRT)) ! Simon made this a function of CRT and removed lower bound
+  if (WCL > WCCR) then                                          ! Transpiraiton reduction factor (Fig 4)
     FR = max(0., min(1., (WCST-WCL)/(WCST-WCWET) ))             ! Transpiration reduction in wet conditions
   else if (WCCR > WCWP) then                                    ! Gradual reduction due to dryness
     FR = max(0., min(1., (WCL-WCWP)/(WCCR-WCWP)  ))             ! Transpiration reduction in dry conditions
   else
-    FR = 0.0
+    FR = 0.0                                                     ! Simon added this case explicitly instead of setting lower bound to WCCR
   end if
   TRAN = PTRAN * FR                                             ! = mm d-1 Transpiration reduction due to WCL
   WAAD = 1000. * WCAD * (ROOTD-Fdepth)                          ! = mm Water in non-frozen soil at air dryness
@@ -65,7 +68,7 @@ end Subroutine EVAPTRTRF
 Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE, EXPLOR,RROOTD)
   real :: Fdepth,ROOTD,WAL,WCL,FAGE
   real :: EXPLOR,RROOTD
-!  real :: WCL
+!  real :: WCL ! Simon use previously calculated WCL
 !  if (Fdepth < ROOTD) then
 !    WCL = WAL*0.001 / (ROOTD-Fdepth)
 !  else

@@ -43,10 +43,10 @@ integer :: VERN
 real :: VERND, DVERND
 
 ! Define intermediate and rate variables
-real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE ! Simon added DLVD, FAGE
+real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
-real :: HARVFR, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN ! Simon exposed HARVFR
-real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RESMOB, RGRTV
+real :: HARVFR, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
+real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 integer :: HARV
 
@@ -79,7 +79,7 @@ CSTUB   = CSTUBI
 DAYL    = 0.5        ! Simon used to initialise YDAYL
 DRYSTOR = DRYSTORI
 Fdepth  = FdepthI
-LAI     = LAII
+LAI     = max(SLAMAX*FSLAMIN*CLV/0.045, min(SLAMAX*CLV/0.045, LAII)) ! Simon constrain initial LAI
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
@@ -98,7 +98,6 @@ WAPL    = WAPLI
 WAPS    = WAPSI
 WAS     = WASI
 WETSTOR = WETSTORI
-YDAYL   = 0.5        ! Simon used to initialise YDAYL
 
 ! Loop through days
 do day = 1, NDAYS
@@ -123,8 +122,8 @@ do day = 1, NDAYS
 
   ! Resources
   call Light          (DAYL,DTR,LAI,PAR)                             ! calculate Light interception DTRINT,PARINT,PARAV
-  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)   ! calculate EVAP,TRAN,TRANRF (Simon passed WCL)
-  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,      EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR (Simon passed WCL)
+  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)   ! calculate EVAP,TRAN,TRANRF
+  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,      EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
 
   ! Soil
   call FRDRUNIR       (EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
@@ -133,21 +132,21 @@ do day = 1, NDAYS
   call O2status       (O2,ROOTD)              ! calculate FO2
 
   ! Plant
-  call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &     ! Simon added TILG1
-                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV) ! Simon added HARVFR
+  call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
+                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   call Biomass        (CLV,CRES,CST)
   call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
   call Vernalisation  (DAYL,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
-  call Foliage1
+  call SLA
   call LUECO2TM       (PARAV)
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)
   call Growth         (CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF, &
-                                                       GLV,GRES,GRT,GST,RESMOB)
+                                                       GLV,GRES,GRT,GST)
   call PlantRespiration(FO2,RESPHARD)
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
   call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,RDLVD)    ! Simon decomposition function
-  call Foliage2       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
+  call Tillering       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
                                                        GLAI,GTILV,TILVG1,TILG1G2)
   ! Soil 2
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
@@ -168,19 +167,19 @@ do day = 1, NDAYS
   y(day,10) = CST
   y(day,11) = CSTUB
   y(day,12) = VERND        ! (Simon changed)
-  y(day,13) = Fdepth       ! m Soil frost layer depth
+  y(day,13) = PHOT         ! (Simon changed)
   y(day,14) = LAI
-  y(day,15) = LT50         ! deg C Temperature that kills half the plants in a day
+  y(day,15) = RESMOB       ! (Simon changed)
   y(day,16) = RAIN         ! mm Daily rainfall (Simon)
   y(day,17) = PHEN
   y(day,18) = ROOTD        ! m Root depth
-  y(day,19) = Sdepth       ! m Snow depth
+  y(day,19) = DAYL         ! (Simon changed)
   y(day,20) = TILG2        ! (Simon changed)
   y(day,21) = TILG1        ! (Simon changed)
   y(day,22) = TILV
   y(day,23) = WAL          ! mm Soil water amount liquid
   y(day,24) = WCL * 100.0    ! WCL = volumetric water content pecentage (Simon changed)
-  y(day,25) = WAPS         ! mm Pool water amount solid (ice)
+  y(day,25) = DAYLGE * 100.0 ! (Simon changed)
   y(day,26) = RDLVD        ! (Simon changed)
   y(day,27) = HARVFR * 100.0 * HARV ! (Simon changed)
 
@@ -198,7 +197,7 @@ do day = 1, NDAYS
   y(day,38) = RDRT                               ! = d-1 Relative leaf death rate due to high temperature
   y(day,39) = VERN                               ! = Vernalisation flag
 
-  ! Extra variables added by Simon
+  ! Simon added additional output variables
   y(day,40) = DRAIN
   y(day,41) = RUNOFF
   y(day,42) = EVAP
@@ -209,12 +208,12 @@ do day = 1, NDAYS
   ! Update state variables
   AGE     = AGE     + 1.0
   CLV     = CLV     + GLV   - DLV    - HARVLV
-  CLVD    = CLVD            + DLV    - DLVD                ! Simon, no decomposition of dead material FIXME
-  YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon, separated HARVST and GSTUB
+  CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material
+  YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon separated HARVST and GSTUB
   if (YIELD>0) YIELD_LAST = YIELD
   CRES    = CRES    + GRES  - RESMOB - HARVRE
-  CRT     = CRT     + GRT   - DRT * (2.0 - FAGE)
-  CST     = CST     + GST            - HARVST - GSTUB      ! Simon, separated HARVST and GSTUB
+  CRT     = CRT     + GRT   - DRT * (2.0 - FAGE)           ! Simon applied age factor to root death
+  CST     = CST     + GST            - HARVST - GSTUB      ! Simon separated HARVST and GSTUB
   CSTUB   = CSTUB   + GSTUB - DSTUB
   DRYSTOR = DRYSTOR + reFreeze + Psnow - SnowMelt
   Fdepth  = Fdepth  + Frate
@@ -230,11 +229,11 @@ do day = 1, NDAYS
   TILV    = TILV    + GTILV - TILVG1           - DTILV
   VERN    = VERN
   VERND   = VERND   + DVERND
-  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL +EXPLOR+IRRIG-DRAIN-RUNOFF-EVAP-TRAN
+  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain
   WAPS    = WAPS - THAWPS + FREEZEPL
   WAS     = WAS  - THAWS  + FREEZEL
-  WETSTOR = WETSTOR + Wremain - WETSTOR                    ! Simon this looks weird
+  WETSTOR = WETSTOR + Wremain - WETSTOR
 
 enddo
 
