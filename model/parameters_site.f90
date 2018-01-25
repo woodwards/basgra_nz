@@ -1,36 +1,34 @@
 module parameters_site
 
-implicit none
-
 !%%%%% Settings for Saerheim 2000
 
 ! Simulation period and time step
-  real, parameter       :: DELT   =   1.0 ! Model time step
+  real, parameter       :: DELT   =   1.0
 
 ! Geography
-  real                  :: LAT            ! Latitude in degrees north
+  real                  :: LAT
 
 ! Atmospheric conditions
-  real, parameter       :: CO2A   = 350   ! CO2 concentration in atmosphere (ppm)
+  real, parameter       :: CO2A   = 350   
 
 ! Soil
-  real, parameter       :: DRATE  =  50   ! mm d-1 Maximum soil drainage rate
+  real, parameter       :: DRATE  =  50
   real                  :: WCI
   real                  :: FWCAD, FWCWP, FWCFC, FWCWET, WCST
   real                  ::  WCAD,  WCWP,  WCFC,  WCWET
 
 ! Soil - WINTER PARAMETERS
-  real                  :: FGAS, FO2MX, KTSNOW, KRTOTAER, KSNOW ! Simon renamed gamma as KTSNOW
-  real, parameter       :: LAMBDAice      = 1.9354e+005  ! J m-1 K-1 d-1 Thermal conductivity of ice
+  real                  :: FGAS, FO2MX, gamma, KRTOTAER, KSNOW
+  real, parameter       :: LAMBDAice      = 1.9354e+005
   real                  :: LAMBDAsoil
-  real, parameter       :: LatentHeat     = 335000.      ! J kg-1 Latent heat of water fusion
-  real, parameter       :: poolInfilLimit =      0.2     ! m Soil frost depth limit for water infiltration
+  real, parameter       :: LatentHeat     = 335000.
+  real, parameter       :: poolInfilLimit =      0.2
   real                  :: RHOnewSnow, RHOpack
-  real, parameter       :: RHOwater       =   1000.      ! kg m-3	Density of water
+  real, parameter       :: RHOwater       =   1000.
   real                  :: SWret, SWrf, TmeltFreeze, TrainSnow
   real                  :: WpoolMax
-
-! Soil initial values
+  
+! Soil initial constants
   real, parameter       :: DRYSTORI = 0.
   real, parameter       :: FdepthI  = 0.
   real, parameter       :: SDEPTHI  = 0.
@@ -39,17 +37,18 @@ implicit none
   real, parameter       :: WAPSI    = 0.
   real, parameter       :: WASI     = 0.
   real, parameter       :: WETSTORI = 0.
-
+  
 ! Management: harvest dates and irrigation
   integer, dimension(3) :: doyHA
-  real, parameter       :: IRRIGF = 0.                   ! Relative irrigation rate (not currently used)
+!  integer, dimension(3) :: doyHA  = (/ 150, 216, 253 /)
+  real, parameter       :: IRRIGF = 0.
 
 ! Mathematical constants
   real, parameter       :: pi   = 3.141592653589793
   real, parameter       :: Freq = 2.*pi / 365.
-  real, parameter       :: Kmin = 4.           ! mm C-1 d-1 in SnowMeltWmaxStore()
-  real, parameter       :: Ampl = 0.625        ! mm C-1 d-1 Intra-annual amplitude snow melt at 1 degree > 'TmeltFreeze' in SnowMeltWmaxStore()
-  real, parameter       :: Bias = Kmin + Ampl  ! mm C-1 d-1 Average snow melting rate at 1 degree above 'TmeltFreeze' in SnowMeltWmaxStore()
+  real, parameter       :: Kmin = 4.
+  real, parameter       :: Ampl = 0.625
+  real, parameter       :: Bias = Kmin + Ampl
 
 end module parameters_site
 

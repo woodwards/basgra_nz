@@ -2,9 +2,29 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="plant.f90" open="1" top="1" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="soil.f90" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1795" topLine="30" />
+			<Cursor1 position="632" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="set_params.f90" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="930" topLine="78" />
+		</Cursor>
+	</File>
+	<File name="..\model_inputs\parameters_Scott.txt" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1677" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="BASGRA.f90" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4629" topLine="96" />
+		</Cursor>
+	</File>
+	<File name="compile_BASGRA_gfortran_WG.bat" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="339" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="environment.f90" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -22,39 +42,19 @@
 			<Cursor1 position="1944" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="..\model_inputs\parameters_BC_Scott.txt" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="plant.f90" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="970" topLine="20" />
+			<Cursor1 position="18549" topLine="22" />
 		</Cursor>
 	</File>
-	<File name="soil.f90" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\model_inputs\parameters_BC_Scott.txt" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="632" topLine="0" />
+			<Cursor1 position="113" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="resources.f90" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1421" topLine="15" />
-		</Cursor>
-	</File>
-	<File name="BASGRA.f90" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="9682" topLine="204" />
-		</Cursor>
-	</File>
-	<File name="set_params.f90" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="930" topLine="30" />
-		</Cursor>
-	</File>
-	<File name="..\model_inputs\parameters_Scott.txt" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3058" topLine="35" />
-		</Cursor>
-	</File>
-	<File name="compile_BASGRA_gfortran_WG.bat" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="339" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
