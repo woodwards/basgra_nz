@@ -34,10 +34,14 @@
   # run with MAP parameters
   for (s in 1:nSites){
     cat(file=stderr(), paste('Running BASGRA_Scott with BC MAP parameters, site',s), "\n")
+    source(sitesettings_filenames[[s]]) 
+    # overwrite parameters with MAP
     file_params    <- 'model_outputs/BASGRA_parModes.txt' 
     # temp <- read.csv(file_params, sep="\t")
     parcol         <- 2 + 8*(s-1)
-    source(sitesettings_filenames[[s]]) # sets params <- df_params[,parcol] from file_params
+    df_params      <- read.table(file_params,header=T,sep="\t",row.names=1)
+    params         <- df_params[,parcol]
+    # now run
     output <- run_model()
     file_table  = paste("model_outputs/basgra_trace_table_",s,".txt", sep="")
     file_plot   = paste("model_outputs/basgra_trace_plots_",s,".png", sep="")
@@ -52,6 +56,12 @@
   cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")
   file_save <- 'model_outputs/BASGRA_Workspace.RData' 
   save.image(file_save)
+  
+  # latest output
+  output <- as.data.frame(output)
+  names(output) <- outputNames
+  x <- output$Time
+  plot(x,output$DEBUG,main="DEBUG = TV2TIL")
   
   # reload workspace
   if (FALSE){

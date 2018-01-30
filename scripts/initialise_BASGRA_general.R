@@ -66,40 +66,40 @@ read_weather_WG <- function(y = year_start,
 outputNames <- c(
   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
   "TRANRF"    , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "VERND"    ,
-  "PHOT"    , "LAI"      , "RESMOB"     , "PRECIP"    , "PHEN"     , "ROOTD"    ,
-  "DAYL"    , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
-  "DAYLGE"      , "DELTA"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
+  "PHOT"      , "LAI"      , "RESMOB"   , "RAIN"      , "PHEN"     , "ROOTD"    ,
+  "DAYL"      , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
+  "DAYLGE"    , "RDLVD"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
   "FRTILG2"   , "RDRT"     , "VERN"     ,
-  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT"     , "FAGE" )
+  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT"     , "DEBUG" )
 easyNames <- c(
   "Time", "Year", "Day of Year", "Av. Temp.", "Leaf C", "Dead Leaf C",
   "Trans. Fact.", "Reserve C", "Root C", "Stem C", "Stubble C", "Vern. Days",
-  "Photosyn.", "LAI", "Res. Mobilis.", "Rain", "Phen. Stage", "Root Depth",
+  "Photosyn.", "LAI", "Res. Mobil.", "Rain", "Phen. Stage", "Root Depth",
   "Daylength", "Elong. Tillers", "Vern. Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
   "Daylength Fact.", "Decomp. Rate", "Harvest Fract.", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
   "Elong. Leaves", "Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
   "Frac. Elong. Tillers", "Leaf Death Rate", "Vernalised",
-  "Drainage", "Runoff", "Evap.", "Trans.", "Light Intercep.", "Age Fact." )
+  "Drainage", "Runoff", "Evap.", "Trans.", "Light Intercep.", "Debug" )
 outputUnits <- c(
   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
-  "(%)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(d)"     ,
+  "(-)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(d)"     ,
   "(gC m-2 d-1)"       , "(m2 m-2)" , "(gC m-2 d-1)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
-  "(-)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(%)"     ,
-  "(%)"      , "(d-1)"     , "(%)"      , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
+  "(-)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(-)"     ,
+  "(-)"      , "(d-1)"     , "(-)"      , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
   "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
   "(-)"       , "(d-1)"    , "(-)"      ,
-  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(%)"      , "(%)" )
+  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(-)"      , "(?)" )
 NOUT <- as.integer( length(outputNames) )
 outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max scale for each variable plotting
 outputMax <- rep( as.double(NA), length(outputNames))
 # subset to display
 chooseNames <- c(
-  "DAYL", "DAVTMP", "PRECIP", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
+  "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
   "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", 
-  "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "DELTA", "FAGE"
+  "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
   )
 
 ################################################################################

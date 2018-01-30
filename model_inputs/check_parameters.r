@@ -43,7 +43,7 @@ print("Comparison of my_par and official par")
 errors <- left_join(select(par, PARAMETER, SITE1), my_par) %>%
   mutate(change=pmax(abs(Scott/SITE1), abs(SITE1/Scott), abs((SITE1-Scott)/SITE1), abs((SITE1-Scott)/Scott))) %>%
   arrange(desc(change))
-print(errors, n=20)
+print(errors, n=100)
 
 print("Comparison of my_bc and official par")
 errors <- left_join(select(par, PARAMETER, SITE1), my_bc) %>%
@@ -51,3 +51,7 @@ errors <- left_join(select(par, PARAMETER, SITE1), my_bc) %>%
   arrange(desc(abs(change)))
 print(errors, n=20)
 
+# read old parameters
+file_params    <- 'model_inputs/parameters.txt' # can contain multiple columns
+parcol       <- 1 # which one are we going to use? (row names are ignored)
+orig_params      <- read.table(file_params,header=T,sep="\t",row.names=1)

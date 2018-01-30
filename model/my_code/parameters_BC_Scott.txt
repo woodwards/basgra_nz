@@ -7,10 +7,10 @@ AGEH	500	700	1500	1:nSites
 CLAIV	0.5	0.7	1.5	1:nSites
 COCRESMX	0.1	0.2	0.3	1:nSites
 CSTAVM	0.1	0.23	2.0	1:nSites
-DAYLB	0.4	0.55	0.65	1:nSites
-DAYLG1G2	0.45	0.55	0.6	1:nSites
+DAYLB	0.0	0.45	0.55	1:nSites
+DAYLG1G2	0.45	0.5	0.6	1:nSites
 DAYLP	0.3	0.8	1	1:nSites
-DLMXGE	0.6	0.95	1	1:nSites
+DLMXGE	0.5	0.7	1	1:nSites
 FGAS	0.2	0.2	0.6	1:nSites
 FO2MX	0.1	0.2	0.3	1:nSites
 FRTILGG1I	0	0.1	1	1:nSites
@@ -50,7 +50,7 @@ TBASE	2	4.5	6	1:nSites
 TCRES	1	1.9	4	1:nSites
 TOPTGE	5	12.6	25	1:nSites
 TRANCO	4	8	16	1:nSites
-TVERN	-1	4	8	1:nSites
-TVERND	14	21	42	1:nSites
+TVERN	-1	4	6	1:nSites
+TVERND	4	8	25	1:nSites
 YG	0.6	0.65	0.9	1:nSites
 WCST	0.4	0.55	0.6	1:nSites

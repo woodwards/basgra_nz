@@ -5,6 +5,12 @@
   parcol       <- 1 # which one are we going to use? (row names are ignored)
   source('scripts/initialise_BASGRA_Scott_3.r')
 
+## Adjust parameters
+  # swap_out <- 0
+  # swap_out <- swap_out + 1
+  # params[swap_out] <- orig_params[swap_out, parcol]
+  # print(paste("Swap out", rownames(orig_params)[swap_out]))
+  
 ## 2. RUNNING ##
   cat(file=stderr(), 'Calling run_model()', "\n")
    output <- run_model()
