@@ -130,8 +130,9 @@ end Subroutine Vernalisation
 Subroutine SLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
-  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongatino rate on vegetative tillers
-  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! m d-1 leaf elongatino rate on generative tillers
+  ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
+  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers
+  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0, so DLMXGE < maximum DAYL
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR*(SLAMAX-SLAMIN)                ! SLA of new leaves (depends on CRES)
 end Subroutine SLA
@@ -222,7 +223,8 @@ end Subroutine Growth
      real :: GRES, GRT, GLV, GST
      real :: ALLOSH, ALLORT, ALLOLV, ALLOST
      GSHSI = GLVSI + GSTSI
-     if (DAYLGE >= 0.1) then
+!     if (DAYLGE >= 0.1) then   ! Simon thinks maybe this value should be a parameter
+     if (DAYLGE >= DAYLGEA) then   ! Simon thinks maybe this value should be a parameter
      ! Situation 1: Growth has priority over storage (spring and growth period)
        ! Calculate amount of assimilates allocated to shoot
        ALLOSH = min( ALLOTOT, GSHSI )

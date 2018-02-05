@@ -11,12 +11,12 @@ LT50I	-4.7894	LT50I	°C	Initial value of LT50
 CLAIV	0.7054	CLAIV	m2 leaf m-2	"Maximum LAI remaining after harvest, when no tillers elongate"
 COCRESMX	0.2107	COCRESMX	-	Maximum concentration of reserves in aboveground biomass (not stubble)
 CSTAVM	0.23	CSTAVM	gC tiller-1	Maximum size of elongating tillers
-DAYLB	0.5500	DAYLB	d d-1	Day length below which DAYLGE becomes 0 and phenological stage is reset to zero
+DAYLB	0.5500	DAYLB	d d-1	Day length below which DAYLGE becomes 0 and phenological stage is reset to zero (must be < DLMXGE)
 DAYLP	0.4348	DAYLP	d d-1	Day length below which phenological development slows down
-DLMXGE	0.9500	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1
-FSLAMIN	0.7	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA
-FSMAX	0.5496	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry
-HAGERE	0.8406	HAGERE	-	Fraction of reserves in elongating tillers that is harvested
+DLMXGE	0.6091	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1 (should be < maximum DAYL?)
+FSLAMIN	0.7	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA (must be < 1)
+FSMAX	0.5496	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry (must be < 1)
+HAGERE	0.8406	HAGERE	-	Fraction of reserves in elongating tillers that is harvested (must be < 1)
 KLAI	0.8510	K	m2 m-2 leaf	PAR extinction coefficient
 LAICR	3.8	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
 LAIEFT	0.1684	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
@@ -33,14 +33,14 @@ RGENMX	0.0143	RGENMX	d-1	Maximum relative rate of tillers becoming elongating ti
 ROOTDM	0.5	ROOTDM	m	Initial and maximum value rooting depth
 RRDMAX	0.0101	RRDMAX	m d-1	Maximum root depth growth rate
 RUBISC	3.7350	RUBISC	g m-2 leaf	Rubisco content of upper leaves
-LSHAPE	0.7510	SHAPE	-	Area of a leaf relative to a rectangle of same length and width
+LSHAPE	0.7510	SHAPE	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)
 SIMAX1T	0.0080	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
 SLAMAX	0.0451	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves
 TBASE	4.0766	TBASE	°C	Minimum value of effective temperature for leaf elongation
 TCRES	1.9	TCRES	d	Time constant of mobilisation of reserves
-TOPTGE	12.6	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative
+TOPTGE	12.6	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative (must be > TBASE)
 TRANCO	8	TRANCO	mm d-1 g-1 m2	Transpiration effect of root mass
-YG	0.7057	YG	gC gC-1	Growth yield per unit expended carbohydrate
+YG	0.7057	YG	gC gC-1	Growth yield per unit expended carbohydrate (must be < 1)
 LAT	-37.77	LAT	degN	Latitude
 WCI	0.3	WCI	m3 m-3	Initial value of volumetric water content
 FWCAD	0.05	WCAD	m3 m-3	Relative saturation at air dryness
@@ -84,3 +84,4 @@ TVERND	21	TVERND	d	Days of cold after which vernalisation completed
 AGEH	932.8	AGEH	d	Age at which persistence is half
 KAGE	0.0458	KAGE	d-1	Curvature of persistence
 RDRROOT	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
+DAYLGEA	0.1	DAYLGEA	-	Value of DAYLGE above which growth is prioritised over storage

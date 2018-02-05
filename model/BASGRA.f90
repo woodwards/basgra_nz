@@ -21,7 +21,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 85        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 86        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -211,7 +211,7 @@ do day = 1, NDAYS
   YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon separated HARVST and GSTUB
   if (YIELD>0) YIELD_LAST = YIELD
   CRES    = CRES    + GRES  - RESMOB - HARVRE
-  CRT     = CRT     + GRT   - DRT * (2.0 - FAGE)             ! Simon age effect on root death
+  CRT     = CRT     + GRT   - DRT
   CST     = CST     + GST            - HARVST - GSTUB      ! Simon separated HARVST and GSTUB
   CSTUB   = CSTUB   + GSTUB - DSTUB
   DRYSTOR = DRYSTOR + reFreeze + Psnow - SnowMelt
