@@ -19,7 +19,8 @@ implicit none
   real :: LFWIDV  , NELLVM  , PHENCR, PHY     , RDRSCO  , RDRSMX , RDRTEM, RGENMX
   real :: RGRTG1G2, ROOTDM  , RRDMAX, RUBISC  , LSHAPE  , SIMAX1T, SLAMAX, SLAMIN ! Simon renamed SHAPE as LSHAPE
   real :: TBASE   , TCRES   , TOPTGE, TRANCO  , YG
-  real :: RDRTMIN , TVERN   , TVERND, AGEH    , KAGE    , RDRROOT, DAYLGEA
+  real :: RDRTMIN , TVERN   , TVERND, AGEH    , KAGE    , RDRROOT, DAYLGEA, DAYLRV
+  real :: COCRESMN
 
 ! Process parameters, continued
   real            :: Dparam, Hparam, KRDRANAER, KRESPHARD, KRSR3H

@@ -43,3 +43,10 @@
 
    dyn.unload(BASGRA_DLL) 
    
+   # latest output
+   output <- as.data.frame(output)
+   names(output) <- outputNames
+   x <- output$Time
+   plot(x,output$DEBUG,main="DEBUG = ?")
+   
+   

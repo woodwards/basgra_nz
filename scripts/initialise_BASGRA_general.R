@@ -87,7 +87,7 @@ outputUnits <- c(
   "(gC m-2 d-1)"       , "(m2 m-2)" , "(gC m-2 d-1)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
   "(-)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(-)"     ,
   "(-)"      , "(d-1)"     , "(-)"      , "(g DM m-2)", "(g g-1)"  , "(m d-1)"  ,
-  "(tiller-1)", "(d-1)"    , "(m2 g-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
+  "(tiller-1)", "(d-1)"    , "(m2 gC-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
   "(-)"       , "(d-1)"    , "(-)"      ,
   "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(-)"      , "(?)" )
 NOUT <- as.integer( length(outputNames) )
@@ -138,6 +138,7 @@ plot_output <- function(
       legend("bottomright", leg, lty=lty, lwd=lwd, col=1:nlist, title = leg_title)
     }
   }
+  par(mfrow=c(1,1)) # Simon
 }
 
 table_output <- function(
@@ -177,6 +178,7 @@ export_output <- function(
   plot_output(  list_output=list_output, vars=vars,
                 leg=leg, leg_title=leg_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
+#  dev.off()
 #  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
   # and save to file (Simon)
   png(filename=file_plot, width=10, height=8, units="in", type="windows", res=300)

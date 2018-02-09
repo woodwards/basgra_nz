@@ -21,7 +21,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 86        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 88        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -79,7 +79,7 @@ CSTUB   = CSTUBI
 DAYL    = 0.5        ! Simon used to initialise YDAYL
 DRYSTOR = DRYSTORI
 Fdepth  = FdepthI
-LAI     = max(SLAMAX*FSLAMIN*CLV/0.45, min(SLAMAX*CLV/0.45, LAII)) ! Simon constrain initial LAI
+LAI     = max(SLAMAX * FSLAMIN * CLV, min(LAII, SLAMAX * CLV)) ! Simon constrain initial LAI (note SLAMAX is in gC units)
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
@@ -134,13 +134,13 @@ do day = 1, NDAYS
   ! Plant
   call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                                                        GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
-  call Biomass        (CLV,CRES,CST)
+  call Biomass        (CLV,CRES,CST,CSTUB)
   call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
-  call Vernalisation  (DAYL,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
+  call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
   call SLA
   call LUECO2TM       (PARAV)
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)
-  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILV,TRANRF,GLV,GRES,GRT,GST)
+  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,GLV,GRES,GRT,GST)
   call PlantRespiration(FO2,RESPHARD)
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
@@ -184,11 +184,12 @@ do day = 1, NDAYS
 
   ! Extra derived variables for calibration
   y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45     ! "DM"  = Aboveground dry matter in g m-2 (Simon included CLVD)
-  y(day,29) = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in g g-1 aboveground green matter
+  y(day,29) = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
   y(day,30) = LERG                               ! = m d-1 Leaf elongation rate per leaf for generative tillers
   y(day,31) = NELLVG                             ! = tiller-1 Number of growing leaves per elongating tiller
   y(day,32) = RLEAF                              ! = leaves tiller-1 d-1 Leaf appearance rate per tiller
-  y(day,33) = LAI / (CLV/0.45)                   ! "SLA"     = m2 leaf area g-1 dry matter vegetative tillers
+  y(day,33) = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (RES not included?) Note in gC units
+!  y(day,33) = LAI / (CLV/0.45)                   ! "SLA"     = m2 leaf area g-1 dry matter vegetative tillers (RES not included?) Note SLANEW internally is gC units
   y(day,34) = TILG1 + TILG2 + TILV               ! "TILTOT"  = Total tiller number in # m-2
   y(day,35) = (TILG1+TILG2) / (TILG1+TILG2+TILV) ! "FRTILG"  = Fraction of tillers that is generative
   y(day,36) =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
@@ -202,7 +203,7 @@ do day = 1, NDAYS
   y(day,42) = EVAP
   y(day,43) = TRAN
   y(day,44) = PARINT / PAR                       ! = Percentage light interception
-  y(day,45) = TV2TIL                                ! Simon put variables here for debugging
+  y(day,45) = RESNOR                                ! Simon put variables here for debugging
 
   ! Update state variables
   AGE     = AGE     + 1.0

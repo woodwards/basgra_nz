@@ -45,10 +45,9 @@ bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 # construct setup
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
-                                names=bt_names, 
-                                parallel=T, 
-                                parallelOptions=list(dlls=list(BASGRA_DLL))
-                                )
+                                parallel=T,
+                                parallelOptions=list(dlls=list(BASGRA_DLL)),
+                                names=bt_names)
 
 # construct settings (note: DREAMzs has startValue=3 internal chains by default)
 nInternal   <- 3 # internal chains for DREAMzs
@@ -63,6 +62,7 @@ bt_settings <- list(startValue=nInternal,
 bt_out <- runMCMC(bayesianSetup=bt_setup, 
                   sampler = "DREAMzs", 
                   settings=bt_settings)
+stopParallel(bayesianSetup=bt_setup)
 cat(file=stderr(), " ", "\n")
 
 # rerun BT
