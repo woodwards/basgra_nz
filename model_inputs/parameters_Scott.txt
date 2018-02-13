@@ -40,7 +40,7 @@ TBASE	4.0766	TBASE	°C	Minimum value of effective temperature for leaf elongatio
 TCRES	1.9	TCRES	d	Time constant of mobilisation of reserves
 TOPTGE	12.6	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative (must be > TBASE)
 TRANCO	8	TRANCO	mm d-1 g-1 m2	Transpiration effect of root mass
-YG	0.7057	YG	gC gC-1	Growth yield per unit expended carbohydrate (must be < 1)
+YG	0.85	YG	gC gC-1	Growth yield per unit expended carbohydrate (must be < 1)
 LAT	-37.77	LAT	degN	Latitude
 WCI	0.3	WCI	m3 m-3	Initial value of volumetric water content
 FWCAD	0.05	WCAD	m3 m-3	Relative saturation at air dryness

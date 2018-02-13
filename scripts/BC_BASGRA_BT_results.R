@@ -54,7 +54,8 @@ if (FALSE){
 # https://github.com/florianhartig/BayesianTools/blob/master/Examples/PlotTimeSeriesResults.Rmd
 if (TRUE){
   
-  cat(file=stderr(), 'Plot model predictions against data', "\n")
+  source('scripts/plotResiduals_BT.r') # replacement functions
+  
   bt_samples <- pChain[(nBurnin+1):nChain, ]
   bt_predict <- function(par){
     # use loop from BC_BASGRA_MCMC.R  
@@ -83,7 +84,10 @@ if (TRUE){
   }
   
   # plot predictive results for each site
+  s <- 1
   for (s in 1:nSites){ 
+
+    cat(file=stderr(), 'Plot model predictions against data, site', s, "\n")
     
     # pdf( paste('model_outputs/BC_calibration_fits_BT_', s, '.pdf',sep=""),
     #      width=pagew, height=pageh)
@@ -97,6 +101,7 @@ if (TRUE){
     oldpar <- par(mfrow=c(nrowsPlots,ncolsPlots),omi=c(0,0,0.5,0), mar=c(2, 2, 2, 1) )
     
     # loop through variables
+    data_col <- unique(data_index[[s]])[[1]]
     for (data_col in unique(data_index[[s]])){ 
       p <- data_col
       datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
@@ -142,10 +147,13 @@ if (TRUE){
           if(!is.null(predicted)) lines(x, predicted, col = "red")
           if(!is.null(observed)) points(x, observed, col = "black", pch = 3, cex = 0.6)
         }
+        predicted <- pred$posteriorPredictivePredictionInterval[2,]
+        confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
         plotTimeSeries(       observed=bt_obs_vals, 
-                              predicted = pred$posteriorPredictivePredictionInterval[2,],
-                              confidenceBand = pred$posteriorPredictiveCredibleInterval[c(1,3),],
-                              predictionBand = pred$posteriorPredictivePredictionInterval[c(1,3),],
+                              predicted = predicted,
+                              confidenceBand = confidenceBand,
+                              predictionBand = predictionBand,
                               x=bt_pred_times,
                               # xlim=c(2012,2015), # show only a subset of time line (else = NULL)
                               main=paste(easyNames[data_col], outputUnits[data_col])
@@ -157,35 +165,29 @@ if (TRUE){
         # plot all data
         keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts==0)
         x_obs <- bt_pred_times[keeps]
-        arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-               x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-               col="black", lwd=1.5, angle=45, length=0.05) # residual
-        arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-               x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-               col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        suppressWarnings({
+          arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+                 x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+                 col="black", lwd=1.5, angle=45, length=0.05) # residual
+          arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+                 x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+                 col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        })
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="grey", cex=1.5)
         # plot weighted data
         keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts>0)
         x_obs <- bt_pred_times[keeps]
-        arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-               x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-               col="black", lwd=1.5, angle=45, length=0.05) # residual
-        arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-               x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-               col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        suppressWarnings({
+          arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+                 x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+                 col="black", lwd=1.5, angle=45, length=0.05) # residual
+          arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+                 x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+                 col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        })  
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="darkblue", cex=1.5)
-      }
-      if (FALSE){ # this doesn't work with par(mfrow) but gives analysis of residuals
-        try(plotTimeSeriesResults(sampler=bt_samples,
-                                  model=bt_predict,
-                                  observed=bt_obs_vals,
-                                  error=bt_error,
-                                  main=paste("Site", s, easyNames[data_col]," ",outputUnits[data_col])
-                                  ),
-            silent=TRUE
-        )
       }
 
     } # next data_col
@@ -203,7 +205,47 @@ if (TRUE){
     # close figure
     dev.off() 
     par(oldpar)
-    
+
+    # residual analysis
+    cat(file=stderr(), 'Residual analysis, site', s, "\n")
+    data_col <- unique(data_index[[s]])[[1]]
+    for (data_col in unique(data_index[[s]])){ 
+      p <- data_col
+      datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
+      bt_obs_rows <- list_output_calibr_rows[[s]]
+      bt_obs_vals <- rep( as.double(NA), NDAYS )
+      bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
+      bt_obs_wts <- rep( 0, NDAYS )
+      bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
+      bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
+      bt_obs_errs <- rep( as.double(NA), NDAYS )
+      bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
+      bt_error_constant <- data_sd[[s]][datap][1] 
+      # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
+      bt_pred_MAP <- bt_predict(scparMAP_BC)
+      bt_pred_MAP_obs <- bt_pred_MAP
+      bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
+      bt_pred_ML <- bt_predict(scparMaxL_BC)
+      scparMode_BC <- parmod_BC / sc
+      bt_pred_Mode <- bt_predict(scparMode_BC)
+      if (TRUE){ # this doesn't work with par(mfrow) but gives analysis of residuals
+        # try({ # ignore errors thrown some subplots
+        # debug(plotTimeSeriesResults)
+        suppressMessages({
+          plotTimeSeriesResults(sampler=bt_samples,
+                                model=bt_predict,
+                                observed=bt_obs_vals,
+                                error=bt_error,
+                                main=paste("Site", s, easyNames[data_col]," ",outputUnits[data_col])
+                                )
+        })
+        # }, silent=TRUE)
+        # save
+        dev.copy(png, paste("model_outputs/Residuals_Site_", s, "_", easyNames[data_col], ".png", sep=""))
+        dev.off()
+      }
+    } # next data_col
+  
   } # next site
   
 }

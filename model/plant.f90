@@ -13,6 +13,7 @@ real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
 real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
 real :: CRESMN
+real :: ALLOSH, ALLORT, ALLOLV, ALLOST
 
 contains
 
@@ -229,7 +230,6 @@ end Subroutine Growth
    ! Calculate allocation of CRES to GRES,GRT,GLV,GST
    Subroutine Allocation(GRES,GRT,GLV,GST)
      real :: GRES, GRT, GLV, GST
-     real :: ALLOSH, ALLORT, ALLOLV, ALLOST
      GSHSI = GLVSI + GSTSI
 !     if (DAYLGE >= 0.1) then   ! Simon thinks maybe this value should be a parameter
      if (DAYLGE >= DAYLGEA) then   ! Simon thinks maybe this value should be a parameter

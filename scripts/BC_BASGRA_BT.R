@@ -3,8 +3,10 @@
 # https://www.rdocumentation.org/packages/BayesianTools/versions/0.1.3/topics/VSEM
 
 #
-library(BayesianTools)
-library(coda)
+suppressMessages({
+  library(BayesianTools)
+  library(coda)
+})
 
 #
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
@@ -62,7 +64,6 @@ bt_settings <- list(startValue=nInternal,
 bt_out <- runMCMC(bayesianSetup=bt_setup, 
                   sampler = "DREAMzs", 
                   settings=bt_settings)
-stopParallel(bayesianSetup=bt_setup)
 cat(file=stderr(), " ", "\n")
 
 # rerun BT
@@ -75,6 +76,9 @@ if (FALSE){
     cat(file=stderr(), " ", "\n")
   }
 }
+
+# stop parallel
+stopParallel(bayesianSetup=bt_setup)
 
 # report convergence
 cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
