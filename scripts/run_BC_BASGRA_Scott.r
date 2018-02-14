@@ -3,12 +3,12 @@
 
   # unload packages and remove variables
   pkgs = names(sessionInfo()$otherPkgs)
-    if (!is.null(pkgs)){
-      pkgs = paste('package:', pkgs, sep = "")
-      suppressMessages({
-        lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
-      })
-    }
+    # if (!is.null(pkgs)){
+    #   pkgs = paste('package:', pkgs, sep = "")
+    #   suppressMessages({
+    #     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
+    #   })
+    # }
   rm(list=ls()) # kills breakpoints! frees memory.
   graphics.off() # closes all graphics
   
@@ -40,7 +40,7 @@
     # modify sitesettings
     # year_start     <- as.integer(2011)
     # doy_start      <- as.integer(152) # 1 June
-    year_stop      <- as.integer(2014)
+    year_stop      <- as.integer(2017)
     doy_stop       <- as.integer(151) # 31 May
     NDAYS_all <- NDAYS # will need to restore this for other functions
     NDAYS          <- as.integer(difftime(

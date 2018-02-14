@@ -39,8 +39,6 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
 !  end if                                                       ! (m3 m-3)
   EVAP = PEVAP * max(0., min(1., (WCL-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Evaporation of water from soil surface
   WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
-!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO*1000)) ! Simon made TRANCO 1000x smaller
-!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO*CRT)) ! Simon made this a function of CRT and removed lower bound
   if (WCL > WCCR) then                                          ! Transpiraiton reduction factor (Fig 4)
     FR = max(0., min(1., (WCST-WCL)/(WCST-WCWET) ))             ! Transpiration reduction in wet conditions
   else if (WCCR > WCWP) then                                    ! Gradual reduction due to dryness

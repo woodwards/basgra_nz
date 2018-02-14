@@ -203,7 +203,7 @@ do day = 1, NDAYS
   y(day,42) = EVAP
   y(day,43) = TRAN
   y(day,44) = PARINT / PAR                       ! = Percentage light interception
-  y(day,45) = RESPHARD                                ! Simon put variables here for debugging
+  y(day,45) = SINK1T                                ! Simon put variables here for debugging
 
   ! Update state variables
   AGE     = AGE     + 1.0

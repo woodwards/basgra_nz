@@ -17,9 +17,9 @@ DLMXGE	0.6091	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1 (sh
 FSLAMIN	0.8	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA (must be < 1)
 FSMAX	0.5496	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry (must be < 1)
 HAGERE	0.8406	HAGERE	-	Fraction of reserves in elongating tillers that is harvested (must be < 1)
-KLAI	0.8510	K	m2 m-2 leaf	PAR extinction coefficient
+KLAI	0.6070	K	m2 m-2 leaf	PAR extinction coefficient
 LAICR	3.8	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
-LAIEFT	0.1684	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
+LAIEFT	0.2	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
 LAITIL	0.7738	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
 LFWIDG	0.0128	LFWIDG	m	Leaf width on elongating tillers
 LFWIDV	0.0044	LFWIDV	m	Leaf width on non-elongating tillers
@@ -29,12 +29,12 @@ PHY	63	PHY	°C d	Phyllochron
 RDRSCO	0.1074	RDRSCO	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
 RDRSMX	0.0669	RDRSMX	d-1	Maximum relative death rate of leaves and non-elongating tillers due to shading
 RDRTEM	0.0015	RDRTEM	d-1 °C-1	Proportionality of leaf senescence with temperature
-RGENMX	0.0143	RGENMX	d-1	Maximum relative rate of tillers becoming elongating tillers
+RGENMX	0.01	RGENMX	d-1	Maximum relative rate of tillers becoming elongating tillers
 ROOTDM	0.5	ROOTDM	m	Initial and maximum value rooting depth
 RRDMAX	0.0101	RRDMAX	m d-1	Maximum root depth growth rate
-RUBISC	3.7350	RUBISC	g m-2 leaf	Rubisco content of upper leaves
+RUBISC	5.7803	RUBISC	g m-2 leaf	Rubisco content of upper leaves
 LSHAPE	0.7510	SHAPE	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)
-SIMAX1T	0.0080	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
+SIMAX1T	0.0040	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
 SLAMAX	0.025	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves (Note unusual units!)
 TBASE	4.0766	TBASE	°C	Minimum value of effective temperature for leaf elongation
 TCRES	1.9	TCRES	d	Time constant of mobilisation of reserves
@@ -74,7 +74,7 @@ THARDMX	14.7052	THARDMX	°C	Maximum surface temperature at which hardening is po
 TmeltFreeze	0	TmeltFreeze	°C	Temperature above which snow melts
 TrainSnow	0.01	TrainSnow	°C	Temperature below which precipitation is snow
 TsurfDiff	0.62279	TsurfDiff	°C	Constant in the calculation of dehardening rate
-KLUETILG	0.8933	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
+KLUETILG	0.5	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
 FRTILGG1I	0.1	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1
 DAYLG1G2	0.5249	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
 RGRTG1G2	0.5973	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
@@ -84,6 +84,6 @@ TVERND	21	TVERND	d	Days of cold after which vernalisation completed
 AGEH	932.8	AGEH	d	Age at which persistence is half
 KAGE	0.0458	KAGE	d-1	Curvature of persistence
 RDRROOT	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
-DAYLGEA	0.1	DAYLGEA	-	Value of DAYLGE above which growth is prioritised over storage
+DAYLGEA	0.66	DAYLGEA	-	Value of DAYLGE above which growth is prioritised over storage
 DAYLRV	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 COCRESMN	0.1	COCRESMN	-	Minimum concentration of reserves in aboveground biomass

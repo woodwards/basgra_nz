@@ -23,10 +23,13 @@
         points( parseq_BC, dbeta( (parseq_BC-parmin_BC[i])/(parmax_BC[i]-parmin_BC[i]), aa[i], bb[i] ) /
                            (parmax_BC[i]-parmin_BC[i]),
                 type='l',col='red')
+        points( scparMAP_BC[i]*sc[i], dbeta( (scparMAP_BC[i]*sc[i]-parmin_BC[i])/(parmax_BC[i]-parmin_BC[i]),
+                                             aa[i], bb[i] ) / (parmax_BC[i]-parmin_BC[i]),
+                pch=16, cex=2, col='blue') # Simon add MAP point
    }
    plot(1,type='n', axes=FALSE, xlab="", ylab="")
-   plot_colors <- c("red","black")
-   legend("bottomright", c("Prior","Post."),
+   plot_colors <- c("red","black","blue")
+   legend("bottomright", c("Prior","Post.","MAP"),
           bty="n", lty=1, lwd=3, col=plot_colors, title = "LEGEND:")
 
 ## Closing ##
