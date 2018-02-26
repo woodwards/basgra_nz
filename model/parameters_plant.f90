@@ -28,7 +28,7 @@ implicit none
 !  real, parameter :: RDRROOT      =  0.005 ! relative death rate of root CRT. Root currently doesn't do anything in the model. FIXME
   real, parameter :: RDRSTUB      =  0.2   ! relative death rate of stubble CSTUB. Stubble currently doesn't do anything in the model. FIXME
   real            :: reHardRedDay
-  real, parameter :: reHardRedEnd = 91.    ! end date of rehardening reduction period for Northern hemisphere. Adjusted in HardeningSink(). FIXME
+  real, parameter :: reHardRedEnd = 91.    ! end date of rehardening reduction period for Northern hemisphere. Adjusted for hemisphere in HardeningSink().
   real            :: THARDMX, TsurfDiff
 
 end module parameters_plant

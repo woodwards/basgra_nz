@@ -3,8 +3,8 @@
 
 ## MCMC chain length (total number of iterations across all chains)
    nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(30000 * nChains) # need to check convergence
-   nSampling     <- as.integer(30000 * nChains)
+   nBurnin       <- as.integer(120000 * nChains) # need to check convergence
+   nSampling     <- as.integer(120000 * nChains)
    nChain        <- nBurnin + nSampling
    
 

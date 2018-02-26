@@ -15,8 +15,9 @@
    par( mfrow = c(nrowsPlots,ncolsPlots) )
    par( mar   =c(2, 2, 2, 1))
    nbreaks <- 20
+   keeps <- seq(nBurnin+1, nChain, length.out=min(nChain-nBurnin,100000)) # avoid overflow error from large samples
    for (i in seq(1,np_BC)){
-        hist( pChain[nBurnin:nChain,i] * sc[i],
+        hist( pChain[keeps,i] * sc[i],
               xlab="", ylab="", main=paste(titles[i],parsites_BC[i]), cex.main=1,
               breaks=nbreaks, freq=FALSE, xlim=c(parmin_BC[i],parmax_BC[i]) )
         parseq_BC <- seq(parmin_BC[i],parmax_BC[i],(parmax_BC[i]-parmin_BC[i])/100)

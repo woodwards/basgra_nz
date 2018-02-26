@@ -50,3 +50,9 @@ write.table( df_parModes,
              quote=FALSE,
              sep="\t", 
              row.names=FALSE )
+
+write.table( df_parModes[,c(1,3)],
+             file=paste('model_outputs/BASGRA_parModes_MAP1.txt',sep=""),
+             quote=FALSE,
+             sep="\t", 
+             row.names=FALSE )

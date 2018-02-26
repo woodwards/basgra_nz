@@ -28,30 +28,49 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-DBUILD_DLL" />
-					<Add option="-fPIC" />
-					<Add option="-O2" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 		</Build>
+		<Compiler>
+			<Add option="-O3" />
+			<Add option="-fdefault-real-8" />
+			<Add option="-x f95-cpp-input" />
+			<Add option="-Dweathergen" />
+			<Add option="-c" />
+		</Compiler>
+		<Linker>
+			<Add option="-shared" />
+			<Add option="-o BASGRA_WG.DLL" />
+		</Linker>
 		<Unit filename="../model_inputs/parameters_BC_Scott.txt" />
 		<Unit filename="../model_inputs/parameters_Scott.txt" />
 		<Unit filename="BASGRA.DLL" />
-		<Unit filename="BASGRA.f90" />
+		<Unit filename="BASGRA.f90">
+			<Option weight="3" />
+		</Unit>
 		<Unit filename="BASGRA_WG.DLL" />
-		<Unit filename="compile_BASGRA_gfortran.bat" />
-		<Unit filename="compile_BASGRA_gfortran_WG.bat" />
-		<Unit filename="environment.f90" />
-		<Unit filename="parameters_plant.f90" />
-		<Unit filename="parameters_site.f90" />
-		<Unit filename="plant.f90" />
-		<Unit filename="resources.f90" />
-		<Unit filename="set_params.f90" />
-		<Unit filename="soil.f90" />
+		<Unit filename="environment.f90">
+			<Option weight="1" />
+		</Unit>
+		<Unit filename="parameters_plant.f90">
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="parameters_site.f90">
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="plant.f90">
+			<Option weight="2" />
+		</Unit>
+		<Unit filename="resources.f90">
+			<Option weight="1" />
+		</Unit>
+		<Unit filename="set_params.f90">
+			<Option weight="1" />
+		</Unit>
+		<Unit filename="soil.f90">
+			<Option weight="1" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />

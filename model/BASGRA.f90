@@ -183,7 +183,7 @@ do day = 1, NDAYS
   y(day,27) = HARVFR * HARV! (Simon changed)
 
   ! Extra derived variables for calibration
-  y(day,28) = (CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45     ! "DM"  = Aboveground dry matter in g m-2 (Simon included CLVD)
+  y(day,28) = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
   y(day,29) = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
   y(day,30) = LERG                               ! = m d-1 Leaf elongation rate per leaf for generative tillers
   y(day,31) = NELLVG                             ! = tiller-1 Number of growing leaves per elongating tiller

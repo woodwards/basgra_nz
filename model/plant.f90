@@ -63,6 +63,8 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
   HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
   GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB
+!  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
+!  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
   HARVTILG2 = (HARV   * TILG2       ) / DELT           ! TILG2 zeroed after each harvest
 end Subroutine Harvest
 
@@ -113,7 +115,7 @@ Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
     else if (TVERN.ge.TMMX) then
       DVERND = 1.0
 	else
-      DVERND = 1.0
+      DVERND = 1.0 ! FIXME. Also FIXME effect of vernalisation on heading date
 !	  Y      = (TVERN-TMMN)/(TMMX-TMMN) * 2.0 - 1.0   ! TVERN relative to max and min
 !	  X      = acos(Y)                                ! position on first half of cos wave
 !      DVERND = 1.0 - X / pi                           ! proportion of day below TVERN
@@ -205,8 +207,8 @@ end Subroutine HardeningSink
 Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF
   real :: GLV,GRES,GRT,GST
-  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1)
-  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves
+  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
+  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
@@ -220,8 +222,8 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   NELLVG   = PHENRF * NELLVM
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
-  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass
-  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems
+  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
+  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
   call Allocation(GRES,GRT,GLV,GST)
 end Subroutine Growth
 
@@ -334,10 +336,10 @@ Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   real :: EBIOMASSMAX,EBIOMASS,CT,CP,WORMS
   real :: DTEMP,DWATER,DECOMP,RDLVD
   EBIOMASSMAX = 131.0
-  PSIA    = 3.0e-3                 ! Te Kowhai silt loam
-  PSIB    = 7.75                   ! Te Kowhai silt loam
+  PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
+  PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
   SWCS    = WCL                    ! Volumetric soil water content near surface
-  BD      = 1.1                    ! Bulk density (Singleton pers comm)
+  BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
   PSIS    =  -PSIA * (SWCS ** PSIB) ! Soil water tension near surface
   DELD    = 0.0148
   DELE    = 0.0005

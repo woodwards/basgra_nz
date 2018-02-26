@@ -255,8 +255,10 @@
 ## The first values for MaxL and MAP parameter vectors
    scparMaxL_BC <- scpValues_BC
    logMaxL      <- logL0
+   logMaxL_initial      <- logL0
    scparMAP_BC  <- scpValues_BC
    logMAP       <- logPrior0 + logL0
+   logMAP_initial       <- logPrior0 + logL0
    
 ################################################################################
 ## FUNCTION FOR LIKELIHOOD CALCULATION for each data point separately

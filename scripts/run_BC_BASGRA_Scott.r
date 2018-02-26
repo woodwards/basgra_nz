@@ -72,7 +72,7 @@
   output <- as.data.frame(output)
   names(output) <- outputNames
   x <- output$Time
-  plot(x,output$DEBUG,main="DEBUG")
+  # plot(x,output$DEBUG,main="DEBUG")
   
   # finish
   cat(file=stderr(), 'Finished BC_BASGRA_Scott.r', "\n")
@@ -86,3 +86,5 @@
     BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
     dyn.load(BASGRA_DLL) 
   }
+
+  
