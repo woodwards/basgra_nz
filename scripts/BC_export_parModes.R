@@ -1,4 +1,4 @@
-params_BC_ModePrior     <- parmod_BC
+params_BC_ModePrior     <- parmode_BC
 params_BC_MAP           <- scparMAP_BC                               * sc
 params_BC_MaxL          <- scparMaxL_BC                              * sc
 params_BC_MeanPosterior <-  colMeans(pChain)                         * sc

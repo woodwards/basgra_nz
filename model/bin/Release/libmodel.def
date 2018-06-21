@@ -150,48 +150,48 @@ EXPORTS
     __plant_MOD_allotot @149 DATA
     __plant_MOD_anaerobicdamage @150
     __plant_MOD_biomass @151
-    __plant_MOD_cresmn @152 DATA
-    __plant_MOD_cresmx @153 DATA
-    __plant_MOD_cstav @154 DATA
-    __plant_MOD_daylge @155 DATA
-    __plant_MOD_decomposition @156
-    __plant_MOD_fractv @157 DATA
-    __plant_MOD_glaisi @158 DATA
-    __plant_MOD_glvsi @159 DATA
-    __plant_MOD_gressi @160 DATA
-    __plant_MOD_growth @161
-    __plant_MOD_gshsi @162 DATA
-    __plant_MOD_gstsi @163 DATA
-    __plant_MOD_hardening @164
-    __plant_MOD_hardeningsink @165
-    __plant_MOD_harvest @166
-    __plant_MOD_lerg @167 DATA
-    __plant_MOD_lerv @168 DATA
-    __plant_MOD_lueco2tm @169
-    __plant_MOD_luemxq @170 DATA
-    __plant_MOD_nellvg @171 DATA
-    __plant_MOD_noharv @172 DATA
-    __plant_MOD_phenology @173
-    __plant_MOD_phenrf @174 DATA
-    __plant_MOD_phot @175 DATA
-    __plant_MOD_plantrespiration @176
-    __plant_MOD_rateh @177 DATA
-    __plant_MOD_rdlvd @178 DATA
-    __plant_MOD_rdrfrost @179 DATA
-    __plant_MOD_rdrt @180 DATA
-    __plant_MOD_rdrtox @181 DATA
-    __plant_MOD_rehardperiod @182 DATA
-    __plant_MOD_resmob @183 DATA
-    __plant_MOD_resnor @184 DATA
-    __plant_MOD_respgrt @185 DATA
-    __plant_MOD_respgsh @186 DATA
-    __plant_MOD_resphard @187 DATA
-    __plant_MOD_resphardsi @188 DATA
-    __plant_MOD_rleaf @189 DATA
-    __plant_MOD_rplantaer @190 DATA
-    __plant_MOD_senescence @191
-    __plant_MOD_sink1t @192 DATA
-    __plant_MOD_sla @193
+    __plant_MOD_calcsla @152
+    __plant_MOD_cresmn @153 DATA
+    __plant_MOD_cresmx @154 DATA
+    __plant_MOD_cstav @155 DATA
+    __plant_MOD_daylge @156 DATA
+    __plant_MOD_decomposition @157
+    __plant_MOD_fractv @158 DATA
+    __plant_MOD_glaisi @159 DATA
+    __plant_MOD_glvsi @160 DATA
+    __plant_MOD_gressi @161 DATA
+    __plant_MOD_growth @162
+    __plant_MOD_gshsi @163 DATA
+    __plant_MOD_gstsi @164 DATA
+    __plant_MOD_hardening @165
+    __plant_MOD_hardeningsink @166
+    __plant_MOD_harvest @167
+    __plant_MOD_lerg @168 DATA
+    __plant_MOD_lerv @169 DATA
+    __plant_MOD_lueco2tm @170
+    __plant_MOD_luemxq @171 DATA
+    __plant_MOD_nellvg @172 DATA
+    __plant_MOD_noharv @173 DATA
+    __plant_MOD_phenology @174
+    __plant_MOD_phenrf @175 DATA
+    __plant_MOD_phot @176 DATA
+    __plant_MOD_plantrespiration @177
+    __plant_MOD_rateh @178 DATA
+    __plant_MOD_rdlvd @179 DATA
+    __plant_MOD_rdrfrost @180 DATA
+    __plant_MOD_rdrt @181 DATA
+    __plant_MOD_rdrtox @182 DATA
+    __plant_MOD_rehardperiod @183 DATA
+    __plant_MOD_resmob @184 DATA
+    __plant_MOD_resnor @185 DATA
+    __plant_MOD_respgrt @186 DATA
+    __plant_MOD_respgsh @187 DATA
+    __plant_MOD_resphard @188 DATA
+    __plant_MOD_resphardsi @189 DATA
+    __plant_MOD_rleaf @190 DATA
+    __plant_MOD_rplantaer @191 DATA
+    __plant_MOD_senescence @192
+    __plant_MOD_sink1t @193 DATA
     __plant_MOD_slanew @194 DATA
     __plant_MOD_source @195 DATA
     __plant_MOD_tge @196 DATA

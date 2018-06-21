@@ -7,6 +7,8 @@ implicit none
 
 real      :: pa(88) ! Note: NPAR is also hardwired in BASGRA.f90
 
+! a script checks that these variable names match what is expected in the parameter.txt file (Simon)
+
 ! Initial values
 LOG10CLVI  = pa(1)
 LOG10CRESI = pa(2)

@@ -135,9 +135,9 @@ Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
   end if
 end Subroutine Vernalisation
 
-! Simon renamed Foliage1() to SLA()
+! Simon renamed Foliage1() to CalcSLA()
 ! Calculate leaf elongation rates LERV, LERG and SLANEW of new leaves
-Subroutine SLA
+Subroutine CalcSLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
@@ -145,7 +145,7 @@ Subroutine SLA
   LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0, so DLMXGE < maximum DAYL
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR*(SLAMAX-SLAMIN)                ! m2 leaf gC-1 SLA of new leaves (depends on CRES) Simon note unusual units!
-end Subroutine SLA
+end Subroutine CalcSLA
 
 ! Calculate light use efficiency LUEMXQ
 Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI

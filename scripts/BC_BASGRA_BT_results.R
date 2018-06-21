@@ -120,7 +120,7 @@ if (TRUE){
       bt_pred_MAP_obs <- bt_pred_MAP
       bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
       bt_pred_ML <- bt_predict(scparMaxL_BC)
-      scparMode_BC <- parmod_BC / sc
+      scparMode_BC <- parmode_BC / sc
       bt_pred_Mode <- bt_predict(scparMode_BC)
       if (TRUE){
         pred <- getPredictiveIntervals(parMatrix=bt_samples,
@@ -228,7 +228,7 @@ if (TRUE){
         bt_pred_MAP_obs <- bt_pred_MAP
         bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
         bt_pred_ML <- bt_predict(scparMaxL_BC)
-        scparMode_BC <- parmod_BC / sc
+        scparMode_BC <- parmode_BC / sc
         bt_pred_Mode <- bt_predict(scparMode_BC)
         if (TRUE){ # this doesn't work with par(mfrow) but gives analysis of residuals
           # try({ # ignore errors thrown some subplots
@@ -280,7 +280,7 @@ if (TRUE){
       bt_pred_MAP_obs <- bt_pred_MAP
       bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
       bt_pred_ML <- bt_predict(scparMaxL_BC)
-      scparMode_BC <- parmod_BC / sc
+      scparMode_BC <- parmode_BC / sc
       bt_pred_Mode <- bt_predict(scparMode_BC)
       if (TRUE){
         pred <- getPredictiveIntervals(parMatrix=bt_samples,

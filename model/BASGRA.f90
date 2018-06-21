@@ -50,6 +50,9 @@ real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 integer :: HARV
 
+! Extra output variables (Simon)
+real :: Time, DM,RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG
+
 ! Extract parameters
 call set_params(PARAMS)
 
@@ -137,7 +140,7 @@ do day = 1, NDAYS
   call Biomass        (CLV,CRES,CST,CSTUB)
   call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
   call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
-  call SLA
+  call CalcSLA
   call LUECO2TM       (PARAV)
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)
   call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,GLV,GRES,GRT,GST)
@@ -153,7 +156,21 @@ do day = 1, NDAYS
   !================
   ! Outputs
   !================
-  y(day, 1) = year + (doy-0.5)/366 ! "Time" = Decimal year (approximation)
+
+  Time      = year + (doy-0.5)/366 ! "Time" = Decimal year (approximation)
+  DM        = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
+  RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
+  SLA       = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (RES not included?) Note in gC units
+  TILTOT    = TILG1 + TILG2 + TILV               ! "TILTOT"  = Total tiller number in # m-2
+  FRTILG    = (TILG1+TILG2) / (TILG1+TILG2+TILV) ! "FRTILG"  = Fraction of tillers that is generative
+  FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
+  FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
+  LINT      = PARINT / PAR                          ! = Percentage light interception
+  DEBUG     = SINK1T                                ! Simon put variables here for debugging
+
+  ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
+
+  y(day, 1) = Time
   y(day, 2) = year
   y(day, 3) = doy
   y(day, 4) = DAVTMP
@@ -183,17 +200,16 @@ do day = 1, NDAYS
   y(day,27) = HARVFR * HARV! (Simon changed)
 
   ! Extra derived variables for calibration
-  y(day,28) = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
-  y(day,29) = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
+  y(day,28) = DM
+  y(day,29) = RES
   y(day,30) = LERG                               ! = m d-1 Leaf elongation rate per leaf for generative tillers
   y(day,31) = NELLVG                             ! = tiller-1 Number of growing leaves per elongating tiller
   y(day,32) = RLEAF                              ! = leaves tiller-1 d-1 Leaf appearance rate per tiller
-  y(day,33) = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (RES not included?) Note in gC units
-!  y(day,33) = LAI / (CLV/0.45)                   ! "SLA"     = m2 leaf area g-1 dry matter vegetative tillers (RES not included?) Note SLANEW internally is gC units
-  y(day,34) = TILG1 + TILG2 + TILV               ! "TILTOT"  = Total tiller number in # m-2
-  y(day,35) = (TILG1+TILG2) / (TILG1+TILG2+TILV) ! "FRTILG"  = Fraction of tillers that is generative
-  y(day,36) =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
-  y(day,37) =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
+  y(day,33) = SLA
+  y(day,34) = TILTOT
+  y(day,35) = FRTILG
+  y(day,36) = FRTILG1
+  y(day,37) = FRTILG2
   y(day,38) = RDRT                               ! = d-1 Relative leaf death rate due to high temperature
   y(day,39) = VERN                               ! = Vernalisation flag
 
@@ -202,8 +218,8 @@ do day = 1, NDAYS
   y(day,41) = RUNOFF
   y(day,42) = EVAP
   y(day,43) = TRAN
-  y(day,44) = PARINT / PAR                       ! = Percentage light interception
-  y(day,45) = SINK1T                                ! Simon put variables here for debugging
+  y(day,44) = LINT
+  y(day,45) = DEBUG
 
   ! Update state variables
   AGE     = AGE     + 1.0

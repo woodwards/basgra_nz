@@ -2,6 +2,15 @@
    cat(file=stderr(), 'Starting BC_BASGRA_MCMC_init_general.r', "\n")
 
 ## SITE CONDITIONS
+   
+   # parse fortran parameter list
+   for_par <- tibble(line=readLines("model/set_params.f90")) %>%
+     filter(str_detect(line, "=[:blank:]pa\\(")) %>%
+     mutate(var=str_extract(line,"[:alnum:]+"),
+            pa=str_extract(line,"pa\\([:digit:]+\\)"),
+            index=as.numeric(str_sub(pa,4,-2)))
+   
+   # load site data
    list_params       <- sitelist ; list_matrix_weather <- sitelist
    list_days_harvest <- sitelist ; list_NDAYS          <- sitelist
    for (s in 1:nSites) {
@@ -10,7 +19,9 @@
      source( sitesettings_filenames[s] )
      list_params      [[s]] <- params       ; list_matrix_weather[[s]] <- matrix_weather
      list_days_harvest[[s]] <- days_harvest ; list_NDAYS         [[s]] <- NDAYS   
-     cat(file=stderr(), paste('Check parameters =', length(params)), "\n")
+     # check my_par matches fortran
+     i <- which(row.names(df_params)!=for_par$var)
+     stopifnot(length(i)==0) 
    } 
    cat(file=stderr(), 'Finished calling site init scripts', "\n")
    
@@ -138,14 +149,22 @@
    }
 
 ## PRIOR DISTRIBUTION FOR THE PARAMETERS ##
-   df_params_BC <- read.table( file_prior, header=F, sep="" )
+   
+   # read priors
+   df_params_BC <- read.table( file_prior, header=T, sep="" )
    parname_BC   <-               df_params_BC[,1] # parameter that this BC line refers to
    parmin_BC    <-               df_params_BC[,2]
-   parmod_BC    <-               df_params_BC[,3]
+   parmode_BC    <-               df_params_BC[,3]
    parmax_BC    <-               df_params_BC[,4]
-   parsites_BC  <- as.character( df_params_BC[,5] ) # text field listing which sites this BC line applies to?
+   parshape_BC  <-               df_params_BC[,5]
+   # parsites_BC  <- as.character( df_params_BC[,5] ) # text field listing which sites this BC line applies to?
+   parsites_BC  <- as.character( df_params_BC[,6] ) # text field listing which sites this BC line applies to?
    ip_BC        <- match( parname_BC, row.names(df_params) )
    np_BC        <- length(ip_BC)
+   
+   # check priors against default values (not necessary but could reveal errors)
+   i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
+   stopifnot(length(i)==0)
    
    ip_BC_site   <- sitelist ; icol_pChain_site <- sitelist
    for (p in 1:np_BC) {
@@ -160,22 +179,26 @@
    sc            <- rowMeans( abs( cbind(parmin_BC,parmax_BC) ) )
    scparmin_BC   <- parmin_BC / sc
    scparmax_BC   <- parmax_BC / sc
-   scparmod_BC   <- parmod_BC / sc
- # We use the beta distribution with parameters aa and bb estimated as follows
-   # aa            <- 1. + 4 * ((scparmod_BC[1:np_BC]-scparmin_BC[1:np_BC]) / 
+   scparmode_BC   <- parmode_BC / sc
+   # We use the beta distribution with parameters aa and bb estimated as follows
+   # aa            <- 1. + 4 * ((scparmode_BC[1:np_BC]-scparmin_BC[1:np_BC]) / 
    #                            (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
    # bb            <- 6. - aa 
- # Simon's method
- # shape <-  4 # shape parameter (0=noninformative, 4=previous method)
-   relmode<- ((scparmod_BC[1:np_BC]-scparmin_BC[1:np_BC]) / (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
-   aa <- 1 + shape*relmode
-   bb <- 1 + shape*(1-relmode)
-
+   
+   # Simon's method
+   # shape <-  4 # shape parameter (0=noninformative, 4=previous method)
+   relmode <- ((scparmode_BC[1:np_BC]-scparmin_BC[1:np_BC]) / 
+               (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC]))
+   # aa <- 1 + shape*relmode
+   # bb <- 1 + shape*(1-relmode)
+   aa <- 1 + parshape_BC*relmode
+   bb <- 1 + parshape_BC*(1-relmode)
+   
 ## INITIALISING THE CHAIN ##
 #   nBurnin       <- as.integer(nChain/10)
    pChain        <- matrix( 0, nrow=nChain, ncol=np_BC )
  # We start the chain at the mode of the prior parameter distribution
-   scpValues_BC  <- scparmod_BC ; pChain[1,] <- scpValues_BC
+   scpValues_BC  <- scparmode_BC ; pChain[1,] <- scpValues_BC
  # Value of the prior at the start of the chain
    pBetaValues   <- (scpValues_BC[1:np_BC] - scparmin_BC[1:np_BC]) / 
                     (scparmax_BC [1:np_BC] - scparmin_BC[1:np_BC])

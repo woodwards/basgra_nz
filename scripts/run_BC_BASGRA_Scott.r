@@ -1,28 +1,54 @@
 ## 1. INITIALISE MCMC ##
-  cat(file=stderr(), 'Starting BC_BASGRA_Scott.r', "\n")
 
+  cat(file=stderr(), 'Starting BC_BASGRA_Scott.r', "\n")
+  suppressMessages(library(tidyverse))
+  
   # unload packages and remove variables
   pkgs = names(sessionInfo()$otherPkgs)
-    # if (!is.null(pkgs)){
-    #   pkgs = paste('package:', pkgs, sep = "")
-    #   suppressMessages({
-    #     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
-    #   })
-    # }
+  if (FALSE){ # detach all packages
+    pkgs = paste('package:', pkgs, sep = "")
+    suppressMessages({
+      lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
+    })
+  }
   rm(list=ls()) # kills breakpoints! frees memory.
   graphics.off() # closes all graphics
   
   # initialise BC
   source('scripts/BC_BASGRA_MCMC_init_Scott.r')
-
+  # which in turn calls:
+  # source('scripts/fLogL_Sivia.R')
+  # source('scripts/fLogL_mm_Beta.R')
+  # source('scripts/BC_BASGRA_MCMC_init_general.R')
+  # which in turn calls:
+  # source( sitesettings_filenames[s] ) # for each site
+  # which in turn calls:
+  # source('scripts/initialise_BASGRA_general.R')
+  
 ## 2. RUNNING THE MCMC ##
+  
   # cat(file=stderr(), 'Calling  BC_BASGRA_MCMC.r', "\n")
   # source('scripts/BC_BASGRA_MCMC.R') # old solver
+
   cat(file=stderr(), 'Calling  BC_BASGRA_BT.r', "\n")
   source('scripts/BC_BASGRA_BT.R') # new solver
   source('scripts/BC_BASGRA_BT_results.R') # new solver results
+  # which in turn calls:
+  # source('scripts/plotResiduals_BT.r') # replacement functions
   
 ## 3. PRINTING AND PLOTTING ##
+  
+  # choose outputs to display
+  chooseNames <- c(
+    "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
+    "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
+    "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
+    "TILTOT", "TILV", "TILG1", "TILG2", 
+    "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
+  )
+  i <- match(chooseNames, outputNames)
+  stopifnot(all(outputNames[i]==chooseNames)) # check
+  
   cat(file=stderr(), 'Calling BC output scripts', "\n")
   source('scripts/BC_export_parModes.R')
   # source('scripts/BC_plot_parameters_traceplots.R') # very slow! but useful for convergence check

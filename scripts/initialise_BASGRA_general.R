@@ -63,44 +63,65 @@ read_weather_WG <- function(y = year_start,
    
 ################################################################################
 ### 3. OUTPUT VARIABLES DEFINITIONS (see BASGRA.f90)
-outputNames <- c(
-  "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
-  "TRANRF"    , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "VERND"    ,
-  "PHOT"      , "LAI"      , "RESMOB"   , "RAIN"      , "PHEN"     , "ROOTD"    ,
-  "DAYL"      , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
-  "DAYLGE"    , "RDLVD"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
-  "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
-  "FRTILG2"   , "RDRT"     , "VERN"     ,
-  "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT"     , "DEBUG" )
-easyNames <- c(
-  "Time", "Year", "Day of Year", "Av. Temp.", "Leaf C", "Dead Leaf C",
-  "Trans. Fact.", "Reserve C", "Root C", "Stem C", "Stubble C", "Vern. Days",
-  "Photosyn.", "LAI", "Res. Mobil.", "Rain", "Phen. Stage", "Root Depth",
-  "Daylength", "Elong. Tillers", "Vern. Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
-  "Daylength Fact.", "Decomp. Rate", "Harvest Fract.", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
-  "Elong. Leaves", "Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
-  "Frac. Elong. Tillers", "Leaf Death Rate", "Vernalised",
-  "Drainage", "Runoff", "Evap.", "Trans.", "Light Intercep.", "Debug" )
-outputUnits <- c(
-  "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
-  "(-)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(d)"     ,
-  "(gC m-2 d-1)"       , "(m2 m-2)" , "(gC m-2 d-1)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
-  "(-)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(-)"     ,
-  "(-)"      , "(d-1)"     , "(-)"      , "(kg DM ha-1)", "(g g-1)"  , "(m d-1)"  ,
-  "(tiller-1)", "(d-1)"    , "(m2 gC-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
-  "(-)"       , "(d-1)"    , "(-)"      ,
-  "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(-)"      , "(?)" )
+
+# parse output list from fortran
+for_out<- tibble(line=readLines("model/BASGRA.f90")) %>%
+  filter(str_detect(line, "y\\(day,[:space:]*[:digit:]+\\)")) %>%
+  mutate(yday=str_extract(line,"y\\(day,[:space:]*[:digit:]+\\)"),
+         index=as.numeric(str_sub(yday,7,-2)),
+         rhs=str_sub(str_extract(line,"=\\s.+"),3,-1),
+         var=str_extract(rhs,"[:alnum:]+")
+  )
+
+# read output names from file (Simon)
+temp <- read_tsv("model/output_names.tsv", col_types=cols()) # Simon read from file
+outputNames <- temp$varname
+easyNames <- temp$shortname
+outputUnits <- temp$units
+stopifnot(all(outputNames==for_out$var)) # check 
+
+# outputNames <- c(
+#   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
+#   "TRANRF"    , "CRES"     , "CRT"      , "CST"       , "CSTUB"    , "VERND"    ,
+#   "PHOT"      , "LAI"      , "RESMOB"   , "RAIN"      , "PHEN"     , "ROOTD"    ,
+#   "DAYL"      , "TILG2"    , "TILG1"    , "TILV"      , "WAL"      , "WCL"      ,
+#   "DAYLGE"    , "RDLVD"    , "HARVFR"   , "DM"        , "RES"      , "LERG"     , 
+#   "NELLVG"    , "RLEAF"    , "SLA"      , "TILTOT"    , "FRTILG"   , "FRTILG1"  ,
+#   "FRTILG2"   , "RDRT"     , "VERN"     ,
+#   "DRAIN"     , "RUNOFF"   , "EVAP"     , "TRAN"      , "LINT"     , "DEBUG" )
+# easyNames <- c(
+#   "Time", "Year", "Day of Year", "Av. Temp.", "Leaf C", "Dead Leaf C",
+#   "Trans. Fact.", "Reserve C", "Root C", "Stem C", "Stubble C", "Vern. Days",
+#   "Photosyn.", "LAI", "Res. Mobil.", "Rain", "Phen. Stage", "Root Depth",
+#   "Daylength", "Elong. Tillers", "Vern. Tillers", "Veg. Tillers", "Soil Water", "Soil Water",
+#   "Daylength Fact.", "Decomp. Rate", "Harvest Fract.", "Herbage Mass", "Reserve C", "Leaf Elong. Rate", 
+#   "Elong. Leaves", "Leaf App. Rate", "Spec. Leaf Area", "Total Tillers", "Frac. Repro. Tillers", "Frac. Vern. Tillers",
+#   "Frac. Elong. Tillers", "Leaf Death Rate", "Vernalised",
+#   "Drainage", "Runoff", "Evap.", "Trans.", "Light Intercep.", "Debug" )
+# outputUnits <- c(
+#   "(y)"       , "(y)"      , "(d)"      , "(degC)"    , "(g C m-2)", "(g C m-2)",
+#   "(-)", "(g C m-2)", "(g C m-2)", "(g C m-2)" , "(g C m-2)", "(d)"     ,
+#   "(gC m-2 d-1)"       , "(m2 m-2)" , "(gC m-2 d-1)"   , "(mm d-1)"  , "(-)"      , "(m)"      ,
+#   "(-)"       , "(m-2)"    , "(m-2)"    , "(m-2)"     , "(mm)"     , "(-)"     ,
+#   "(-)"      , "(d-1)"     , "(-)"      , "(kg DM ha-1)", "(g g-1)"  , "(m d-1)"  ,
+#   "(tiller-1)", "(d-1)"    , "(m2 gC-1)" , "(m-2)"     , "(-)"      , "(-)"      ,
+#   "(-)"       , "(d-1)"    , "(-)"      ,
+#   "(mm d-1)"  , "(mm d-1)" , "(mm d-1)" , "(mm d-1)"  , "(-)"      , "(?)" )
+
 NOUT <- as.integer( length(outputNames) )
 outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max scale for each variable plotting
 outputMax <- rep( as.double(NA), length(outputNames))
-# subset to display
-chooseNames <- c(
-  "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
-  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
-  "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
-  "TILTOT", "TILV", "TILG1", "TILG2", 
-  "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
-  )
+
+# outputs to display
+# chooseNames <- c(
+#   "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
+#   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
+#   "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
+#   "TILTOT", "TILV", "TILG1", "TILG2", 
+#   "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
+#   )
+# i <- match(chooseNames, outputNames)
+# stopifnot(all(outputNames[i]==chooseNames)) # check 
 
 ################################################################################
 ### 4. FUNCTIONS FOR EXPORTING THE RESULTS TO FILE (pdf with plots, txt with table)
