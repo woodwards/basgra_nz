@@ -87,6 +87,15 @@ save.image(file="temp.RData")
 rm(list=ls())
 load(file="temp.RData")
 
+# run this if memory error, then continue
+if (FALSE){
+  # restart R
+  load(file="temp.RData")
+  library(BayesianTools)
+  library(coda)
+  dyn.load(BASGRA_DLL) 
+}
+
 # return samples (scaled parameter space)
 pChain       <- getSample(bt_out) 
 cat(file=stderr(), paste("Stored pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")

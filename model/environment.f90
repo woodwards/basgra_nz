@@ -63,7 +63,7 @@ Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETS
   call RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
        FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain)
   if (WAPS == 0.) then
-    PERMgas = 1.
+    PERMgas = 1.                ! Permeable to gas if no ice
   else
     PERMgas = 0.
   end if

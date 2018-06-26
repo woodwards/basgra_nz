@@ -3,8 +3,8 @@
 
 ## MCMC chain length (total number of iterations across all chains)
    nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(12000 * nChains) # need to check convergence
-   nSampling     <- as.integer(12000 * nChains)
+   nBurnin       <- as.integer(120000 * nChains) # need to check convergence
+   nSampling     <- as.integer(120000 * nChains)
    nChain        <- nBurnin + nSampling
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
@@ -59,7 +59,7 @@
 ## PROPOSAL TUNING FACTOR  
    # fPropTuning   <- 0.05 # This factor is used to modify Gelman's suggested average step length
    #                       # (2.38^2 / np_BC) which seems too big
-   # fPropTuning   <- 0.1  # Simon (not used in BT)
+   fPropTuning   <- 0.1  # Simon (not used in BT)
    
 ## GENERAL INITIALISATION FOR MCMC
    source('scripts/BC_BASGRA_MCMC_init_general.R')

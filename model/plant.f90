@@ -18,6 +18,8 @@ real :: ALLOSH, ALLORT, ALLOLV, ALLOST
 contains
 
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
+! Simon plant processes are now calculated as if harvest did not happen
+! Simon and harvest and plant processes are combined at the end of the day
 Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   integer :: doy,year
@@ -93,7 +95,7 @@ Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
   if (DAYL < DAYLB) then                     ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
     GPHEN  = 0.0
     DPHEN  = PHEN / DELT
-    HARVPH = 0.0
+!    HARVPH = 0.0
   end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
   DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
@@ -153,6 +155,7 @@ Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
 ! Calculate LUEMXQ (mol CO2 mol-1 PAR quanta)
 ! Inputs : PARAV (micromol PAR quanta m-2 s-1)
 ! See equations in M. van Oijen et al. / Ecological Modelling 179 (2004) 39-60
+! See aldo Rodriguez et al 1999
 !=============================================================================
   real :: PARAV
   real :: CO2I, EA, EAKMC, EAKMO, EAVCMX, EFF, GAMMAX, KC25, KMC, KMC25
@@ -174,7 +177,7 @@ Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
   KMO    =         KMO25 * exp((1/298.-1/(T+273))*EAKMO /R)  ! % O2	Km-value Rubisco for oxygenation (Eqn 7c)
   GAMMAX = 0.5 * KOKC * KMC * O2 / KMO                       ! ppm CO2)	CO2 compensation point at no mitochondrial respiration (Eqn 7d)
   PMAX   = VCMAX * (CO2I-GAMMAX) / (CO2I + KMC * (1+O2/KMO)) ! micromol CO2 m-2 s-1	Photosynthesis rate of upper leaves at light saturation (Eqn 6a)
-  TMPFAC = max( 0., min( 1., (T+4.)/5. ) )                   ! Linear decrease of photosynthetic quantum yield at low temperature
+  TMPFAC = max( 0., min( 1., (T+4.)/5. ) )                   ! Linear decrease of photosynthetic quantum yield at low temperature (below 1 degC)
   EFF    = TMPFAC * (1/2.1) * (CO2I-GAMMAX) / (4.5*CO2I+10.5*GAMMAX) ! mol CO2 mol-1 PAR quanta	Quantum yield of photosynthesis (Eqn 6b)
   LUEMXQ = EFF*PMAX*(1+KLUETILG*(1-FRACTV)) / (EFF*KLAI*PARAV + PMAX)   ! mol CO2 mol-1 PAR Light-use efficiency (Eqn 5)
 end Subroutine LUECO2TM
@@ -207,8 +210,11 @@ end Subroutine HardeningSink
 Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF
   real :: GLV,GRES,GRT,GST
-  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
-  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV
+!  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
+  PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
+!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include COCRESMN
+!  RESMOB   = ((CRES-CRESMN) * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, Simon included CRESMN
+  RESMOB   = ((CRES - CRESMN) / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
@@ -222,8 +228,10 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   NELLVG   = PHENRF * NELLVM
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
-  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
-  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
+!  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
+!  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
+  GLVSI    = max(0.0, (GLAISI / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass, Simon removed NOHARV
+  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF) / YG)      ! gC m-2 d-1 Potential growth rate of stems, Simon removed NOHARV
   call Allocation(GRES,GRT,GLV,GST)
 end Subroutine Growth
 
@@ -281,8 +289,10 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
   end if
   RDRS   = min(TV1, RDRSMX)
   RDRT   = max(RDRTMIN, RDRTEM * Tsurf)
-  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
-  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
+!  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
+!  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
+  TV2    = max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate, Simon deleted NOHARV switch
+  TV2TIL = max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon deleted NOHARV switch
   DLAI   = LAI    * TV2
   DLV    = CLV    * TV2
   DSTUB  = CSTUB  * RDRSTUB
@@ -338,11 +348,11 @@ Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   EBIOMASSMAX = 131.0
   PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
   PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
-  SWCS    = WCL                    ! Volumetric soil water content near surface
   BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
-  PSIS    =  -PSIA * (SWCS ** PSIB) ! Soil water tension near surface
   DELD    = 0.0148
   DELE    = 0.0005
+  SWCS    = WCL                    ! Volumetric soil water content near surface
+  PSIS    =  -PSIA * (SWCS ** PSIB) ! Soil water tension near surface
   ! Calculate number of worms and their grazing of dead matter
   ! Numbers at surface based on Baker et al., driven by GWCS
   ! Activity based on Daniels
@@ -387,11 +397,13 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,
   end if
   RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate (Simon moved NOHARV switch)
 !  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate
-  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! d-1 Ratio of tiller and leaf apearance
+  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
-  GTILV   = TILV  * RGRTV * NOHARV                                            ! Simon moved NOHARV switch to here
+!  GTILV   = TILV  * RGRTV * NOHARV                                            ! Simon moved NOHARV switch to here
+  GTILV   = TILV  * RGRTV                                                      ! Simon deleted NOHARV switch
   TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
-  RGRTVG1 = NOHARV * DAYLGE * TGE * RGENMX * VERN                             ! d-1 Relative rate of vegetative tiller conversion to generative
+!  RGRTVG1 = NOHARV * DAYLGE * TGE * RGENMX * VERN                             ! d-1 Relative rate of vegetative tiller conversion to generative
+  RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                    ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
   RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day
   TILVG1  = TILV  * RGRTVG1
   if (DAYL > DAYLG1G2) then                                                   ! Generative tiller conversion controlled by DAYL

@@ -1,0 +1,120 @@
+PARAMETER	origMINSITE	origMAXSITE	origMIN	origMODE	origMAX	newMINSITE	newMAXSITE	newMIN	newMODE	newMAX	ScottSITE	ScottMIN	ScottMODE	ScottMAX	ScottSHAPE	Units	Description
+CLAIV	0.5	0.5	0.25	0.5	1	0.5	0.5692	0.25	0.5	1	0.7054	0.5	0.7	1.5	1	m2 leaf m-2	Maximum LAI remaining after harvest, when no tillers elongate
+COCRESMX	0.141155	0.141155	0.0705775	0.141155	0.28231	0.141155	0.1451	0.0705775	0.141155	0.28231	0.25	0.25	0.275	0.3	1	-	Maximum concentration of reserves in aboveground biomass
+CSTAVM	0.229575	0.229575	0.1	1	1.9	0.229575	1.112	0.1	1	1.9	0.23	0.1	0.23	1	1	gC tiller-1	Maximum size of elongating tillers
+CSTI	0	0	NA	NA	NA	0	0	NA	NA	NA	0	NA	NA	NA	NA	gC m-2	Initial value of stems
+DAYLB	0.539664	0.539664	0	0.392196968	0.784393936	0.5329	0.539664	0	0.392196968	0.784393936	0.45	0.42	0.45	0.5	1	d d-1	Day length below which DAYLGE becomes 0 and phenological stage is reset to zero (must be < DLMXGE)
+DAYLG1G2	0.6	0.6	0	0.6	1	0.6	0.6302	0	0.6	1	0.5249	0.45	0.55	0.6	1	d d-1	Minimum day length above which generative tillers can start elongating
+DAYLP	0.632348	0.632348	0.316174	0.632348	1	0.632348	0.7104	0.316174	0.632348	1	0.4348	0.3909	0.55	0.6091	1	d d-1	Day length below which phenological development slows down
+DLMXGE	0.936974	0.936974	0	0.991873596	1	0.936974	0.9849	0	0.991873596	1	0.6091	0.54	0.6	0.6091	1	d d-1	Day length below which DAYLGE becomes less than 1 (should be < maximum DAYL?)
+Dparam	0.0031796	0.0031796	0.00125	0.0031796	0.00375	0.001895	0.0031796	NA	NA	NA	0.0031796	NA	NA	NA	NA	°C-1 d-1	Constant in the calculation of dehardening rate
+FGAS	0.4	0.4	0.2	0.4	0.6	0.4	0.4175	NA	NA	NA	0.4	NA	NA	NA	NA	-	Fraction of soil volume that is gaseous
+FO2MX	0.21	0.21	0.105	0.21	0.315	0.2008	0.21	NA	NA	NA	0.21	NA	NA	NA	NA	mol O2 mol-1 gas	Maximum oxygen fraction of soil gas
+FRTILGG1I	0.1	0.1	0	0.1	1	0.1	0.5648	0	0.1	1	0.1	NA	NA	NA	NA	-	Initial fraction of generative tillers that is still in stage 1
+FRTILGI	0	0	NA	NA	NA	0	0.3993	0	0.2	0.5	0	NA	NA	NA	NA	-	Initial value of elongating tiller fraction
+FSLAMIN	0.686948	0.686948	0	0.466634916	0.933269832	0.686948	0.8619	0	0.466634916	0.933269832	0.8	0.4	0.5	0.9	1	-	Minimum SLA of new leaves as a fraction of maximum possible SLA (must be < 1)
+FSMAX	0.693	0.693	NA	NA	NA	0.693	0.693	NA	NA	NA	0.693	NA	NA	NA	NA	-	Maximum ratio of tiller and leaf appearance based on sward geometry (must be < 1)
+FWCAD	0.011363636	0.047826087	NA	NA	NA	0.009090909	0.047826087	NA	NA	NA	0.05	NA	NA	NA	NA	m3 m-3	Relative saturation at air dryness
+FWCFC	0.47826087	0.784313725	0.3	0.681818182	0.9	0.47826087	0.905	0.4	0.6498	0.9	0.8353	0.6	0.85	0.9	1	m3 m-3	Relative saturation at field capacity
+FWCWET	0.934782609	1	NA	NA	NA	0.934782609	1	NA	NA	NA	0.95	NA	NA	NA	NA	m3 m-3	Relative saturation above which transpiration is reduced
+FWCWP	0.056818182	0.141304348	0.02	0.056818182	0.3	0.056818182	0.573	0.05	0.07741	0.2	0.1294	0.05	0.15	0.2	1	m3 m-3	Relative saturation at wilting point
+HAGERE	0.8	0.8	0.7	0.8	1	0.8	0.8342	0.7	0.8	1	0.8406	0.6	0.85	0.9	1	-	Fraction of reserves in elongating tillers that is harvested (must be < 1)
+Hparam	0.0055925	0.0055925	0.004	0.0055925	0.012	0.0055925	0.008262	NA	NA	NA	0.0055925	NA	NA	NA	NA	°C-1 d-1	Hardening parameter
+KLAI	0.607039	0.607039	0.3	0.5	0.9	0.4669	0.607039	0.3	0.5	0.9	0.607	0.3	0.6	0.9	4	m2 m-2 leaf	PAR extinction coefficient
+KLUETILG	0.5	0.5	0	0.5	1	0.5	0.5787	0	0.5	1	0.5	0	0.5	1	1	-	LUE-increase with increasing fraction elongating tillers
+KRDRANAER	0.2	0.2	0	0.2	1	0.2	0.6396	NA	NA	NA	0.2	NA	NA	NA	NA	d-1	Maximum relative death rate due to anearobic conditions
+KRESPHARD	0.1	0.1	0.001	0.01	0.05	0.02244	0.1	NA	NA	NA	0.1	NA	NA	NA	NA	gC gC-1 °C-1	Carbohydrate requirement of hardening
+KRSR3H	1	1	0	1	1	0.9618	1	0	1	1	1	NA	NA	NA	NA	°C-1	Constant in the logistic curve for frost survival
+KRTOTAER	2	2	1	2	3	1.775	2	NA	NA	NA	2	NA	NA	NA	NA	-	Ratio of total to aerobic respiration
+KSNOW	0.035	0.035	0.0175	0.035	0.0525	0.035	0.03871	NA	NA	NA	0.035	NA	NA	NA	NA	mm-1	Light extinction coefficient of snow
+KTSNOW	65	65	32.5	65	97.5	65	68.86	NA	NA	NA	65	NA	NA	NA	NA	m-1	Temperature extinction coefficient of snow
+LAICR	3.79569	3.79569	1.897845	3.79569	7.59138	3.79569	3.913	1.897845	3.79569	7.59138	3.8	2	4	8	4	m2 leaf m-2	LAI above which shading induces leaf senescence
+LAIEFT	0.2	0.2	0.1	0.2	0.4	0.1219	0.2	0.1	0.2	0.4	0.2	0.1	0.183	0.4	1	m2 m-2 leaf	Decrease in tillering with leaf area index
+LAITIL	0.566455	0.566455	0.2832275	0.566455	1.13291	0.566455	0.9663	0.2832275	0.566455	1.13291	0.7738	0.5	0.867	1	1	-	Maximum ratio of tiller and leaf apearance at low leaf area index
+LAMBDAsoil	172800	172800	86400	172800	259200	172800	199e3	NA	NA	NA	172800	NA	NA	NA	NA	J m-1 degC-1 d-1	Thermal conductivity of soil?
+LAT	58.46	69.65	NA	NA	NA	45.93	69.65	NA	NA	NA	-37.77	NA	NA	NA	NA	degN	Latitude
+LDT50A	1.3403	1.3403	0.67015	1.3403	2.01045	1.3403	1.555	NA	NA	NA	1.3403	NA	NA	NA	NA	d	Intercept of linear dependence of LD50 on lT50
+LDT50B	-2.1128	-2.1128	-3.2	-2.1128	-1.1	-2.172	-2.1128	NA	NA	NA	-2.1128	NA	NA	NA	NA	d °C-1	Slope of linear dependence of LD50 on LT50
+LFWIDG	0.0085207	0.0085207	0.00426035	0.0085207	0.0170414	0.0085207	0.01042	0.00426035	0.0085207	0.0170414	0.0128	0.002	0.004	0.02	1	m	Leaf width on elongating tillers
+LFWIDV	0.00491875	0.00491875	0.002459375	0.00491875	0.0098375	0.00491875	0.007001	0.002459375	0.00491875	0.0098375	0.0044	0.002	0.003	0.02	1	m	Leaf width on non-elongating tillers
+LOG10CLVI	1	1	-0.5	1.5	2.5	1	1.239	-0.5	1.5	2.5	1.5	1	1.5	2	1	gC m-2	Initial value of leaves
+LOG10CRESI	0	0	-1.5	0.5	1.5	0	0.3749	-1.5	0.5	1.5	0.5	0	0.5	1	1	gC m-2	Initial value of reserves
+LOG10CRTI	1	1	-1	1	2	0.2137	1	-1	1	2	2	1	2	2.5	1	gC m-2	Initial value of roots
+LOG10LAII	0.1	0.1	-2	0	1	-0.3189	0.1	-2	0	1	-0.3	-1	-0.3	0	1	m2 m-2	Initial value of leaf area index
+LSHAPE	0.538907	0.538907	0.2694535	0.538907	1	0.538907	0.8442	0.2694535	0.538907	1	0.751	0.2	0.8	1	1	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)
+LT50I	-4.7894	-4.7894	NA	NA	NA	-4.7894	-4.7894	NA	NA	NA	-4.7894	NA	NA	NA	NA	°C	Initial value of LT50
+LT50MN	-26.6839	-26.6839	-40	-26.6839	-20	-26.6839	-25.47	NA	NA	NA	-26.6839	NA	NA	NA	NA	°C	Minimum LT50 (Lethal temperature at which 50% die)
+LT50MX	-4.7894	-4.7894	-7	-4.7894	-3	-4.7894	-4.544	NA	NA	NA	-4.7894	NA	NA	NA	NA	°C	Maximum LT50
+NELLVM	2.09178	2.09178	1.04589	2.09178	3.5	2.09178	2.172	1.04589	2.09178	3.5	2.1845	1	1.3	3	1	tiller-1	Number of elongating leaves per non-elongating tiller
+PHENCR	0.495209	0.495209	0.2476045	0.495209	0.990418	0.495209	0.4989	0.2476045	0.495209	0.990418	0.6144	0.2	0.4	1	1	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
+PHENI	0.01	0.01	NA	NA	NA	0.01	0.01	NA	NA	NA	0.01	NA	NA	NA	NA	-	Initial value of phenological stage
+PHY	63.0532	63.0532	31.5266	63.0532	126.1064	45.09	63.0532	31.5266	63.0532	126.1064	63	30	100	130	1	°C d	Phyllochron
+RATEDMX	2	2	1	2	3	1.81	2	NA	NA	NA	2	NA	NA	NA	NA	°C d-1	Maximum dehardening rate
+RDRSCO	0.0712247	0.0712247	0.03561235	0.0712247	0.1424494	0.0712247	0.09563	0.03561235	0.0712247	0.1424494	0.1074	0.01	0.03	0.15	1	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
+RDRSMX	0.06	0.06	0.03	0.06	0.12	0.06	0.06343	0.03	0.06	0.12	0.0669	0.03	0.09	0.15	1	d-1	Maximum relative death rate of leaves and non-elongating tillers due to shading
+RDRTEM	0.00102573	0.00102573	5.12865e-4	0.00102573	0.00205146	0.00093669999999999995	0.00102573	5.12865e-4	0.00102573	0.00205146	0.0015	5e-4	0.001	0.002	1	d-1 °C-1	Proportionality of leaf senescence with temperature
+RDRTMIN	0.01	0.01	0	0.01	0.02	0.01	0.01209	0	0.01	0.02	0.0014	0	0.01	0.02	1	d-1	Minimum relative death rate of foliage
+reHardRedDay	145	145	5	145	160	133.7	145	NA	NA	NA	145	NA	NA	NA	NA	d	Duration of period over which rehardening capability disappears
+RGENMX	0.0108797	0.0108797	0.00543985	0.0108797	0.0217594	0.0108797	0.01719	0.00543985	0.0108797	0.0217594	0.01	0.001	0.01	0.02	1	d-1	Maximum relative rate of tillers becoming elongating tillers
+RGRTG1G2	0.9	0.9	0	0.9	1	0.8237	0.9	0	0.9	1	0.5973	0	0.6	1	1	d-1	Relative rate of TILG1 becoming TILG2
+RHOnewSnow	100	100	50	100	150	85.86	100	NA	NA	NA	100	NA	NA	NA	NA	kg SWE m-3	Density of newly fallen snow
+RHOpack	0.02	0.02	0.01	0.02	0.03	0.02	0.02187	NA	NA	NA	0.02	NA	NA	NA	NA	d-1	Relative packing rate of snow
+ROOTDM	0.6	0.6	0	0.761061748	1.522123496	0.6	1.182	0	0.761061748	1.522123496	0.5	0.1	0.2	0.6	1	m	Initial and maximum value rooting depth
+RRDMAX	0.012	0.012	0.006	0.012	0.024	0.012	0.0155	0.006	0.012	0.024	0.0101	0.005	0.03	0.05	1	m d-1	Maximum root depth growth rate
+RUBISC	5.7803	5.7803	2.89015	5.7803	11.5606	4.553	5.7803	2.89015	5.7803	11.5606	5.7803	1	2.7	10	1	g m-2 leaf	Rubisco content of upper leaves
+SIMAX1T	0.00450449	0.00450449	0.002252245	0.00450449	0.00900898	0.00450449	0.005471	0.002252245	0.00450449	0.00900898	0.004	0.002	0.004	0.006	1	gC tiller-1 d-1	Sink strength of small elongating tillers
+SLAMAX	0.06	0.06	0.03	0.06	0.09	0.06	0.0781	0.03	0.06	0.09	0.025	0.02	0.03	0.04	1	m2 leaf gC-1	Maximum SLA of new leaves (Note unusual units!)
+SWret	0.1	0.1	0.05	0.1	0.15	0.08415	0.1	NA	NA	NA	0.1	NA	NA	NA	NA	mm mm-1 d-1	Liquid water storage capacity of snow
+SWrf	0.01	0.01	0.005	0.01	0.015	0.01	0.0104	NA	NA	NA	0.01	NA	NA	NA	NA	mm d-1 °C-1	Maximum refreezing rate per degree below 'TmeltFreeze'
+TBASE	3.61083	3.61083	1.805415	3.61083	6	2.766	3.61083	1.805415	3.61083	6	4.0766	2	4.5	6	1	°C	Minimum value of effective temperature for leaf elongation
+TCRES	1.88986	1.88986	0.94493	1.88986	3.77972	1.88986	2.639	0.94493	1.88986	3.77972	1.9	1	2	4	1	d	Time constant of mobilisation of reserves
+THARDMX	14.7052	14.7052	5	14.7052	15	14.7052	14.82	5	14.7052	15	14.7052	NA	NA	NA	NA	°C	Maximum surface temperature at which hardening is possible
+TILTOTI	800	800	400	800	1600	800	2388	1e3	2e3	3e3	4e3	1e3	4e3	8e3	1	m-2	Initial value of tiller density
+TmeltFreeze	0	0	NA	NA	NA	0	0	NA	NA	NA	0	NA	NA	NA	NA	°C	Temperature above which snow melts
+TOPTGE	12.6178	12.6178	7	12.6178	25.2356	12.6178	21.37	7	12.6178	25.2356	20	15	22	30	1	°C	Optimum temperature for vegetative tillers to become generative (must be > TBASE)
+TrainSnow	0.01	0.01	0.005	0.01	0.015	0.01	0.01062	NA	NA	NA	0.01	NA	NA	NA	NA	°C	Temperature below which precipitation is snow
+TRANCO	8	8	4	8	16	6.435	8	4	8	16	8	4	8	16	1	mm d-1 g-1 m2	Transpiration effect of root mass
+TsurfDiff	0.62279	0.62279	0	0.62279	10	0.62279	3.353	NA	NA	NA	0.62279	NA	NA	NA	NA	°C	Constant in the calculation of dehardening rate
+TVERN	20	20	NA	NA	NA	20	20	NA	NA	NA	6	3	4	8	1	°C	Temperature below which vernalisation advances
+WCI	0.22	0.4	NA	NA	NA	0.15	0.46	NA	NA	NA	0.3	NA	NA	NA	NA	m3 m-3	Initial value of volumetric water content
+WCST	0.44	0.51	NA	NA	NA	0.4	0.55	NA	NA	NA	0.45	0.4	0.55	0.7	1	m3 m-3	Volumetric water content at saturation
+WpoolMax	50	50	NA	NA	NA	50	50	NA	NA	NA	50	NA	NA	NA	NA	mm	Maximum pool water (liquid plus ice)
+YG	0.841767	0.841767	0.65	0.841767	0.9	0.841767	0.8759	0.65	0.841767	0.9	0.85	0.5	0.6	0.9	1	gC gC-1	Growth yield per unit expended carbohydrate (must be < 1)
+CLITT0	NA	NA	NA	NA	NA	300	300	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+CNLITT0	NA	NA	NA	NA	NA	50	50	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+CNSOMF0	NA	NA	NA	NA	NA	25	25	15	25	35	NA	NA	NA	NA	NA	NA	NA
+CNSOMS0	NA	NA	NA	NA	NA	25	25	15	25	35	NA	NA	NA	NA	NA	NA	NA
+CSOM0	NA	NA	NA	NA	NA	1e4	1e4	5e3	1e4	2e4	NA	NA	NA	NA	NA	NA	NA
+F_DIGEST_WALL_FMIN	NA	NA	NA	NA	NA	0.7	0.7	0.6	0.7	0.8	NA	NA	NA	NA	NA	NA	NA
+F_DIGEST_WALL_MAX	NA	NA	NA	NA	NA	0.9	0.9	0.8	0.9	1	NA	NA	NA	NA	NA	NA	NA
+F_WALL_LV_FMIN	NA	NA	NA	NA	NA	0.7	0.7	0.6	0.7	0.8	NA	NA	NA	NA	NA	NA	NA
+F_WALL_LV_MAX	NA	NA	NA	NA	NA	0.6	0.6	0.5	0.6	0.7	NA	NA	NA	NA	NA	NA	NA
+F_WALL_ST_FMIN	NA	NA	NA	NA	NA	0.8	0.8	0.7	0.8	0.9	NA	NA	NA	NA	NA	NA	NA
+F_WALL_ST_MAX	NA	NA	NA	NA	NA	0.75	0.75	0.65	0.75	0.85	NA	NA	NA	NA	NA	NA	NA
+FCSOMF0	NA	NA	NA	NA	NA	0.5	0.5	0.3	0.5	0.7	NA	NA	NA	NA	NA	NA	NA
+FLITTSOMF	NA	NA	NA	NA	NA	0.6	0.6	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+FNCGSHMIN	NA	NA	NA	NA	NA	0	0.327	0	0.1	0.5	NA	NA	NA	NA	NA	NA	NA
+FSOMFSOMS	NA	NA	NA	NA	NA	0.03	0.03	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+KNEMIT	NA	NA	NA	NA	NA	5e-4	5e-4	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+NCR	NA	NA	NA	NA	NA	0.02195	0.03	0.015	0.03	0.06	NA	NA	NA	NA	NA	NA	NA
+NCSHMAX	NA	NA	NA	NA	NA	0.04	0.06934	0.02	0.04	0.08	NA	NA	NA	NA	NA	NA	NA
+NFERTMULT	NA	NA	NA	NA	NA	1	1	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+NMIN0	NA	NA	NA	NA	NA	1	1	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+RDRROOT	NA	NA	NA	NA	NA	0.02	0.02	NA	NA	NA	0.0022	0.001	0.005	0.01	1	d-1	Relatuive death rate of root mass CRT
+RDRSTUB	NA	NA	NA	NA	NA	0.2	0.2086	0.1	0.2	0.4	NA	NA	NA	NA	NA	NA	NA
+RFN2O	NA	NA	NA	NA	NA	8.5	8.5	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+RNLEACH	NA	NA	NA	NA	NA	0.5	0.5	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+TCLITT	NA	NA	NA	NA	NA	365	365	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+TCNSHMOB	NA	NA	NA	NA	NA	7.643	8	1	8	64	NA	NA	NA	NA	NA	NA	NA
+TCNUPT	NA	NA	NA	NA	NA	8	27.6	1	8	64	NA	NA	NA	NA	NA	NA	NA
+TCSOMF	NA	NA	NA	NA	NA	1460	1460	750	1460	3e3	NA	NA	NA	NA	NA	NA	NA
+TCSOMS	NA	NA	NA	NA	NA	73e3	73e3	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+TMAXF	NA	NA	NA	NA	NA	50	50	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+TSIGMAF	NA	NA	NA	NA	NA	20	20	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+WFPS50N2O	NA	NA	NA	NA	NA	0.7	0.7	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+AGEH	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	932.8	500	700	1500	1	d	Age at which persistence is half
+COCRESMN	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	0.1	0	0.15	0.2	1	-	Minimum concentration of reserves in aboveground biomass
+DAYLGEA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	0.66	0.6	0.7	0.8	1	-	Value of DAYLGE above which growth is prioritised over storage
+DAYLRV	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	0.55	0.54	0.55	0.6091	1	-	DAYL at which vernalisation is reset
+KAGE	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	0.0458	1e-4	0.01	0.1	1	d-1	Curvature of persistence
+TVERND	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	21	14	21	28	1	d	Days of cold after which vernalisation completed

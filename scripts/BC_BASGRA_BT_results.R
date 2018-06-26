@@ -21,8 +21,9 @@ if (TRUE){
             filter(row>col) %>%
             mutate(absval=abs(val)) %>%
             arrange(desc(absval))
-  whichc <- 1:8
-  whichp <- unique(c(flat$row[whichc], flat$col[whichc]))
+  whichc <- 1:6 # most correlated parameters
+  whichx <- match(c("RUBISC", "SIMAX1T"), parname_BC) # additional params to check
+  whichp <- unique(c(flat$row[whichc], flat$col[whichc], whichx))
   png( paste("model_outputs/BC_parameters_correlations_BT.png",sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
   correlationPlot(bt_out, whichParameters=whichp) # parameter correlation plot, very slow and big!
@@ -34,7 +35,7 @@ if (FALSE){
   tracePlot(bt_out) # parameter traces (don't know how to combine onto one sheet)
 }
 
-# prior and posterior histograms
+# prior and posterior histograms (old Basgra one is nicer)
 if (FALSE){
   cat(file=stderr(), 'Plot prior/posterior histograms', "\n")
   png( paste("model_outputs/BC_parameters_histograms_BT.png",sep=""),

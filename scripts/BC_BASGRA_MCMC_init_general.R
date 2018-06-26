@@ -19,7 +19,7 @@
      source( sitesettings_filenames[s] )
      list_params      [[s]] <- params       ; list_matrix_weather[[s]] <- matrix_weather
      list_days_harvest[[s]] <- days_harvest ; list_NDAYS         [[s]] <- NDAYS   
-     # check my_par matches fortran
+     # check df_params matches for_par
      i <- which(row.names(df_params)!=for_par$var)
      stopifnot(length(i)==0) 
    } 
@@ -162,8 +162,9 @@
    ip_BC        <- match( parname_BC, row.names(df_params) )
    np_BC        <- length(ip_BC)
    
-   # check priors against default values (not necessary but could reveal errors)
+   # check priors encompass default values (not necessary but could reveal errors)
    i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
+   # parname_BC[i]
    stopifnot(length(i)==0)
    
    ip_BC_site   <- sitelist ; icol_pChain_site <- sitelist

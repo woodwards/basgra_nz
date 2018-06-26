@@ -157,6 +157,9 @@ do day = 1, NDAYS
   ! Outputs
   !================
 
+! structural carbohydrate is 45% carbon C6H12O5
+! soluble carbohydrate is 40% carbon C6H12O6
+
   Time      = year + (doy-0.5)/366 ! "Time" = Decimal year (approximation)
   DM        = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
   RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
@@ -166,7 +169,7 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                          ! = Percentage light interception
-  DEBUG     = SINK1T                                ! Simon put variables here for debugging
+  DEBUG     = WAPL                                ! Simon put variables here for debugging
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -188,7 +191,7 @@ do day = 1, NDAYS
   y(day,15) = RESMOB       ! (Simon changed)
   y(day,16) = RAIN         ! mm Daily rainfall (Simon)
   y(day,17) = PHEN
-  y(day,18) = ROOTD        ! m Root depth
+  y(day,18) = LT50
   y(day,19) = DAYL         ! (Simon changed)
   y(day,20) = TILG2        ! (Simon changed)
   y(day,21) = TILG1        ! (Simon changed)
@@ -223,20 +226,20 @@ do day = 1, NDAYS
 
   ! Update state variables
   AGE     = AGE     + 1.0
-  CLV     = CLV     + GLV   - DLV    - HARVLV
+  CLV     = CLV     + GLV   - max(DLV, HARVLV)             ! Simon modified harvest logic
   CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material
   YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon separated HARVST and GSTUB
   if (YIELD>0) YIELD_LAST = YIELD
-  CRES    = CRES    + GRES  - RESMOB - HARVRE
+  CRES    = CRES    + GRES  - max(RESMOB, HARVRE)          ! Simon modified harvest logic
   CRT     = CRT     + GRT   - DRT
-  CST     = CST     + GST            - HARVST - GSTUB      ! Simon separated HARVST and GSTUB
+  CST     = CST     + GST   - HARVST - GSTUB               ! Simon separated HARVST and GSTUB
   CSTUB   = CSTUB   + GSTUB - DSTUB
   DRYSTOR = DRYSTOR + reFreeze + Psnow - SnowMelt
   Fdepth  = Fdepth  + Frate
-  LAI     = LAI     + GLAI - DLAI   - HARVLA
+  LAI     = LAI     + GLAI - max(DLAI, HARVLA)             ! Simon modified harvest logic
   LT50    = LT50    + DeHardRate - HardRate
   O2      = O2      + O2IN - O2OUT
-  PHEN    = max(0.0, min(1.0, PHEN + GPHEN - DPHEN - HARVPH))
+  PHEN    = max(0.0, PHEN + GPHEN - max(DPHEN, HARVPH))    ! Simon modified harvest logic
   ROOTD   = ROOTD   + RROOTD
   Sdepth  = Sdepth  + Psnow/RHOnewSnow - PackMelt
   TANAER  = TANAER  + dTANAER

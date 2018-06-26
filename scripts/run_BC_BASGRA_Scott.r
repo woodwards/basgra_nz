@@ -38,17 +38,6 @@
   
 ## 3. PRINTING AND PLOTTING ##
   
-  # choose outputs to display
-  chooseNames <- c(
-    "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
-    "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
-    "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
-    "TILTOT", "TILV", "TILG1", "TILG2", 
-    "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
-  )
-  i <- match(chooseNames, outputNames)
-  stopifnot(all(outputNames[i]==chooseNames)) # check
-  
   cat(file=stderr(), 'Calling BC output scripts', "\n")
   source('scripts/BC_export_parModes.R')
   # source('scripts/BC_plot_parameters_traceplots.R') # very slow! but useful for convergence check

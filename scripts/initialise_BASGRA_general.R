@@ -78,7 +78,11 @@ temp <- read_tsv("model/output_names.tsv", col_types=cols()) # Simon read from f
 outputNames <- temp$varname
 easyNames <- temp$shortname
 outputUnits <- temp$units
-stopifnot(all(outputNames==for_out$var)) # check 
+
+# check outputNames match for_out
+i <- which(outputNames != for_out$var)
+# outputNames[i]
+stopifnot(length(i)==0) # check 
 
 # outputNames <- c(
 #   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
@@ -112,16 +116,18 @@ NOUT <- as.integer( length(outputNames) )
 outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max scale for each variable plotting
 outputMax <- rep( as.double(NA), length(outputNames))
 
-# outputs to display
-# chooseNames <- c(
-#   "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
-#   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "ROOTD", 
-#   "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
-#   "TILTOT", "TILV", "TILG1", "TILG2", 
-#   "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD"
-#   )
-# i <- match(chooseNames, outputNames)
-# stopifnot(all(outputNames[i]==chooseNames)) # check 
+# choose outputs to display
+chooseNames <- c(
+  "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
+  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "LT50", 
+  "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
+  "TILTOT", "TILV", "TILG1", "TILG2", 
+  "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD", "DEBUG"
+)
+# check chooseNames are in outputNames
+i <- which(is.na(match(chooseNames, outputNames)))
+# chooseNames[i]
+stopifnot(length(i)==0) # check
 
 ################################################################################
 ### 4. FUNCTIONS FOR EXPORTING THE RESULTS TO FILE (pdf with plots, txt with table)
