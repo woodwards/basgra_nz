@@ -163,9 +163,9 @@
    np_BC        <- length(ip_BC)
    
    # check priors encompass default values (not necessary but could reveal errors)
-   i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
-   # parname_BC[i]
-   stopifnot(length(i)==0)
+   # i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
+   # # parname_BC[i]
+   # stopifnot(length(i)==0)
    
    ip_BC_site   <- sitelist ; icol_pChain_site <- sitelist
    for (p in 1:np_BC) {
@@ -208,7 +208,7 @@
 
 ## PROPOSAL DISTRIBUTION ##
  # Load library MASS, which has a routine for multivariate normal random number generation
-   library(MASS) # Simon warning package required not mentioned
+   # library(MASS) # Simon don't attach package, as it interfers with tidyverse
    vcovProp      <- matrix( 0, np_BC, np_BC )
    stddev_beta   <- sqrt((aa*bb)/((1+aa+bb)*(aa+bb)**2.))
    stddev_beta   <- stddev_beta * (scparmax_BC[1:np_BC]-scparmin_BC[1:np_BC])

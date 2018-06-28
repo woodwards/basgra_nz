@@ -209,7 +209,7 @@ if (TRUE){
     par(oldpar)
 
     # residual analysis
-    if (TRUE){
+    if (FALSE){
       cat(file=stderr(), 'Plot residual analysis, site', s, "\n")
       data_col <- unique(data_index[[s]])[[1]]
       for (data_col in unique(data_index[[s]])){ 

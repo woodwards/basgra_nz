@@ -21,7 +21,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 88        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 89        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -86,7 +86,7 @@ LAI     = max(SLAMAX * FSLAMIN * CLV, min(LAII, SLAMAX * CLV)) ! Simon constrain
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
-ROOTD   = ROOTDM
+ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT like this
 Sdepth  = SDEPTHI
 TANAER  = TANAERI
 TILG1   = TILTOTI *       FRTILGI *    FRTILGG1I
@@ -105,7 +105,7 @@ WETSTOR = WETSTORI
 ! Loop through days
 do day = 1, NDAYS
 
-  ! Calculate intermediate and rate variables
+  ! Calculate intermediate and rate variables (many variable and parameters are passed implicitly)
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
   ! Environment
@@ -134,9 +134,18 @@ do day = 1, NDAYS
                                               ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
   call O2status       (O2,ROOTD)              ! calculate FO2
 
-  ! Plant
-  call Harvest        (CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
+  ! Harvest (and operator splitting)
+  call Harvest        (CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                                                        GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
+  LAI     = LAI     - HARVLA
+  CLV     = CLV     - HARVLV
+  PHEN    = PHEN    - HARVPH
+  CRES    = CRES    - HARVRE
+  CST     = CST     - HARVST   - GSTUB
+  CSTUB   = CSTUB              + GSTUB
+  TILG2   = TILG2   - HARVTILG2
+
+  ! Plant
   call Biomass        (CLV,CRES,CST,CSTUB)
   call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
   call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
@@ -153,6 +162,7 @@ do day = 1, NDAYS
   ! Soil 2
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
 
+
   !================
   ! Outputs
   !================
@@ -162,14 +172,16 @@ do day = 1, NDAYS
 
   Time      = year + (doy-0.5)/366 ! "Time" = Decimal year (approximation)
   DM        = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
-  RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40) ! "RES" = Reserves in gDM gDM-1 aboveground green matter
+  RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)      ! "RES" = Reserves in gDM gDM-1 aboveground green matter
   SLA       = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (RES not included?) Note in gC units
   TILTOT    = TILG1 + TILG2 + TILV               ! "TILTOT"  = Total tiller number in # m-2
   FRTILG    = (TILG1+TILG2) / (TILG1+TILG2+TILV) ! "FRTILG"  = Fraction of tillers that is generative
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
-  LINT      = PARINT / PAR                          ! = Percentage light interception
-  DEBUG     = WAPL                                ! Simon put variables here for debugging
+  LINT      = PARINT / PAR                       ! = Percentage light interception
+  DEBUG     = RESPHARDSI                         ! Output any variable as "DEBUG" for debugging purposes
+  YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
+  if (YIELD>0) YIELD_LAST = YIELD
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -223,28 +235,28 @@ do day = 1, NDAYS
   y(day,43) = TRAN
   y(day,44) = LINT
   y(day,45) = DEBUG
+  y(day,46) = ROOTD
 
   ! Update state variables
   AGE     = AGE     + 1.0
-  CLV     = CLV     + GLV   - max(DLV, HARVLV)             ! Simon modified harvest logic
-  CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material
-  YIELD   = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40       ! Simon separated HARVST and GSTUB
-  if (YIELD>0) YIELD_LAST = YIELD
-  CRES    = CRES    + GRES  - max(RESMOB, HARVRE)          ! Simon modified harvest logic
+  CLV     = CLV     + GLV   - DLV
+  CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material FIXME harvest CLVD
+  CRES    = CRES    + GRES  - RESMOB                       ! Simon modified harvest logic
   CRT     = CRT     + GRT   - DRT
-  CST     = CST     + GST   - HARVST - GSTUB               ! Simon separated HARVST and GSTUB
-  CSTUB   = CSTUB   + GSTUB - DSTUB
+  CST     = CST     + GST
+  CSTUB   = CSTUB   - DSTUB
   DRYSTOR = DRYSTOR + reFreeze + Psnow - SnowMelt
   Fdepth  = Fdepth  + Frate
-  LAI     = LAI     + GLAI - max(DLAI, HARVLA)             ! Simon modified harvest logic
+  LAI     = LAI     + GLAI - DLAI
   LT50    = LT50    + DeHardRate - HardRate
   O2      = O2      + O2IN - O2OUT
-  PHEN    = max(0.0, PHEN + GPHEN - max(DPHEN, HARVPH))    ! Simon modified harvest logic
-  ROOTD   = ROOTD   + RROOTD
+  PHEN    = PHEN    + GPHEN - DPHEN
+!  ROOTD   = ROOTD   + RROOTD                              ! Simon tied ROOTD to CRT
+  ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT like this
   Sdepth  = Sdepth  + Psnow/RHOnewSnow - PackMelt
   TANAER  = TANAER  + dTANAER
   TILG1   = TILG1           + TILVG1 - TILG1G2
-  TILG2   = TILG2                    + TILG1G2 - HARVTILG2
+  TILG2   = TILG2                    + TILG1G2
   TILV    = TILV    + GTILV - TILVG1           - DTILV
   VERN    = VERN
   VERND   = VERND   + DVERND

@@ -20,11 +20,11 @@ contains
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 ! Simon plant processes are now calculated as if harvest did not happen
 ! Simon and harvest and plant processes are combined at the end of the day
-Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
+Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
-  real    :: CLV, CRES, CST, LAI, PHEN, TILG2, TILG1, TILV
+  real    :: CLV, CRES, CST, CSTUB, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1
   integer :: HARV
@@ -41,30 +41,36 @@ Subroutine Harvest(CLV,CRES,CST,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV,
 	end if
   end do
 
-! CLAIV	m2 leaf m-2 Maximum LAI remaining after harvest, when no tillers elongate
-! CLAI	m2 leaf m-2	Maximum LAI remaining after harvest
-! (1-FRACTV) * CLAIV = LAI on elongating tillers, assumed to all be harvested
-  FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! = Fraction non-elongating tillers (Simon included TILG1)
-!  CLAI   = FRACTV * CLAIV                       ! = Maximum LAI remaining after harvest
+  FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! Fraction of non-elongating tillers (Simon included TILG1)
+  ! (1-FRACTV) * CLAI = LAI on elongating tillers, assumed to all be harvested
+
+! CLAIV	                 = m2 leaf m-2 Maximum LAI remaining after harvest, when no tillers elongate
+! CLAI	= FRACTV * CLAIV = m2 leaf m-2	Maximum LAI remaining after harvest
+
 !  if (LAI <= CLAI) then
 !    HARVFR = 0.0             ! Forgot to harvest (1-FRACTV)*LAI?
 !  else
 !    HARVFR = 1.0 - CLAI/LAI  ! Fraction of leaf that is harvested
 !  end if
-  HARVFR = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1.0 - FRACTV)    ! Simon included harvest of TILG2 leaf in harvest logic
-  TV1    = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + HAGERE * (1.0 - FRACTV) ! Simon calculated proportion of CRES harvested
-  HARVFR = HARVFR * HARV                                           ! Simon only return HARVFR on HARV days
-! HARVFR = Fraction of leaf and reservse in non-elongating tillers that is harvested
-! 1.0    = Fraction of leaf              in     elongating tillers that is harvested (I think, or is it HAGERE?)
-! HAGERE = Fraction of stem and reserves in     elongating tillers that is harvested
+
+  HARVFR    = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1.0 - FRACTV)         ! Simon proportion of CLV harvested
+  ! HAGERE = proportion of CST harvested
+  ! RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)               ! CRES is in CLV, CST and CSTUB
+  TV1       = (HARVFR * CLV + HAGERE * CST + 0 * CSTUB)/(CLV + CST + CSTUB)    ! Simon proportion of CRES harvested
+  HARVFR    = HARVFR * HARV                                                    ! Simon only return HARVFR on HARV days
+
+! HARVFR = Fraction of leaf                                    that is harvested
+! 1.0    = Fraction of leaf              in elongating tillers that is harvested (we assume)
+! HAGERE = Fraction of stem and reserves in elongating tillers that is harvested (parameter)
+! TV1    = Fraction of reserves                                that is harvested
 
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
-!  TV1       = (HARVFR * FRACTV) + (HAGERE * (1-FRACTV))! Proportion of CRES harvested
-  HARVRE    = (HARV   * CRES * TV1  ) / DELT
   HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
   GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB
+  HARVRE    = (HARV   * CRES * TV1  ) / DELT
+
 !  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
 !  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
   HARVTILG2 = (HARV   * TILG2       ) / DELT           ! TILG2 zeroed after each harvest
@@ -73,11 +79,11 @@ end Subroutine Harvest
 ! Calculate RESNOR (relative amount of CRES)
 Subroutine Biomass(CLV,CRES,CST,CSTUB)
   real :: CLV, CRES, CST, CSTUB
-  CRESMX = COCRESMX*(CLV + CRES + CST)      ! Maximum reserves in aboveground biomass (not stubble) in terms of C
-  CRESMN = COCRESMN*(CLV + CRES + CST)      ! Minimum reserves in aboveground biomass (not stubble) in terms of C
+  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
+  CRESMN = FCOCRESMN * CRESMX                ! Minimum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   if (CRESMX>CRESMN) then
-    RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES
-  else if (CRES.ge.CRESMX) then
+    RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
+  else if (CRES.gt.CRESMX) then
 	RESNOR = 1.0
   else
 	RESNOR = 0.0
@@ -92,10 +98,10 @@ Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
   FAGE  = min(1.0, exp( -KAGE * (AGE - AGEH) ))                               ! Simon added effect of sward age factor
   GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! Basically degree days * day length
   DPHEN = 0.
-  if (DAYL < DAYLB) then                     ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
+  if (DAYL < DAYLB) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
     GPHEN  = 0.0
     DPHEN  = PHEN / DELT
-!    HARVPH = 0.0
+    HARVPH = 0.0
   end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
   DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
@@ -146,7 +152,7 @@ Subroutine CalcSLA
   LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers
   LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0, so DLMXGE < maximum DAYL
   SLAMIN = SLAMAX * FSLAMIN
-  SLANEW = SLAMAX - RESNOR*(SLAMAX-SLAMIN)                ! m2 leaf gC-1 SLA of new leaves (depends on CRES) Simon note unusual units!
+  SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) Simon note unusual units!
 end Subroutine CalcSLA
 
 ! Calculate light use efficiency LUEMXQ
@@ -212,13 +218,13 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   real :: GLV,GRES,GRT,GST
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
-!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include COCRESMN
+!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
 !  RESMOB   = ((CRES-CRESMN) * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, Simon included CRESMN
-  RESMOB   = ((CRES - CRESMN) / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
+  RESMOB   = max(0.0, CRES-CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
-  GRESSI   = 0.5 * (RESMOB + max(0.,(CRESMX-CRES)/DELT))           ! gC m-2 d-1	Sink strength of reserve pool
+  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)             ! gC m-2 d-1	Sink strength of reserve pool (average of RESMOB and CRESMX-CRES?)
   if (TILG2 > 0.0) then
     CSTAV  = CST/TILG2                                             ! gC tiller-1 Average size of elongating tillers
   else

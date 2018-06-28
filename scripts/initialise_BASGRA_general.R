@@ -119,7 +119,7 @@ outputMax <- rep( as.double(NA), length(outputNames))
 # choose outputs to display
 chooseNames <- c(
   "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
-  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "LT50", 
+  "CLV", "CLVD", "CRES", "CRT", "ROOTD", "CST", "CSTUB", "LT50", 
   "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", 
   "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD", "DEBUG"
