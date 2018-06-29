@@ -19,7 +19,6 @@ contains
 
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 ! Simon plant processes are now calculated as if harvest did not happen
-! Simon and harvest and plant processes are combined at the end of the day
 Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                              GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   integer :: doy,year
@@ -152,7 +151,7 @@ Subroutine CalcSLA
   LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers
   LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0, so DLMXGE < maximum DAYL
   SLAMIN = SLAMAX * FSLAMIN
-  SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) Simon note unusual units!
+  SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
 
 ! Calculate light use efficiency LUEMXQ
@@ -246,7 +245,7 @@ end Subroutine Growth
      real :: GRES, GRT, GLV, GST
      GSHSI = GLVSI + GSTSI
 !     if (DAYLGE >= 0.1) then   ! Simon thinks maybe this value should be a parameter
-     if (DAYLGE >= DAYLGEA) then   ! Simon thinks maybe this value should be a parameter
+     if (DAYLGE >= DAYLGEA) then   ! Simon added DAYLGEA parameter
      ! Situation 1: Growth has priority over storage (spring and growth period)
        ! Calculate amount of assimilates allocated to shoot
        ALLOSH = min( ALLOTOT, GSHSI )
@@ -395,7 +394,7 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,
   integer :: VERN
   real    :: GLAI,GTILV,TILVG1,TILG1G2
   real    :: RGRTV,RGRTVG1,TV1,TV2
-  GLAI    = SLANEW * GLV                                                      ! Simon note SLANEW is in m2 leaf gC-1
+  GLAI    = SLANEW * GLV                                                      ! Note SLANEW is in m2 leaf gC-1
   if (Tsurf < TBASE) then
     TV1   = 0.
   else
