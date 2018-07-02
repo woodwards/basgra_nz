@@ -257,7 +257,7 @@ if (TRUE){
          width=11, height=8, units="in", type="windows", res=300)
     
     # set up plot grid
-    data_cols <- match(c("CRT", "LAI", "DM", "RES"), outputNames)
+    data_cols <- match(c("TSIZE", "CRT", "LAI", "DM", "RES"), outputNames)
     noutputsMeasured     <- length(data_cols)
     nrowsPlots           <- ceiling(sqrt(noutputsMeasured+1))
     ncolsPlots           <- ceiling((noutputsMeasured+1)/nrowsPlots)

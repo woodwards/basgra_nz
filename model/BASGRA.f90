@@ -51,7 +51,7 @@ real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN,
 integer :: HARV
 
 ! Extra output variables (Simon)
-real :: Time, DM,RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG
+real :: Time, DM,RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG, TSIZE
 
 ! Extract parameters
 call set_params(PARAMS)
@@ -173,7 +173,8 @@ do day = 1, NDAYS
   Time      = year + (doy-0.5)/366 ! "Time" = Decimal year (approximation)
   DM        = ((CLV+CST+CSTUB)/0.45 + CRES/0.40 + CLVD/0.45) * 10.0 ! "DM"  = Aboveground dry matter in kgDM ha-1 (Simon included CLVD, changed units)
   RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)      ! "RES" = Reserves in gDM gDM-1 aboveground green matter
-  SLA       = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (RES not included?) Note in gC units
+  SLA       = LAI / CLV                          ! SLA     = m2 leaf area gC-1 dry matter vegetative tillers (Note units and RES not included)
+  TSIZE     = (CLV+CST) / (TILG1+TILG2+TILV)     ! gC tillers-1 Average tiller size
   TILTOT    = TILG1 + TILG2 + TILV               ! "TILTOT"  = Total tiller number in # m-2
   FRTILG    = (TILG1+TILG2) / (TILG1+TILG2+TILV) ! "FRTILG"  = Fraction of tillers that is generative
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
@@ -236,6 +237,7 @@ do day = 1, NDAYS
   y(day,44) = LINT
   y(day,45) = DEBUG
   y(day,46) = ROOTD
+  y(day,47) = TSIZE
 
   ! Update state variables
   AGE     = AGE     + 1.0

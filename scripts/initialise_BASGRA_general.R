@@ -121,7 +121,7 @@ chooseNames <- c(
   "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
   "CLV", "CLVD", "CRES", "CRT", "ROOTD", "CST", "CSTUB", "LT50", 
   "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
-  "TILTOT", "TILV", "TILG1", "TILG2", 
+  "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
   "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD", "DEBUG"
 )
 # check chooseNames are in outputNames
@@ -132,6 +132,7 @@ stopifnot(length(i)==0) # check
 ################################################################################
 ### 4. FUNCTIONS FOR EXPORTING THE RESULTS TO FILE (pdf with plots, txt with table)
 
+# trace plots
 plot_output <- function(
   # these are default inputs but get overridden
   list_output = list(output), 
@@ -146,14 +147,19 @@ plot_output <- function(
   par( mfrow=c(nrow_plot,ncol_plot), mar=c(2, 2, 2, 1) )
   if (!is.list(list_output)) list_output <- list(list_output) ; nlist <- length(list_output)
   col_vars <- match(vars,outputNames)                         ; nvars <- length(vars)
+  iv <- 1
+  # browser()
   for (iv in 1:nvars) {
     c       <- col_vars[iv]
+    t_range <- unique(round(list_output[[1]][,1]))
     g_range <- range( sapply( 1:nlist, function(il){range(list_output[[il]][,c])} ) )
     plot( list_output[[1]][,1], list_output[[1]][,c],
           xlab="", ylab="", cex.main=1,
 #          main=paste(outputNames[c]," ",outputUnits[c],sep=""),
           main=paste(easyNames[c]," ",outputUnits[c],sep=""),
-          type='l', col=1, lty=lty[1], lwd=lwd[1], ylim=g_range )
+          type='l', col=1, lty=lty[1], lwd=lwd[1], ylim=g_range, xaxt="n", yaxt="n" )
+    axis(1, at=t_range)
+    axis(2, at=pretty(g_range))
     if (nlist >= 2) {
       for (il in 2:nlist) {
       points( list_output[[il]][,1], list_output[[il]][,c],

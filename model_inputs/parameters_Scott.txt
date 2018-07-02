@@ -10,7 +10,7 @@ FRTILGI	0.0	FRTILGI	-	Initial value of elongating tiller fraction
 LT50I	-4.7894	LT50I	°C	Initial value of LT50
 CLAIV	0.7054	CLAIV	m2 leaf m-2	"Maximum LAI remaining after harvest, when no tillers elongate"
 COCRESMX	0.25	COCRESMX	-	Maximum concentration of reserves in aboveground biomass
-CSTAVM	0.23	CSTAVM	gC tiller-1	Maximum size of elongating tillers
+CSTAVM	0.23	CSTAVM	gC tiller-1	Maximum stem mass of elongating tillers
 DAYLB	0.45	DAYLB	d d-1	Day length below which DAYLGE becomes 0 and phenological stage is reset to zero (must be < DLMXGE)
 DAYLP	0.4348	DAYLP	d d-1	Day length below which phenological development slows down
 DLMXGE	0.6091	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1 (should be < maximum DAYL?)

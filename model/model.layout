@@ -2,19 +2,9 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Release" />
-	<File name="..\model_inputs\parameters_Scott.txt" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\model_inputs\parameters_BC_Scott.txt" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3234" topLine="12" />
-		</Cursor>
-	</File>
-	<File name="BASGRA.f90" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1642" topLine="23" />
-		</Cursor>
-	</File>
-	<File name="environment.f90" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5072" topLine="103" />
+			<Cursor1 position="1702" topLine="21" />
 		</Cursor>
 	</File>
 	<File name="set_params.f90" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -22,24 +12,9 @@
 			<Cursor1 position="1745" topLine="67" />
 		</Cursor>
 	</File>
-	<File name="soil.f90" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\model_inputs\parameters_Scott.txt" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1961" topLine="40" />
-		</Cursor>
-	</File>
-	<File name="..\model_inputs\parameters_BC_Scott.txt" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1702" topLine="21" />
-		</Cursor>
-	</File>
-	<File name="parameters_site.f90" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="622" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="resources.f90" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3465" topLine="47" />
+			<Cursor1 position="3234" topLine="12" />
 		</Cursor>
 	</File>
 	<File name="parameters_plant.f90" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -47,9 +22,34 @@
 			<Cursor1 position="927" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="plant.f90" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="BASGRA.f90" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="22700" topLine="388" />
+			<Cursor1 position="838" topLine="4" />
+		</Cursor>
+	</File>
+	<File name="soil.f90" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1961" topLine="40" />
+		</Cursor>
+	</File>
+	<File name="plant.f90" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="20869" topLine="379" />
+		</Cursor>
+	</File>
+	<File name="resources.f90" open="1" top="1" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1256" topLine="28" />
+		</Cursor>
+	</File>
+	<File name="environment.f90" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5072" topLine="103" />
+		</Cursor>
+	</File>
+	<File name="parameters_site.f90" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="622" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

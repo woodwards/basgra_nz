@@ -67,7 +67,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
   HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
-  GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB
+  GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
 
 !  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
@@ -225,7 +225,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
   GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)             ! gC m-2 d-1	Sink strength of reserve pool (average of RESMOB and CRESMX-CRES?)
   if (TILG2 > 0.0) then
-    CSTAV  = CST/TILG2                                             ! gC tiller-1 Average size of elongating tillers
+    CSTAV  = CST/TILG2                                             ! gC tiller-1 Average stem mass of elongating tillers
   else
     CSTAV  = 0.
   end if
