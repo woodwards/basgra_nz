@@ -1,0 +1,779 @@
+---
+title: "Northland Data"
+author: "Simon Woodward, DairyNZ 2018"
+output: word_document
+---
+
+<!-- modified below cutting logic to use Katherine Tozer data -->
+
+```{r setup, include=FALSE}
+# include=FALSE (hide R code and output)
+# echo=FALSE (hide R code)
+# results=markup, results=asis, results=hide
+# warning=FALSE, message=FALSE, error=TRUE
+# fig.keep=none, fig.keep=all, fig.keep=high  
+remove(list=ls())
+knitr::opts_chunk$set(warning=FALSE, tidy=FALSE, fig.keep='all', fig.width=9)
+
+# load libraries
+# "lubridate" %in% (.packages()) # how to check if package loaded
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(scales)
+library(lubridate)
+library(RColorBrewer)
+
+# automatically convert text to something easy to work with
+ensnakeify <- function(x) {
+  x %>%
+    iconv(to="ASCII//TRANSLIT") %>% # remove accents
+    str_replace_na() %>% # convert NA to string
+    str_to_lower() %>% # convert to lower case
+    str_replace_all(pattern="[^[:alnum:]]", replacement=" ") %>% # convert non-alphanumeric to space
+    str_trim() %>% # trim leading and trailing spaces
+    str_replace_all(pattern="\\s+", replacement="_") # convert remaining spaces to underscore
+}
+
+# rounding function that works on dates
+round_any = function(x, accuracy, f=round){
+  if (is.Date(x)){
+    switch(f,
+           round=round_date(x, accuracy),
+           ceiling=ceiling_date(x, accuracy),
+           floor=floor_date(x, accuracy)
+    )
+  } else {
+    f( x / accuracy) * accuracy
+  }
+}
+
+# my_trans <- function(x){trans_new('my', 
+#             transform = function(y){0.01*y},
+#             inverse   = function(y){100*y}
+#             )}
+
+```
+
+## Lincoln Data
+
+```{r echo-FALSE}
+# file name
+infile_name <- 'FD1004_N Data For Modelling.xlsx'
+
+# seed rates in order
+seed_rate_levels <- c('6kg', '12kg', '18kg', '24kg', '30kg')
+```
+
+## Rising Plate Meter
+
+```{r include=FALSE}
+# read and plot rpm data. There is some extra stuff in this sheet.
+data_rpm <- read_xlsx(infile_name, sheet='Northland RPM Height data')
+names(data_rpm) <- ensnakeify(names(data_rpm))
+
+# look at missing data 
+has_missing <- function(x) any(is.na(x)) 
+temp <- data_rpm %>% 
+  filter_all(any_vars(is.na(.))) %>% # all rows with NA
+  select_if(has_missing) # only variables with NA
+
+# rename useful variables
+data_rpm <- data_rpm %>%
+  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  rename(
+       date_pre = date_pre_rpm_d,
+       mass_pre = pregrazing_mass_kg_dm_ha,
+       date_post = date_post_rpm_d,
+       mass_post = postgrazing_mass_kg_dm_ha,
+       date_grazed = date_grazed_d,
+       grazing = grazing
+       ) %>%
+  select(date_grazed, block, cultivar, seed_rate, grazing, date_pre, mass_pre, date_post, mass_post) %>%   mutate(date_pre = if_else(is.na(date_pre), date_post - 9, date_pre)) # some dates are missing
+  
+```
+
+Average pre-graze mass = `r round(mean(data_rpm$mass_pre, na.rm=TRUE))`
+
+Average post-graze mass = `r round(mean(data_rpm$mass_post, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot pre and post mass by cultivar, seed_rate and block
+ybreaks <- seq(0, round_any(max(data_rpm$mass_pre, na.rm=TRUE), 2000, ceiling), 2000)
+xbreaks <- seq(floor_date(min(data_rpm$date_pre, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_rpm$date_post, na.rm=TRUE), "years"), by="1 year")
+data_rpm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+        labs(x='Date', y='Plate mass (kgDM/ha)', 
+          title=paste('Pre and post plate mass (to ground level), Block', unique(.$block))) +
+        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+        geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
+        geom_point(mapping=aes(x=date_pre, y=mass_pre), colour='red') +
+        geom_point(mapping=aes(x=date_post, y=mass_post), colour='blue') +
+        facet_grid(cultivar ~ seed_rate) +
+        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+      )
+
+```
+
+## Rising Plate Meter Growth Rate
+
+### Assumptions 
+
+* Growth rate calculated from RPM data and assumed constant between grazings.
+
+```{r include=FALSE}
+# calculate growth rate before grazing by cultivar, seed_rate and block.
+data_rpm <- data_rpm %>%
+  group_by(block, cultivar, seed_rate) %>%
+  arrange(date_grazed) %>%
+  mutate(
+    date_post_last = lag(date_post ,1), #### assumes no missing dates in rpm data! ####
+    mass_post_last = lag(mass_post ,1), #### missing values will be propagated ####
+    growth_days_pre = as.numeric(difftime(date_pre, date_post_last), units="days"),
+    growth_pre = mass_pre - mass_post_last,
+    growth_rate_pre = growth_pre / as.double(growth_days_pre),
+    growth_rate_post = lead(growth_rate_pre, 1)
+    ) 
+
+```
+
+Average growth rate = `r round(mean(data_rpm$growth_rate_pre, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot growth rate
+ybreaks <- seq(round_any(min(data_rpm$growth_rate_pre, na.rm=TRUE), 25, floor), 
+               round_any(max(data_rpm$growth_rate_pre, na.rm=TRUE), 25, ceiling), 25)
+xbreaks <- seq(floor_date(min(data_rpm$date_pre, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_rpm$date_post, na.rm=TRUE), "years"), by="1 year")
+data_rpm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+        labs(x='Date', y='Growth Rate (kgDM/ha/d)', 
+             title=paste('Growth Rate (Previous), Block', unique(.$block))) +
+        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+        geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
+        geom_point(mapping=aes(x=date_grazed, y=growth_rate_pre), colour='magenta') +
+        facet_grid(cultivar ~ seed_rate) +
+        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+      )
+
+```
+
+## Rising Plate Meter Harvest %
+
+### Assumptions 
+
+* Assume no pasture growth between pre and post RPM.
+
+```{r include=FALSE}
+# calculate harvest % by cultivar, seed_rate and block.
+data_rpm <- data_rpm %>%
+  group_by(block, cultivar, seed_rate) %>%
+  mutate(
+    delay_pre = as.numeric(difftime(date_grazed, date_pre), units="days"),
+    delay_post = as.numeric(difftime(date_post, date_grazed), units="days"),
+    mass_grazed = mass_pre,# + growth_rate_pre * delay_pre * 0,
+    mass_resid = mass_post,# - growth_rate_post * delay_post * 0, 
+    harv = (1 - mass_resid / mass_grazed) * 100 # proportion harvested
+    )
+
+```
+
+Average harvest % = `r round(mean(data_rpm$harv, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot harvest %
+ybreaks <- seq(0, round_any(max(data_rpm$harv, na.rm=TRUE), 20, ceiling), 20)
+xbreaks <- seq(floor_date(min(data_rpm$date_pre, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_rpm$date_post, na.rm=TRUE), "years"), by="1 year")
+data_rpm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+        labs(x='Date', y='Harvest %', 
+             title=paste('Harvest %, Block', unique(.$block))) +
+        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+        geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
+        geom_point(mapping=aes(x=date_grazed, y=harv), colour='purple') +
+        facet_grid(cultivar ~ seed_rate) +
+        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+      )
+
+```
+
+## Pasture Cut Mass
+
+```{r include=FALSE}
+# read cut mass data. Cuts were to 4-5 cm.
+# data_cut1 <- read_xlsx(infile_name, sheet='Northland Yield Data')
+data_cut2 <- read_xlsx(infile_name, sheet='Northland Yield Data')
+# names(data_cut1) <- ensnakeify(names(data_cut1))
+names(data_cut2) <- ensnakeify(names(data_cut2))
+
+# rename useful variables
+# data_cut1 <- data_cut1 %>%
+#   mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+#   rename(
+#     date = date_d,
+#     yield = yield_kg_dm_ha,
+#     grazing = graze_no #### first grazing is missing ####
+#   ) %>%
+#   mutate(
+#     month = month(month)
+#   ) %>%
+#   group_by(date, block, seed_rate, cultivar, grazing) %>%
+#   summarise(yield = mean(yield))
+
+# rename useful variables
+data_cut <- data_cut2 %>%
+  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  rename(
+    date = date_d,
+    yield = yield_kg_dm_ha,
+    dm_pc = dm,
+    grazing = graze_no
+  ) %>%
+  mutate(
+    month = month(month)
+  ) %>%
+  select(date, block, seed_rate, cultivar, grazing, yield, dm_pc) %>% 
+  group_by(date, block, seed_rate, cultivar, grazing) %>%
+  summarise(yield = mean(yield),
+            dm_pc = mean(dm_pc)) 
+
+# combine tables by row keeping common variables
+# data_cut <- full_join(data_cut1, data_cut2) 
+
+```
+
+Average cut mass = `r round(mean(data_cut$yield, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot cut yield data
+ybreaks <- seq(0, round_any(max(data_cut$yield, na.rm=TRUE), 1000, ceiling), 1000)
+xbreaks <- seq(floor_date(min(data_cut$date), "years"), 
+               ceiling_date(max(data_cut$date), "years"), by="1 year")
+data_cut %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Cut mass (kgDM/ha)', 
+         title=paste('Pasture Cut mass (pregrazing, cut to 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+    geom_point(mapping=aes(x=date, y=yield), colour='red') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+```
+
+## Estimate Mass Below Cutting Height
+
+### Assumptions 
+
+* Total mass at cutting assumed to be equal to pregraze RPM.
+
+```{r include=FALSE}
+# find cut matching rpm data (what do we do when missing pre data?)
+# cutting dates for matching with other data sets
+# date_cut <- unique(data_cut$date)
+# closest_date_cut <- function(date){ # return index of closest date_cut
+#   i <- if_else(is.na(date),
+#                NA_integer_,
+#                which(abs(date-date_cut)==min(abs(date-date_cut)))[[1]])
+# }
+# data_rpm$date_cut_i <- lapply(data_rpm$date_pre, closest_date_cut)
+# data_rpm$date_cut <- date_cut[unlist(data_rpm$date_cut_i)]
+
+# join cut and rpm data by date_cut and estimate mass on cutting date 
+# mass below cutting height is this minus cut yield
+data_cut$date_cut <- data_cut$date
+data_bc <- data_rpm %>%
+  select(block, seed_rate, cultivar, grazing, date_pre, mass_pre) %>% 
+  # left_join(data_cut, by=c('date_cut', 'block', 'seed_rate', 'cultivar', 'grazing')) %>%
+  left_join(data_cut, by=c('block', 'seed_rate', 'cultivar', 'grazing')) %>% 
+  select(date_pre, date_cut, block, seed_rate, cultivar, mass_pre, yield, grazing) %>%
+  mutate(delay = as.integer(as.Date(date_cut) - as.Date(date_pre))) %>% 
+  # filter(abs(delay)<4) %>%
+  # drop_na() %>%
+  mutate(
+    mass_cut = mass_pre,# + growth_rate_pre * delay * 0,
+    below = mass_cut - yield
+    )
+         
+# copy below back into data_cut
+temp <- data_cut %>%
+  # left_join(data_bc, by=c('date_cut', 'block', 'seed_rate', 'cultivar', 'grazing')) %>%
+  left_join(data_bc, by=c('block', 'seed_rate', 'cultivar', 'grazing')) %>%
+  select(date, block, seed_rate, cultivar, yield.x, dm_pc, date_cut.x, grazing,
+         date_pre, mass_pre, delay, below) %>%
+  rename(yield=yield.x,
+         date_cut=date_cut.x)
+  
+data_cut <- temp
+
+```
+
+Average mass below cutting estimate = `r round(mean(data_cut$below, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot below cutting mass
+ybreaks <- seq(0, round_any(max(data_bc$below, na.rm=TRUE), 1000, ceiling), 1000)
+xbreaks <- seq(floor_date(min(data_bc$date_pre), "years"), 
+               ceiling_date(max(data_bc$date_pre), "years"), by="1 year")
+data_bc %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
+         title=paste('Mass Below Cut (below 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date_pre, y=below), colour='brown') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+```
+
+## Pasture Cuts DM%
+
+Average cut dry matter % = `r round(mean(data_cut$dm_pc, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot DM% data
+ybreaks <- seq(0, round_any(max(data_cut$dm_pc, na.rm=TRUE), 10, ceiling), 10)
+xbreaks <- seq(floor_date(min(data_cut$date), "years"), 
+               ceiling_date(max(data_cut$date), "years"), by="1 year")
+data_cut %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+  labs(x='Date', y='Dry matter %', 
+       title=paste('Pregazing Dry Matter % (cut to 4cm), Block', unique(.$block))) +
+  theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+  geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+  geom_point(mapping=aes(x=date, y=dm_pc), colour='purple') +
+  facet_grid(cultivar ~ seed_rate ) +
+  scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+  scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+```
+
+## Tiller Density
+
+```{r include=FALSE}
+# read tiller data
+data_till <- read_xlsx(infile_name, sheet='Tiller density data Northland')
+names(data_till) <- ensnakeify(names(data_till))
+
+# rename useful variables
+data_till <- data_till %>%
+  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  rename(
+    date = date_d,
+    tillers = ryegrass_tiller_density_tillers_m2
+  ) %>%
+  group_by(block, cultivar, seed_rate, date) %>%
+  summarise(mean_tillers = mean(tillers))
+
+```
+
+Average tiller density = `r round(mean(data_till$mean_tillers, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot tiller data 
+ybreaks <- seq(0, round_any(max(data_till$mean_tillers, na.rm=TRUE), 2500, ceiling), 2500)
+xbreaks <- seq(floor_date(min(data_till$date), "years"), 
+               ceiling_date(max(data_till$date), "years"), by="1 year")
+data_till %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Tiller density'~(tillers~m^{2}), 
+         title=paste('Tiller Density, Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+    geom_point(mapping=aes(x=date, y=mean_tillers), colour='darkgreen') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, 
+                       limits=c(ybreaks[1], round_any(max(data_till$mean_tillers, na.rm=TRUE), 1000, ceiling)))
+  )
+
+```
+
+## Botanical Composition
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# read botanical data. Skip blank line at top
+data_bot <- read_xlsx(infile_name, sheet='Botanical Composition data ', skip=1)
+names(data_bot) <- ensnakeify(names(data_bot))
+
+# look at missing data 
+has_missing <- function(x) any(is.na(x)) 
+temp <- data_bot %>% 
+  filter_all(any_vars(is.na(.))) %>% # all rows with NA
+  select_if(has_missing) # only variables with NA
+data_bot <- data_bot %>% 
+  replace(., is.na(.), 0)  # replace all with 0
+
+# rename useful variables
+temp <- data_bot %>%
+  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  rename(
+    date = date_d,
+    leaf = perennial_ryegrass_leaf, # (includes pseudostem)
+    stem = perennial_ryegrass_reproductive_stem,
+    ann = annual_ryegrass,
+    wc = white_clover,
+    poa = poa_sp,
+    ogx = other_grasses_excluding_poa,
+    og = other_grasses_including_poa,
+    weed = weeds,
+    dead = dead
+    ) %>%
+  mutate(
+    total = leaf + stem + ann + wc + og + weed + dead, # should always be 100
+    rgfrac = 100 * (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
+    month = month(dmy(paste('01', month, '2011'))),
+    # estimate botanicals composition below cutting height
+    x = month/12,
+    y = 129.07*x^6 - 416.62*x^5 + 510.83*x^4 - 291.95*x^3 + 75.37*x^2 - 6.95*x + 1.32,
+    leaf_below = leaf / y, # estimated from  Tozer data (includes pseudostem)
+    stem_below = stem / 5 # estimated from  Tozer data
+  ) %>%
+  select(leaf, stem, leaf_below, stem_below, ann, wc, og, weed, dead, date, total, block, seed_rate, cultivar, rgfrac) 
+  
+data_bot <- temp
+
+# gather
+data_bot2 <- data_bot %>%
+  gather(leaf, stem, ann, wc, og, weed, dead, key='species', value='fraction') %>%
+  mutate(species = factor(species, 
+                          levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead'))) 
+
+# why are there so few botanical data? and why are data getting duplciated in the outputs?
+temp <- data_bot2 %>% 
+  filter_all(any_vars(is.na(.))) %>% # all rows with NA
+  select_if(has_missing) # only variables with NA
+
+# plot botanical data
+ybreaks <- seq(0, 100, 20)
+xbreaks <- seq(floor_date(min(data_bot2$date), "years"), 
+               ceiling_date(max(data_bot2$date), "years"), by="1 year")
+data_bot2 %>% # FIXME not all data getting plotted for some reason??? Text coding??
+  broom::tidy() +
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight %', fill='Species',
+         title=paste('Botanical composition (cut to 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_bar(mapping=aes(x=date, y=fraction, fill=species), stat='identity') +
+    scale_fill_brewer(palette='Paired') +
+    facet_grid(cultivar ~ seed_rate ) 
+    # +
+    # scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    # scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+if (FALSE){
+
+  data_bot2 %>% 
+    # filter(block==3, cultivar=="Alto", seed_rate=="18kg") %>% 
+    filter(block==3, cultivar=="Alto", seed_rate=="18kg") %>% 
+    ggplot() +
+      labs(x='Date', y='Dry weight %', fill='Species',
+           title=paste('Botanical composition (cut to 4cm), Block', unique(3))) +
+      theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+      geom_bar(mapping=aes(x=date, y=fraction, fill=species), stat='identity') +
+      scale_fill_brewer(palette='Paired') +
+      facet_grid(cultivar ~ seed_rate ) 
+      # +
+      # scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+      # scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  
+}
+
+```
+
+## Ryegrass Fraction
+
+### Assumptions
+
+* Ryegrass fraction calculated on green mass only.
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot ryegrass fraction
+ybreaks <- seq(0, 100, 20)
+xbreaks <- seq(floor_date(min(data_bot$date), "years"), 
+               ceiling_date(max(data_bot$date), "years"), by="1 year")
+data_bot %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight %', 
+         title=paste('Ryegrass Fraction (above 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date, y=rgfrac), colour="darkgreen") +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+
+```
+
+## Estimate Botancial Mass
+
+### Assumptions 
+
+* Total mass at botanical date assumed to be equal to pregraze RPM.
+
+* Botanical composition below cutting height estimated from Tozer data.
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# it's not clear how best to extrapolate botanical % above 4 cm to botancial mass above ground
+# find cut matching botanical data
+data_bot$date_cut_i <- lapply(data_bot$date, closest_date_cut)
+data_bot$date_cut <- date_cut[unlist(data_bot$date_cut_i)]
+
+# join cut and botanical data by date_cut
+data_cut$date_cut <- data_cut$date
+data_bm <- data_bot %>%
+  rename(date_bot = date) %>%
+  left_join(data_cut, by=c('date_cut', 'block', 'seed_rate', 'cultivar')) %>%
+  select(date_bot, date_cut, block, seed_rate, cultivar, leaf, stem, ann, wc, og, weed, dead, 
+         yield, below, growth_rate_pre, leaf_below, stem_below) %>%
+  rename(yield_cut = yield) %>%
+  mutate(
+    delay = as.integer(as.Date(date_bot) - as.Date(date_cut)),
+    yield_bot = yield_cut + below * 0 + growth_rate_pre * delay * 0 # assumed on date_bot, not including below mass
+    )
+         
+# gather
+data_bm2 <- data_bm %>%
+  gather(leaf, stem, ann, wc, og, weed, dead, key='species', value='fraction') %>%
+  mutate(
+    species = factor(species, levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead')),
+    species_mass = fraction / 100 * yield_bot # include mass below cutting?
+    ) 
+
+# plot botanical data
+ybreaks <- seq(0, round_any(max(data_bm2$yield_bot, na.rm=TRUE), 1000, ceiling), 1000)
+xbreaks <- seq(floor_date(min(data_bm2$date_cut), "years"), 
+               ceiling_date(max(data_bm2$date_cut), "years"), by="1 year")
+data_bm2 %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
+         title=paste('Herbage Mass Fractions (above 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date_cut, y=yield_bot), colour='grey', size=2, shape=1) +
+    geom_bar(mapping=aes(x=date_cut, y=species_mass, fill=species), stat='identity') +
+    scale_fill_brewer(palette='Paired') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], 
+                                                round_any(max(data_bm2$yield_bot, na.rm=TRUE), 100, ceiling)))
+  )
+
+```
+
+<!-- ## Light Interception -->
+
+```{r include=FALSE, eval=FALSE}
+# read li data
+data_li <- read_xlsx(infile_name, sheet='Waikato LightInterception')
+names(data_li) <- ensnakeify(names(data_li))
+
+# rename useful variables
+data_li <- data_li %>%
+  mutate(
+    block = floor((plot-1)/20)+1, # this needs to be checked 
+    seed_rate = factor(seed_rate, levels=seed_rate_levels)
+    ) %>%
+  rename(
+    date = date,
+    date_grazed = date_last_grazed,
+    li = light_interception
+  ) %>%
+  select(date, block, seed_rate, cultivar, li, date_grazed)
+
+```
+
+<!-- Average light interception = r round(mean(data_li$li, na.rm=TRUE)) -->
+
+```{r echo=FALSE, message=FALSE, results="hide", eval=FALSE}
+# plot light interception data
+ybreaks <- seq(0, round_any(max(data_li$li, na.rm=TRUE), 25, ceiling), 25)
+xbreaks <- seq(floor_date(min(data_li$date), "months"), 
+               ceiling_date(max(data_li$date), "months"), by="1 month")
+data_li %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Light interception %', 
+         title=paste('Light Interception 2011, Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+    geom_point(mapping=aes(x=date, y=li), colour='magenta') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=format(xbreaks, "%b-%Y"), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+
+  )
+
+```
+
+<!-- ## Soil Moisture -->
+
+```{r include=FALSE, eval=FALSE}
+# read soil moisture data
+data_sm <- read_xlsx(infile_name, sheet='Soil moisture data')
+names(data_sm) <- ensnakeify(names(data_sm))
+
+# rename useful variables
+data_sm <- data_sm %>%
+  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  rename(
+    date = date_measured_d,
+    sm = soil_moisture
+  ) %>%
+  group_by(block, cultivar, seed_rate, date) %>%
+  summarise(mean_sm = mean(sm))
+
+```
+
+<!-- Average soil moisture = r round(mean(data_sm$mean_sm, na.rm=TRUE)) -->
+
+```{r echo=FALSE, message=FALSE, results="hide", eval=FALSE}
+# plot sol moisture data
+ybreaks <- seq(0, round_any(max(data_sm$mean_sm, na.rm=TRUE), 20, ceiling), 20)
+xbreaks <- seq(floor_date(min(data_sm$date), "months"), 
+               ceiling_date(max(data_sm$date), "months"), by="1 month")
+data_sm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Soil Moisture %', 
+         title=paste('Soil Moisture 2017, Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+    geom_point(mapping=aes(x=date, y=mean_sm), colour='blue') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=format(xbreaks, "%b-%Y"), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+
+  )
+```
+
+<!-- ## Calculations -->
+
+```{r include=FALSE}
+# additional calculations to prepare data for model calibration
+# move post harvest measurements if on grazing day since model does harvest at start of day
+data_rpm$date_post2 <- as.Date(with(data_rpm,
+                            ifelse(date_post > date_grazed, 
+                                   as.Date(date_post), 
+                                   as.Date(date_post) + 1)
+                            ), origin="1970-01-01")
+
+# some calculations
+data_rpm <- data_rpm %>%
+  mutate(
+    year_pre = year(date_pre),
+    doy_pre = yday(date_pre),
+    year_post = year(date_post2),
+    doy_post = yday(date_post2),
+    year_grazed = year(date_grazed),
+    doy_grazed = yday(date_grazed), 
+    days_pre = difftime(date_grazed, date_pre),
+    days_post = difftime(date_post2, date_grazed)
+    )
+
+```
+
+## Write Harvest Dates
+
+```{r result="hide"}
+# choose data
+acultivar <- 'Alto' # only Alto and Halo have light interception data
+aseed_rate <- '18kg'
+calib_start <- ymd("20110101") # period for data weight = 1
+calib_end <- ymd("20140531") # period for data weight = 1
+ablock <- 3
+
+for (ablock in c(1,2,3,4,5)) { # loop through data sets
+
+# write harvest dates and harvest % for selected series
+outfile_name <- paste("harvest_Northland_", ablock, ".txt", sep="")
+data_h <- data_rpm %>%
+  select(block, seed_rate, cultivar, year_grazed, doy_grazed, harv) %>%
+  filter(block == ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
+  drop_na()
+days_harvest <- matrix(as.integer(-1), nrow=100, ncol=3) # up to 100 harvests
+days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$harv)
+write.table(days_harvest, file=outfile_name, row.names=FALSE, col.names=FALSE, sep='\t')
+
+# write calibration data
+outfile_name <- paste("data_calibration_Northland_", ablock, ".txt", sep="")
+
+# collect the data in this list
+data_c <- vector("list", 6) 
+
+# pre and post mass (but this includes other species!)
+# temp <- data_rpm %>%
+#   select(block, seed_rate, cultivar, mass_pre, year_pre, doy_pre, 
+#          mass_post, year_post, doy_post) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# data_c[[1]] <- with(temp, tibble(var='DM', year=year_pre, 
+#                                  doy=doy_pre, data=mass_pre/10) %>% drop_na())
+# data_c[[2]] <- with(temp, tibble(var='DM', year=year_post, 
+#                                  doy=doy_post, data=mass_post/10) %>% drop_na())
+
+# ryegrass tillers
+temp <- data_till %>%
+  select(block, seed_rate, cultivar, mean_tillers, date) %>%
+  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(date), 
+                                 doy=yday(date), data=mean_tillers, sd=400, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
+
+# ryegrass mass (total or above cutting height? depending on definition of yield_bot)
+temp <- data_bm %>%
+  rename(date = date_cut) %>%
+  select(block, seed_rate, cultivar, leaf, stem, leaf_below, stem_below, yield_bot, below, date) %>%
+  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+data_c[[4]] <- with(temp, tibble(var='CLV', year=year(date), 
+                                 doy=yday(date), data=leaf/100*yield_bot/10*0.45+leaf_below/100*below/10*0.45, 
+                                 sd=10, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
+data_c[[5]] <- with(temp, tibble(var='CST', year=year(date), 
+                                 doy=yday(date), data=stem/100*yield_bot/10*0.45+stem_below/100*below/10*0.45, 
+                                 sd=4, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
+
+# light interception (but this includes all species!)
+# temp <- data_li %>%
+#   select(block, seed_rate, cultivar, li, date) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# data_c[[5]] <- with(temp, tibble(var='LINT', year=year(date), 
+#                                  doy=yday(date), data=li) %>% drop_na())
+
+# soil moisture
+# temp <- data_sm %>%
+#   select(block, seed_rate, cultivar, mean_sm, date) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date), 
+#                                  doy=yday(date), data=mean_sm, sd=2, type="sd",
+#                                  weight=1) %>% drop_na())
+
+# bind list and write file
+data_calib <- bind_rows(data_c)
+data_calib <- arrange(data_calib, var, year, doy)
+write.table(data_calib, file=outfile_name, row.names=FALSE, col.names=FALSE, sep='\t', quote=FALSE)
+
+} # end data set loop
+
+```
+

@@ -12,7 +12,7 @@ real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RES
 real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
 real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
-real :: CRESMN
+real :: CRESMN,DAYLGEMX
 real :: ALLOSH, ALLORT, ALLOLV, ALLOST
 
 contains
@@ -103,7 +103,8 @@ Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
     HARVPH = 0.0
   end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
-  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
+  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length growth effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
+  ! Simon redefine DAYLGE as the INCREASE in elongating tillers
 end Subroutine Phenology
 
 ! Simon added vernalisation function
@@ -148,8 +149,9 @@ Subroutine CalcSLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
-  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers
-  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0, so DLMXGE < maximum DAYL
+  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
+  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0 (also for timothy?)
+!  LERG   = LERV + max(0.0,LERG/DAYLGE-LERV)*DAYLGE        ! Simon redefine DAYLGE as increase due to elongating tillers
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
@@ -230,7 +232,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
     CSTAV  = 0.
   end if
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
-  NELLVG   = PHENRF * NELLVM
+  NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller. Elongating tillers have less leaves???
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
 !  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
@@ -356,7 +358,7 @@ Subroutine Decomposition(CLVD,DAVTMP,WCL, DLVD,RDLVD)
   BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
   DELD    = 0.0148
   DELE    = 0.0005
-  SWCS    = WCL                    ! Volumetric soil water content near surface
+  SWCS    = WCL                    ! Volumetric soil water content near surface (WCL = in non-frozen root zone)
   PSIS    =  -PSIA * (SWCS ** PSIB) ! Soil water tension near surface
   ! Calculate number of worms and their grazing of dead matter
   ! Numbers at surface based on Baker et al., driven by GWCS
@@ -400,16 +402,17 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate (Simon moved NOHARV switch)
+  RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                    ! d-1 Leaf appearance rate should be faster on G (Simon removed DAYLGE)
+!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate (Simon moved NOHARV switch) FIXME DAYLGE in wrong place?
 !  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate
-  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! Ratio of tiller appearence and leaf apearance rates
+  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
-!  GTILV   = TILV  * RGRTV * NOHARV                                            ! Simon moved NOHARV switch to here
-  GTILV   = TILV  * RGRTV                                                      ! Simon deleted NOHARV switch
+!  GTILV   = TILV  * RGRTV * NOHARV                                           ! Simon moved NOHARV switch to here
+  GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
   TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
-!  RGRTVG1 = NOHARV * DAYLGE * TGE * RGENMX * VERN                             ! d-1 Relative rate of vegetative tiller conversion to generative
-  RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                    ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
-  RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day
+!  RGRTVG1 = NOHARV * DAYLGE * TGE * RGENMX * VERN                            ! d-1 Relative rate of vegetative tiller conversion to generative
+  RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                      ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
+  RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day FIXME
   TILVG1  = TILV  * RGRTVG1
   if (DAYL > DAYLG1G2) then                                                   ! Generative tiller conversion controlled by DAYL
     TILG1G2 = TILG1 * RGRTG1G2                                                ! d-1 Rate of generative tiller conversion to elongating

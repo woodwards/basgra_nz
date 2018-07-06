@@ -17,7 +17,7 @@ contains
 Subroutine SoilWaterContent(Fdepth,ROOTD,WAL)
   real :: Fdepth,ROOTD,WAL
   if (Fdepth < ROOTD) then
-    WCL = WAL*0.001 / (ROOTD-Fdepth)
+    WCL = WAL*0.001 / (ROOTD-Fdepth) ! Volumetric moisture content in non-frozen root zone
   else
     WCL = 0
   end if

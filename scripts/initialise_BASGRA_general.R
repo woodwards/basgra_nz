@@ -118,11 +118,18 @@ outputMax <- rep( as.double(NA), length(outputNames))
 
 # choose outputs to display
 chooseNames <- c(
-  "DAYL", "DAVTMP", "RAIN", "EVAP", "TRAN", "DRAIN", "DAYLGE", "TRANRF", "WAL", "WCL",
-  "CLV", "CLVD", "CRES", "CRT", "ROOTD", "CST", "CSTUB", "LT50", 
-  "LINT", "LAI", "DM", "SLA", "PHOT", "RESMOB", "RES", "HARVFR",
+  "DAYL", "DAYLGE", "DAVTMP", "LT50",
+  "RAIN", "EVAP", "TRAN", "DRAIN",   
+  "WAL", "WCL", "ROOTD", "TRANRF",
+  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
+  "SLA", "LAI", "LINT", "PHOT", 
+  "RES", "RESMOB", 
+  "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
-  "PHEN", "VERND", "VERN", "RLEAF", "RDRT", "RDLVD", "DEBUG"
+  "PHEN", "VERND", "VERN", 
+  "RLEAF", "RDRT", 
+  "RDLVD", 
+  "DEBUG"
 )
 # check chooseNames are in outputNames
 i <- which(is.na(match(chooseNames, outputNames)))

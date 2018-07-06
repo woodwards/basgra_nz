@@ -23,14 +23,14 @@ LAIEFT	0.183	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
 LAITIL	0.867	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
 LFWIDG	0.0128	LFWIDG	m	Leaf width on elongating tillers
 LFWIDV	0.0044	LFWIDV	m	Leaf width on non-elongating tillers
-NELLVM	2.1845	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
+NELLVM	2.1845	NELLVM	tiller-1	Number of growing leaves per vegetative tiller
 PHENCR	0.6144	PHENCR	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
 PHY	63	PHY	°C d	Phyllochron
 RDRSCO	0.1074	RDRSCO	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
 RDRSMX	0.0669	RDRSMX	d-1	Maximum relative death rate of leaves and non-elongating tillers due to shading
 RDRTEM	0.0015	RDRTEM	d-1 °C-1	Proportionality of leaf senescence with temperature
 RGENMX	0.01	RGENMX	d-1	Maximum relative rate of tillers becoming elongating tillers
-ROOTDM	0.5	ROOTDM	m	Initial and maximum value rooting depth
+ROOTDM	0.5	ROOTDM	m	Maximum rooting depth
 RRDMAX	0.0101	RRDMAX	m d-1	Maximum root depth growth rate
 RUBISC	5.7803	RUBISC	g m-2 leaf	Rubisco content of upper leaves
 LSHAPE	0.7510	SHAPE	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)

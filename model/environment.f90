@@ -13,7 +13,7 @@ real :: TMMNI(NMAXDAYS), TMMXI(NMAXDAYS), VPI(NMAXDAYS)  , WNI(NMAXDAYS)
 #ifdef weathergen
 real :: PETI(NMAXDAYS)
 #endif
-real :: DAVTMP,DAYL,YDAYL,DTR,PAR,PERMgas,PEVAP,poolRUNOFF,PTRAN,pWater,RAIN,RNINTC
+real :: DAVTMP,DAYL,YDAYL,DAYLMX,DTR,PAR,PERMgas,PEVAP,poolRUNOFF,PTRAN,pWater,RAIN,RNINTC
 real :: runOn,StayWet,WmaxStore,Wsupply
 #ifdef weathergen
 real :: PET
@@ -218,7 +218,7 @@ Subroutine DDAYL(doy)
 ! Author - Marcel van Oijen (CEH-Edinburgh)
 !=============================================================================
   integer :: doy                                                      ! (d)
-  real    :: DEC, DECC, RAD, DECLIM
+  real    :: DEC, DECC, RAD, DECLIM, DECCMN
   RAD  = pi / 180.                                                    ! (radians deg-1)
   DEC  = -asin (sin (23.45*RAD)*cos (2.*pi*(doy+10.)/365.))           ! (radians)
 !  DECC = max(atan(-1./tan(RAD*LAT)),min( atan( 1./tan(RAD*LAT)),DEC)) ! (radians) (Old version)
@@ -230,6 +230,9 @@ Subroutine DDAYL(doy)
   DECC = max(-DECLIM, min(DECLIM, DEC))                                ! Simon corrected for polar regions
   YDAYL = DAYL                                                         ! Simon recorded yesterday DAYL
   DAYL  = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECC)) / pi )        ! (d d-1)
+  DECCMN  = max(-DECLIM, 23.45*RAD)
+  DAYLMX = 0.5 * ( 1. + 2. * asin(tan(RAD*LAT)*tan(DECCMN)) / pi )     ! (d d-1) Maximum daylength at this latitude
+
 end Subroutine DDAYL
 
 ! Calculate PEVAP and PTRAN = potential evaporation and transpiration rates

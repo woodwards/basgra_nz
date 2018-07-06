@@ -180,9 +180,9 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                       ! = Percentage light interception
-  DEBUG     = RESPHARDSI                         ! Output any variable as "DEBUG" for debugging purposes
   YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
   if (YIELD>0) YIELD_LAST = YIELD
+  DEBUG     = GTILV                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -262,7 +262,7 @@ do day = 1, NDAYS
   TILV    = TILV    + GTILV - TILVG1           - DTILV
   VERN    = VERN
   VERND   = VERND   + DVERND
-  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN
+  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN ! FIXME remove EXPLOR?
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain
   WAPS    = WAPS - THAWPS + FREEZEPL
   WAS     = WAS  - THAWS  + FREEZEL
