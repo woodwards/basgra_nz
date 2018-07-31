@@ -80,6 +80,6 @@ for (i in missing) {
 }
 
 # write BASGRA weather file
-write_tsv(data2, 'raw_data/weather_Lincoln.txt')
+write_tsv(data2, 'raw_data/weather_Northland.txt')
 print('Remember to copy weather to model_inputs folder!')
 

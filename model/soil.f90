@@ -14,10 +14,11 @@ real :: WCL     ! = Liquid soil water content between frost depth and root depth
 contains
 
 ! Calculate WCL = Liquid soil water content between frost depth and root depth
-Subroutine SoilWaterContent(Fdepth,ROOTD,WAL)
-  real :: Fdepth,ROOTD,WAL
+Subroutine SoilWaterContent(Fdepth,ROOTD,WAL,WALS)
+  real :: Fdepth,ROOTD,WAL,WALS
   if (Fdepth < ROOTD) then
-    WCL = WAL*0.001 / (ROOTD-Fdepth) ! Volumetric moisture content in non-frozen root zone
+    WCL = WAL * 0.001 / (ROOTD-Fdepth) ! Average volumetric moisture content in non-frozen root zone
+    WCL = max(WCL, WCAD + WALS / 25.0 * (WCFC - WCAD)) ! Simon included WALS to give effective WCL
   else
     WCL = 0
   end if
@@ -29,7 +30,7 @@ Subroutine Physics(DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)
   real :: DAVTMP,Fdepth,ROOTD,Sdepth,WAS
   real :: Frate
   if (Fdepth > 0.) then
-    Tsurf = DAVTMP / (1. + 10. * (Sdepth / Fdepth) ) ! Temperature extinction under snow when soil is frozen (Eqn 15)
+    Tsurf = DAVTMP / (1. + 10. * (Sdepth / Fdepth) ) ! Temperature extinction under snow when soil is frozen (Eqn 15), FIXME looks wrong
     fPerm = 0. ! Not used
   else
     Tsurf = DAVTMP * exp(-KTSNOW*Sdepth) ! Temperature extinction under snow (KTSNOW = gamma ~ 65 m-1)
@@ -74,8 +75,8 @@ Subroutine FRDRUNIR(EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
   real :: EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS
   real :: DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
   real :: INFILTOT,WAFC,WAST
-  WAFC   = 1000. * WCFC * max(0.,(ROOTD-Fdepth))                      ! (mm)
-  WAST   = 1000. * WCST * max(0.,(ROOTD-Fdepth))                      ! (mm)
+  WAFC   = 1000. * WCFC * max(0.,(ROOTD-Fdepth))                      ! (mm) Field capacity
+  WAST   = 1000. * WCST * max(0.,(ROOTD-Fdepth))                      ! (mm) Saturation
   INFILTOT = INFIL + poolDrain
   if (Fdepth < ROOTD) then
     FREEZEL = max(0., min( WAL/DELT + (INFILTOT - EVAP - TRAN), &

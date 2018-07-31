@@ -430,6 +430,9 @@ data_bot2 <- data_bot %>%
   mutate(species = factor(species, 
                           levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead')))
 
+# for debugging
+write_tsv(data_bot2, "data_bot2_Lincoln.tsv")
+
 # plot botanical data
 ybreaks <- seq(0, 100, 20)
 xbreaks <- seq(floor_date(min(data_bot2$date), "years"), 
@@ -575,26 +578,42 @@ data_li %>%
 
 ```
 
-<!-- ## Soil Moisture -->
+## Soil Moisture
 
-```{r include=FALSE, eval=FALSE}
+```{r include=FALSE}
 # read soil moisture data
-data_sm <- read_xlsx(file_name, sheet='Soil moisture data')
-names(data_sm) <- ensnakeify(names(data_sm))
+data_sm <- read_xlsx(file_name, sheet='SoilMoist', skip=9, 
+                     col_names = c("date", "rn", 
+                    "sm5cm_av", "sm10cm_av", 
+                    "sm5cm_max", "sm10cm_max", 
+                    "sm5cm_min", "sm10cm_min")) 
 
 # rename useful variables
 data_sm <- data_sm %>%
-  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
-  rename(
-    date = date_measured_d,
-    sm = soil_moisture
-  ) %>%
-  group_by(block, cultivar, seed_rate, date) %>%
-  summarise(mean_sm = mean(sm))
+  # mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  mutate(
+    # date = date_measured_d,
+    # sm = soil_moisture
+    seed_rate = factor("18kg", levels=seed_rate_levels),
+    block = 3,
+    cultivar = "Alto",
+    dom = day(date),
+    sm = sm10cm_av * 100 ,
+    mean_sm = sm10cm_av * 100
+  ) %>% 
+  filter(dom==1) # only take one point per month
+  # ) %>%
+  # group_by(block, cultivar, seed_rate, date) %>%
+  # summarise(mean_sm = mean(sm))
+data_sm <- rbind(mutate(data_sm, block=1), 
+                 mutate(data_sm, block=2), 
+                 mutate(data_sm, block=3), 
+                 mutate(data_sm, block=4), 
+                 mutate(data_sm, block=5)) 
 
 ```
 
-<!-- Average soil moisture = r round(mean(data_sm$mean_sm, na.rm=TRUE)) -->
+Average soil moisture = r round(mean(data_sm$mean_sm, na.rm=TRUE))
 
 ```{r echo=FALSE, message=FALSE, results="hide", eval=FALSE}
 # plot sol moisture data
@@ -648,8 +667,8 @@ data_rpm <- data_rpm %>%
 # choose data
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
-calib_start <- ymd("20110101") # period for data weight = 1
-calib_end <- ymd("20140531") # period for data weight = 1
+calib_start <- ymd("20120401") # period for data weight = 1
+calib_end <- ymd("20141231") # period for data weight = 1
 ablock <- 3
 
 for (ablock in c(1,2,3,4,5)) { # loop through data sets
@@ -710,12 +729,12 @@ data_c[[5]] <- with(temp, tibble(var='CST', year=year(date),
 #                                  doy=yday(date), data=li) %>% drop_na())
 
 # soil moisture
-# temp <- data_sm %>%
-#   select(block, seed_rate, cultivar, mean_sm, date) %>%
-#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-# data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date), 
-#                                  doy=yday(date), data=mean_sm, sd=2, type="sd",
-#                                  weight=1) %>% drop_na())
+temp <- data_sm %>%
+  select(block, seed_rate, cultivar, mean_sm, date) %>%
+  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar)
+data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date),
+                                 doy=yday(date), data=mean_sm, sd=2, type="sd",
+                                 weight=ifelse(((date>=calib_start)&(date<=calib_end)), 1, 0)) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)

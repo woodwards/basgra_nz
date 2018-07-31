@@ -447,8 +447,32 @@ temp <- data_bot %>%
     stem_below = stem / 5 # estimated from  Tozer data
   ) %>%
   select(leaf, stem, leaf_below, stem_below, ann, wc, og, weed, dead, date, total, block, seed_rate, cultivar, rgfrac) 
-  
+
+#
 data_bot <- temp
+  
+# add grazing no (inefficient!)
+data_graze <- data_cut %>% 
+  # ungroup %>%  # note data_cut is grouped by block, cultivar, seed_rate
+  distinct(block, cultivar, seed_rate, grazing, date_cut) 
+data_bot$grazing <- NA_integer_
+data_bot$date_grazed <- as.Date(NA)
+data_bot$delay <- NA_integer_
+for (i in 1:nrow(data_bot)){
+  temp <- data_graze %>% 
+    filter(block==data_bot$block[i] & cultivar==data_bot$cultivar[i] & seed_rate==data_bot$seed_rate[i])
+  if (nrow(temp)>0){
+    delay <- data_bot$date[i] - temp$date_cut
+    j <- which(abs(delay)==min(abs(delay)))
+    data_bot$grazing[i] <- temp$grazing[j]
+    data_bot$date_grazed[i] <- temp$date_cut[j]
+    data_bot$delay[i] <- delay[j]
+  }
+}
+data_bot <- data_bot %>% 
+  arrange(desc(abs(delay)))
+unique(data_bot$delay) # check delay is not too big
+stopifnot(FALSE)
 
 # gather
 data_bot2 <- data_bot %>%
@@ -456,17 +480,25 @@ data_bot2 <- data_bot %>%
   mutate(species = factor(species, 
                           levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead'))) 
 
-# why are there so few botanical data? and why are data getting duplciated in the outputs?
+# why are there so few botanical data? and why are data getting duplicated in the outputs?
 temp <- data_bot2 %>% 
   filter_all(any_vars(is.na(.))) %>% # all rows with NA
   select_if(has_missing) # only variables with NA
 
+# for debugging
+write_tsv(data_bot2, "data_bot2_Northland.tsv")
+
+```
+
+# This chart is not showing all the data for some reason!
+
+```{r echo=FALSE, message=FALSE, results="hide"}
 # plot botanical data
 ybreaks <- seq(0, 100, 20)
 xbreaks <- seq(floor_date(min(data_bot2$date), "years"), 
                ceiling_date(max(data_bot2$date), "years"), by="1 year")
+
 data_bot2 %>% # FIXME not all data getting plotted for some reason??? Text coding??
-  broom::tidy() +
   split(.$block) %>%
   map(~ggplot(.) +
     labs(x='Date', y='Dry weight %', fill='Species',
@@ -474,29 +506,10 @@ data_bot2 %>% # FIXME not all data getting plotted for some reason??? Text codin
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
     geom_bar(mapping=aes(x=date, y=fraction, fill=species), stat='identity') +
     scale_fill_brewer(palette='Paired') +
-    facet_grid(cultivar ~ seed_rate ) 
-    # +
-    # scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
-    # scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
   )
-
-if (FALSE){
-
-  data_bot2 %>% 
-    # filter(block==3, cultivar=="Alto", seed_rate=="18kg") %>% 
-    filter(block==3, cultivar=="Alto", seed_rate=="18kg") %>% 
-    ggplot() +
-      labs(x='Date', y='Dry weight %', fill='Species',
-           title=paste('Botanical composition (cut to 4cm), Block', unique(3))) +
-      theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
-      geom_bar(mapping=aes(x=date, y=fraction, fill=species), stat='identity') +
-      scale_fill_brewer(palette='Paired') +
-      facet_grid(cultivar ~ seed_rate ) 
-      # +
-      # scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
-      # scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
-  
-}
 
 ```
 
@@ -536,14 +549,14 @@ data_bot %>%
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # it's not clear how best to extrapolate botanical % above 4 cm to botancial mass above ground
 # find cut matching botanical data
-data_bot$date_cut_i <- lapply(data_bot$date, closest_date_cut)
-data_bot$date_cut <- date_cut[unlist(data_bot$date_cut_i)]
+# data_bot$date_cut_i <- lapply(data_bot$date, closest_date_cut)
+# data_bot$date_cut <- date_cut[unlist(data_bot$date_cut_i)]
 
 # join cut and botanical data by date_cut
 data_cut$date_cut <- data_cut$date
 data_bm <- data_bot %>%
   rename(date_bot = date) %>%
-  left_join(data_cut, by=c('date_cut', 'block', 'seed_rate', 'cultivar')) %>%
+  left_join(data_cut, by=c('block', 'seed_rate', 'cultivar', 'grazing')) %>% # need grazing number!
   select(date_bot, date_cut, block, seed_rate, cultivar, leaf, stem, ann, wc, og, weed, dead, 
          yield, below, growth_rate_pre, leaf_below, stem_below) %>%
   rename(yield_cut = yield) %>%

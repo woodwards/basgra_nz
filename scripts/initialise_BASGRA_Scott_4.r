@@ -29,8 +29,8 @@ dyn.load(BASGRA_DLL)
    
    file_weather   <- 'model_inputs/weather_Scott.txt'
    
-   file_params    <- 'model_inputs/parameters_Scott.txt' # can contain multiple columns
-     parcol       <- 1 # which one are we going to use? (row names are ignored)
+   file_params    <- 'model_inputs/parameters_All.txt' # can contain multiple columns
+   parcol       <- 1 # which one are we going to use? (row names are ignored)
      
    # read harvest days (Simon) which are set up in make_weather1.r   
    days_harvest   <- as.matrix(read.table(file="model_inputs/harvest_Scott_4.txt", sep='\t'))

@@ -133,6 +133,7 @@ if (TRUE){
                                    confidenceBand = NULL, predictionBand = NULL, 
                                    xlab = "Time", ylab = "Observed / predicted values", ...){
           ylim = range(observed, predicted, confidenceBand, predictionBand,na.rm=TRUE)
+          # ylim = range(observed, predicted, na.rm=TRUE)
           if (is.null(x)){
             if(!is.null(observed)) x = 1:length(observed)
             else if(!is.null(predicted)) x = 1:length(predicted)
@@ -161,7 +162,7 @@ if (TRUE){
                               main=paste(easyNames[data_col], outputUnits[data_col])
         )
         # plot key prediction lines
-        lines(x=bt_pred_times, y=bt_pred_Mode, col="lightgrey")
+        lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
         lines(x=bt_pred_times, y=bt_pred_ML, col="lightblue")
         lines(x=bt_pred_times, y=bt_pred_MAP, col="blue")
         # plot all data
@@ -198,7 +199,8 @@ if (TRUE){
     plot(1, type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
     legend( "bottomright", title="Predictions", 
             legend=c("Prior Mode", "Median", "Max L",      "MAP",      "Calib Data", "Other Data", "Residuals"),
-            col   =c("lightgrey",  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
+            # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
+            col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
             lty=1, lwd=1)
     sitenames <- gsub( ".R", "", sub(".*BASGRA_","",sitesettings_filenames) )
     mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),
@@ -293,6 +295,7 @@ if (TRUE){
                                    confidenceBand = NULL, predictionBand = NULL, 
                                    xlab = "Time", ylab = "Observed / predicted values", ...){
           ylim = range(observed, predicted, confidenceBand, predictionBand,na.rm=TRUE)
+          # ylim = range(observed, predicted, na.rm=TRUE)
           if (is.null(x)){
             if(!is.null(observed)) x = 1:length(observed)
             else if(!is.null(predicted)) x = 1:length(predicted)
@@ -320,7 +323,7 @@ if (TRUE){
                               main=paste(easyNames[data_col], outputUnits[data_col])
         )
         # plot key prediction lines
-        lines(x=bt_pred_times, y=bt_pred_Mode, col="lightgrey")
+        lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
         lines(x=bt_pred_times, y=bt_pred_ML, col="lightblue")
         lines(x=bt_pred_times, y=bt_pred_MAP, col="blue")
         # plot all data
@@ -357,7 +360,8 @@ if (TRUE){
     plot(1, type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
     legend( "bottomright", title="Predictions", 
             legend=c("Prior Mode", "Median", "Max L",      "MAP",      "Calib Data", "Other Data", "Residuals"),
-            col   =c("lightgrey",  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
+            # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
+            col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
             lty=1, lwd=1)
     sitenames <- gsub( ".R", "", sub(".*BASGRA_","",sitesettings_filenames) )
     mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),

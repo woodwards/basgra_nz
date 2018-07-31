@@ -429,6 +429,9 @@ data_bot2 <- data_bot %>%
   mutate(species = factor(species, 
                           levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead')))
 
+# for debugging
+write_tsv(data_bot2, "data_bot2_Scott.tsv")
+
 # plot botanical data
 ybreaks <- seq(0, 100, 20)
 xbreaks <- seq(floor_date(min(data_bot2$date), "years"), 
@@ -647,8 +650,8 @@ data_rpm <- data_rpm %>%
 # choose data
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
-calib_start <- ymd("20110101") # period for data weight = 1
-calib_end <- ymd("20140531") # period for data weight = 1
+calib_start <- ymd("20120401") # period for data weight = 1
+calib_end <- ymd("20141231") # period for data weight = 1
 ablock <- 3
 
 for (ablock in c(1,2,3,4,5)) { # loop through data sets

@@ -63,7 +63,7 @@ Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETS
   call RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
        FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain)
   if (WAPS == 0.) then
-    PERMgas = 1.                ! Permeable to gas if no ice
+    PERMgas = 1.                ! Permeable to gas if no pool ice
   else
     PERMgas = 0.
   end if
@@ -241,7 +241,7 @@ end Subroutine DDAYL
     real :: LAI
     PEVAP  =     exp(-0.5*LAI)  * PET                      ! mm d-1 = Partitioning of PET into PEVAP (http://www.fao.org/docrep/x0490e/x0490e04.htm)
     PTRAN  = (1.-exp(-0.5*LAI)) * PET                      ! mm d-1 = Partitioning of PET into PTRAN
-    PTRAN  = max( 0., PTRAN-0.5*RNINTC )                   ! mm d-1 = reduction in PTRAN due to wet leaves?
+    PTRAN  = max( 0., PTRAN-0.5*RNINTC )                   ! mm d-1 = Reduction in PTRAN due to wet leaves?
   end Subroutine PEVAPINPUT
 #else
   Subroutine PENMAN(LAI)

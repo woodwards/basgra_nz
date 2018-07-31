@@ -10,7 +10,7 @@
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
    # this file provides parameters for all the sites
    # shape <- 0 # shape parameter (0=noninformative, 4=previous method) = now included in par file
-   file_prior    <- "model_inputs/parameters_BC_Scott.txt"
+   file_prior    <- "model_inputs/parameters_BC_All.txt"
    
    # parameters file has 5 columns
    # name  minimum  mode  maximum  (beta distribution)  unknown

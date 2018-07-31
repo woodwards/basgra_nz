@@ -14,7 +14,7 @@
   # run model for this period 
   # Scott weather data is 2010-1 to 2017-318 (14 Nov)
   year_start     <- as.integer(2011)
-  doy_start      <- as.integer(152) # 1 June
+  doy_start      <- as.integer(244) # 1 Sept
   year_stop      <- as.integer(2014)
   doy_stop       <- as.integer(151) # 31 May
   
@@ -33,7 +33,7 @@
   parcol       <- 1 # which one are we going to use? (row names are ignored)
 
   # read harvest days (Simon) which are set up in make_weather1.r   
-  days_harvest   <- as.matrix(read.table(file="model_inputs/harvest_Linc_3.txt", sep='\t'))
+  days_harvest   <- as.matrix(read.table(file="model_inputs/harvest_Lincoln_3.txt", sep='\t'))
   
   ## 3. CREATE HARVEST CALENDAR AND WEATHER INPUT ##
   days_harvest   <- as.integer(days_harvest)

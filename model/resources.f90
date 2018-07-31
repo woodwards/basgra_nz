@@ -37,7 +37,7 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
 !  else
 !    WCL = 0
 !  end if                                                       ! (m3 m-3)
-  EVAP = PEVAP * max(0., min(1., (WCL-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Evaporation of water from soil surface
+  EVAP = PEVAP * max(0., min(1., (WCL-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Reduction in evaporation due to soil water content
   WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
   if (WCL > WCCR) then                                          ! Transpiraiton reduction factor (Fig 4)
     FR = max(0., min(1., (WCST-WCL)/(WCST-WCWET) ))             ! Transpiration reduction in wet conditions
@@ -63,8 +63,8 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
 end Subroutine EVAPTRTRF
 
 ! Calculate root depth growth rate RROOTD,EXPLOR
-Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE, EXPLOR,RROOTD)
-  real :: Fdepth,ROOTD,WAL,WCL,FAGE
+Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT, EXPLOR,RROOTD)
+  real :: Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT
   real :: EXPLOR,RROOTD
 !  real :: WCL ! Simon use previously calculated WCL
 !  if (Fdepth < ROOTD) then
@@ -72,12 +72,14 @@ Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE, EXPLOR,RROOTD)
 !  else
 !    WCL = 0
 !  end if                                                        ! (m3 m-3)
-  if ( (ROOTD<ROOTDM) .and. (WCL>WCWP) ) then
-     RROOTD = min( RRDMAX, (ROOTDM-ROOTD)/DELT ) ! = m d-1 Root depth growth rate (basically constant = RRDMAX)
-  else
-     RROOTD = 0.
-  end if
-  EXPLOR = 1000. * RROOTD * WCFC                 ! = mm d-1 Increased access to water by root depth growth
+!  if ( (ROOTD<ROOTDM) .and. (WCL>WCWP) ) then
+!     RROOTD = min( RRDMAX, (ROOTDM-ROOTD)/DELT ) ! = m d-1 Root depth growth rate (basically constant = RRDMAX)
+!  else
+!     RROOTD = 0.
+!  end if
+  RROOTD = ROOTDM / KCRT * exp(-CRT / KCRT) * (GRT - DRT) ! = m d-1 Root depth growth/death rate calculated using chain rule
+!  EXPLOR = 1000. * RROOTD * WCFC                 ! = mm d-1 Increased access to water by root depth growth, FIXME root death effect needed
+  EXPLOR = WAL * RROOTD / ROOTD                   ! = mm d-1 Increased/decreased access to water by root depth growth/death
 end Subroutine ROOTDG
 
 end module resources

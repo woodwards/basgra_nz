@@ -6,6 +6,7 @@ subroutine BASGRA(PARAMS,MATRIX_WEATHER,DAYS_HARVEST,NDAYS,NOUT,y)
 ! 2014-03-17: Extra category of tillers added
 ! 2014-04-03: Vernalization added
 ! 2014-04-03: Lower limit of temperature-driven leaf senescence no longer zero
+! 2018-08-01: Modified by Simon Woodward for New Zealand ryegrass simulations
 !-------------------------------------------------------------------------------
 
 ! Allows access to all public objects in the other modules
@@ -21,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 89        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 90        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -40,7 +41,7 @@ real :: CLV, CLVD, YIELD, CRES, CRT, CST, CSTUB, DRYSTOR, Fdepth, LAI, LT50, O2,
 real ::            YIELD_LAST
 real :: ROOTD, Sdepth, TILG1, TILG2, TILV, TANAER, WAL, WAPL, WAPS, WAS, WETSTOR
 integer :: VERN
-real :: VERND, DVERND
+real :: VERND, DVERND, WALS
 
 ! Define intermediate and rate variables
 real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE
@@ -51,7 +52,7 @@ real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN,
 integer :: HARV
 
 ! Extra output variables (Simon)
-real :: Time, DM,RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG, TSIZE
+real :: Time, DM, RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG, TSIZE
 
 ! Extract parameters
 call set_params(PARAMS)
@@ -86,17 +87,18 @@ LAI     = max(SLAMAX * FSLAMIN * CLV, min(LAII, SLAMAX * CLV)) ! Simon constrain
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
-ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT like this
+ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT
 Sdepth  = SDEPTHI
 TANAER  = TANAERI
 TILG1   = TILTOTI *       FRTILGI *    FRTILGG1I
 TILG2   = TILTOTI *       FRTILGI * (1-FRTILGG1I)
 TILV    = TILTOTI * (1. - FRTILGI)
 VERN    = 0
-VERND   = 0.0        ! Simon initialise count of cold days
+VERND   = floor(VERNDI)         ! Simon initialise count of cold days
 YIELD   = YIELDI
 YIELD_LAST = YIELDI
-WAL     = 1000. * ROOTDM * WCI
+WAL     = 1000. * (ROOTD - Fdepth) * max(WCAD, min(WCI, WCST))  ! Simon modified
+WALS    = min(WAL, 25.0) ! Simon added WALS rapid surface layer (see manual section 4.3)
 WAPL    = WAPLI
 WAPS    = WAPSI
 WAS     = WASI
@@ -108,33 +110,6 @@ do day = 1, NDAYS
   ! Calculate intermediate and rate variables (many variable and parameters are passed implicitly)
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
-  ! Environment
-  call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day
-  call SoilWaterContent(Fdepth,ROOTD,WAL)                        ! calculate WCL
-  call Physics        (DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)    ! calculate Tsurf
-  call MicroClimate   (doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
-                                                       FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil, &
-                                                       pSnow,reFreeze,SnowMelt,THAWPS,wRemain)
-                                                                 ! calculate water, snow and ice
-  call DDAYL          (doy)                                      ! calculate DAYL
-#ifdef weathergen
-  call PEVAPINPUT     (LAI)                                      ! calculate PEVAP, PTRAN
-#else
-  call PENMAN         (LAI)                                      ! calculate PEVAP, PTRAN
-#endif
-
-  ! Resources
-  call Light          (DAYL,DTR,LAI,PAR)                             ! calculate Light interception DTRINT,PARINT,PARAV
-  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)   ! calculate EVAP,TRAN,TRANRF
-  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,      EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
-
-  ! Soil
-  call FRDRUNIR       (EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
-                                                       DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS)
-                                              ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
-  call O2status       (O2,ROOTD)              ! calculate FO2
-
-  ! Harvest (and operator splitting)
   call Harvest        (CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                                                        GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
   LAI     = LAI     - HARVLA
@@ -145,21 +120,41 @@ do day = 1, NDAYS
   CSTUB   = CSTUB              + GSTUB
   TILG2   = TILG2   - HARVTILG2
 
-  ! Plant
-  call Biomass        (CLV,CRES,CST,CSTUB)
-  call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE)
-  call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND)       ! Simon vernalisation function
-  call CalcSLA
-  call LUECO2TM       (PARAV)
-  call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)
-  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,GLV,GRES,GRT,GST)
-  call PlantRespiration(FO2,RESPHARD)
+  call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day, including DTR, PAR, which depend on DRYSTOR
+  call SoilWaterContent(Fdepth,ROOTD,WAL,WALS)                   ! calculate WCL
+  call Physics        (DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)    ! calculate Tsurf, Frate
+  call MicroClimate   (doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
+                                                       FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil, &
+                                                       pSnow,reFreeze,SnowMelt,THAWPS,wRemain) ! calculate water, snow and ice
+  call DDAYL          (doy)                                      ! calculate DAYL, DAYLMX
+#ifdef weathergen
+  call PEVAPINPUT     (LAI)                                      ! calculate PEVAP, PTRAN, depend on LAY, RNINTC
+#else
+  call PENMAN         (LAI)                                      ! calculate PEVAP, PTRAN, depend on LAY, RNINTC
+#endif
+
+  call Light          (DAYL,DTR,LAI,PAR)                              ! calculate light interception DTRINT,PARINT,PARAV
+  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)! calculate EVAP,TRAN,TRANRF
+
+  call FRDRUNIR       (EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
+                                                       DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS) ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
+  call O2status       (O2,ROOTD)                                 ! calculate FO2
+
+  call Biomass        (CLV,CRES,CST,CSTUB)                       ! calculate RESNOR
+  call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE) ! calculate GPHEN, DPHEN, PHENRF, DAYLGE
+  call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND) ! Simon calculate VERN,VERND,DVERND
+  call CalcSLA                                                   ! calculate LERV,LERG,SLANEW
+  call LUECO2TM       (PARAV)                                    ! calculate LUEMXQ
+  call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)                  ! calculate RESPHARDSI
+  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,GLV,GRES,GRT,GST) ! calculate assimilate partitioning
+  call PlantRespiration(FO2,RESPHARD)                            ! calculate RplantAer
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
   call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,RDLVD)    ! Simon decomposition function
-  call Tillering       (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
+  call Tillering      (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
                                                        GLAI,GTILV,TILVG1,TILG1G2)
-  ! Soil 2
+
+  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT, EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
 
 
@@ -182,7 +177,7 @@ do day = 1, NDAYS
   LINT      = PARINT / PAR                       ! = Percentage light interception
   YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
   if (YIELD>0) YIELD_LAST = YIELD
-  DEBUG     = GTILV                         ! Output any variable as "DEBUG" for debugging purposes
+  DEBUG     = WALS                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -262,7 +257,8 @@ do day = 1, NDAYS
   TILV    = TILV    + GTILV - TILVG1           - DTILV
   VERN    = VERN
   VERND   = VERND   + DVERND
-  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN ! FIXME remove EXPLOR?
+  WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN
+  WALS    = max(0.0, min(25.0, WALS + THAWS - FREEZEL  + poolDrain + INFIL + IRRIG - DRAIN - RUNOFF - EVAP - TRAN)) ! Simon added WALS rapid surface pool
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain
   WAPS    = WAPS - THAWPS + FREEZEPL
   WAS     = WAS  - THAWS  + FREEZEL

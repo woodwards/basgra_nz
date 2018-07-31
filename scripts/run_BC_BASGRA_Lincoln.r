@@ -2,7 +2,7 @@
 
   cat(file=stderr(), 'Starting BC_BASGRA_Lincoln.r', "\n")
   suppressMessages(library(tidyverse))
-  options(warn=2) # trap warnings
+  # options(warn=2) # trap warnings
   
   # unload packages and remove variables
   pkgs = names(sessionInfo()$otherPkgs)

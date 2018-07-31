@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(lubridate)
+library(readxl)
 # "lubridate" %in% (.packages()) # how to check if package loaded
 
 options(warn=1)
@@ -78,7 +79,21 @@ for (i in missing) {
   data2$priestley_mm[i] <- data2$priestley_mm[i-1]
 }
 
+# get irrigation data and add to rain
+print('Reading and adding irrigation')
+irrig <- read_excel('raw_data/Canterbury irrigation 2011-2017 Simon.xlsx', col_names=TRUE)[,1:4]
+names(irrig) <- c("year", "month", "date", "irrig_mm")
+irrig <- irrig %>% 
+  mutate(year=format(year(date), scientific=FALSE),
+         doy = yday(date))
+data3 <- data2 %>% 
+  left_join(irrig, by=c("year", "doy")) %>%
+  select(-month, -date)
+data3 <- data3 %>% 
+  mutate(rain_mm = if_else(is.na(irrig_mm), rain_mm, rain_mm + irrig_mm)) %>% 
+  select(-irrig_mm)
+
 # write BASGRA weather file
-write_tsv(data2, 'raw_data/weather_Lincoln.txt')
+write_tsv(data3, 'raw_data/weather_Lincoln.txt')
 print('Remember to copy weather to model_inputs folder!')
 

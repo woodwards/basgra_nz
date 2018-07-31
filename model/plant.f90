@@ -104,7 +104,6 @@ Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
   end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
   DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length growth effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
-  ! Simon redefine DAYLGE as the INCREASE in elongating tillers
 end Subroutine Phenology
 
 ! Simon added vernalisation function
@@ -149,9 +148,10 @@ Subroutine CalcSLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
-  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
-  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0 (also for timothy?)
-!  LERG   = LERV + max(0.0,LERG/DAYLGE-LERV)*DAYLGE        ! Simon redefine DAYLGE as increase due to elongating tillers
+!  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
+!  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0 (also for timothy?)
+  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for ryegrass, Peacock 1976)
+  LERG   =          max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (for ryegrass, Peacock 1976)
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
@@ -161,7 +161,7 @@ Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
 !=============================================================================
 ! Calculate LUEMXQ (mol CO2 mol-1 PAR quanta)
 ! Inputs : PARAV (micromol PAR quanta m-2 s-1)
-! See equations in M. van Oijen et al. / Ecological Modelling 179 (2004) 39-60
+! See equations in M. van Oijen et al. / Ecological Modelling 179 (2004) 39-60 (for spring wheat)
 ! See aldo Rodriguez et al 1999
 !=============================================================================
   real :: PARAV
@@ -232,7 +232,8 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
     CSTAV  = 0.
   end if
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
-  NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller. Elongating tillers have less leaves???
+!  NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller. Elongating tillers have less leaves??? No
+  NELLVG   = (1 + PHENRF) * NELLVM                                   ! leaves tiller-1 Growing leaves per elongating tiller. Simon made it higher than NELLVM
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
 !  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
@@ -402,8 +403,7 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                    ! d-1 Leaf appearance rate should be faster on G (Simon removed DAYLGE)
-!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate (Simon moved NOHARV switch) FIXME DAYLGE in wrong place?
+  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate. Initially slow on reproductive tillers then accelerates.
 !  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate
   TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence

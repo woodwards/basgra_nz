@@ -1,4 +1,4 @@
-PARAMETER	Scott	Name	Units	Description
+PARAMETER	Lincoln	Name	Units	Description
 LOG10CLVI	1.5	CLVI	gC m-2	Initial value of leaves
 LOG10CRESI	0.5	CRESI	gC m-2	Initial value of reserves
 LOG10CRTI	2.0	CRTI	gC m-2	Initial value of roots

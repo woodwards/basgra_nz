@@ -3,14 +3,14 @@
 
 ## MCMC chain length (total number of iterations across all chains)
    nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(12000 * nChains) # need to check convergence
-   nSampling     <- as.integer(12000 * nChains)
+   nBurnin       <- as.integer(120000 * nChains) # need to check convergence
+   nSampling     <- as.integer(120000 * nChains)
    nChain        <- nBurnin + nSampling
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
    # this file provides parameters for all the sites
    # shape <- 0 # shape parameter (0=noninformative, 4=previous method) = now included in par file
-   file_prior    <- "model_inputs/parameters_BC_Lincoln.txt"
+   file_prior    <- "model_inputs/parameters_BC_All.txt"
    
    # parameters file has 5 columns
    # name  minimum  mode  maximum  (beta distribution)  unknown
@@ -30,13 +30,13 @@
    source('scripts/fLogL_mm_Beta.R')
    
 ## SETTINGS FOR THE DIFFERENT CALIBRATION SITES (at least one site)
-   sitesettings_filenames <- c("scripts/initialise_BASGRA_Linc_2.r",
-                               "scripts/initialise_BASGRA_Linc_3.r",
-                               "scripts/initialise_BASGRA_Linc_5.r"
+   sitesettings_filenames <- c("scripts/initialise_BASGRA_Lincoln_2.r",
+                               "scripts/initialise_BASGRA_Lincoln_3.r",
+                               "scripts/initialise_BASGRA_Lincoln_5.r"
                                )
-   sitedata_filenames     <- c("model_inputs/data_calibration_Linc_2.txt",
-                               "model_inputs/data_calibration_Linc_3.txt",
-                               "model_inputs/data_calibration_Linc_5.txt"
+   sitedata_filenames     <- c("model_inputs/data_calibration_Lincoln_2.txt",
+                               "model_inputs/data_calibration_Lincoln_3.txt",
+                               "model_inputs/data_calibration_Lincoln_5.txt"
                                )
    nSites                 <- length(sitedata_filenames)
    sitelist               <- list() ; length(sitelist) <- nSites
