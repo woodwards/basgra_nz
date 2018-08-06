@@ -19,13 +19,13 @@ contains
 
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 ! Simon plant processes are now calculated as if harvest did not happen
-Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
+Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
+                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARVFRIN,HARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
-  real    :: CLV, CRES, CST, CSTUB, LAI, PHEN, TILG2, TILG1, TILV
+  real    :: CLV, CRES, CST, CSTUB, CLVD, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
-  real    :: CLAI, HARVFR, TV1
+  real    :: CLAI, HARVFR, TV1, HARVFRIN
   integer :: HARV
   integer :: i
 
@@ -36,7 +36,12 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1
     if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
       HARV   = 1
       NOHARV = 0
-      HARVFR = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction havested (however this is defined)
+      HARVFRIN = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction havested (however this is defined)
+      ! HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)=HARVRF*CLV+HAGERE*CST+0*CSTUB+0*CLVD+CRES/0.40*0.45*(HARVRF*CLV+HAGERE*CST+0*CSTUB)/(CLV+CST+CSTUB)
+      ! HARVFR*(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))=HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)
+      HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
+              /(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))
+      HARVFR=max(0.0,min(1.0,HARVFR))
 	end if
   end do
 
@@ -53,6 +58,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1
 !  end if
 
   HARVFR    = max(0.0, 1.0-CLAIV/LAI ) * FRACTV + 1.0 * (1.0 - FRACTV)         ! Simon proportion of CLV harvested
+
   ! HAGERE = proportion of CST harvested
   ! RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)               ! CRES is in CLV, CST and CSTUB
   TV1       = (HARVFR * CLV + HAGERE * CST + 0 * CSTUB)/(CLV + CST + CSTUB)    ! Simon proportion of CRES harvested
@@ -97,13 +103,14 @@ Subroutine Phenology(DAYL,PHEN,AGE, DPHEN,GPHEN,HARVPH,FAGE)
   FAGE  = min(1.0, exp( -KAGE * (AGE - AGEH) ))                               ! Simon added effect of sward age factor
   GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! Basically degree days * day length
   DPHEN = 0.
-  if (DAYL < DAYLB) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
+!  if (DAYL < DAYLB) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
+  if (DAYL < DAYLRV) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLRV
     GPHEN  = 0.0
     DPHEN  = PHEN / DELT
     HARVPH = 0.0
   end if
-  PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Effect of phenological stage on leaf elongation and appearance on elongating tillers
-  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length growth effect on allocation, tillering, leaf appearance, leaf elongation (very crude)
+  PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Phenological stage decreases leaf number and appearance on elongating tillers
+  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length increases tillering, leaf appearance, leaf elongation (very crude)
 end Subroutine Phenology
 
 ! Simon added vernalisation function
@@ -149,9 +156,9 @@ Subroutine CalcSLA
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
 !  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
-!  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Simon thinks this implies that DAYLGE should have a max of 1.0 (also for timothy?)
-  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for ryegrass, Peacock 1976)
-  LERG   =          max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (for ryegrass, Peacock 1976)
+!  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Why is DAYLGE applied here and not to LERV? Bug when DAYLGE is always small?
+  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Simon, for ryegrass, Peacock 1976)
+  LERG   = DAYLGE * max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Simon, for ryegrass, Peacock 1976)
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
@@ -225,15 +232,14 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF, GLV,GRES,GRT,GST)
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
-  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)             ! gC m-2 d-1	Sink strength of reserve pool (average of RESMOB and CRESMX-CRES?)
+  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)             ! gC m-2 d-1	Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB))
   if (TILG2 > 0.0) then
     CSTAV  = CST/TILG2                                             ! gC tiller-1 Average stem mass of elongating tillers
   else
     CSTAV  = 0.
   end if
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
-!  NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller. Elongating tillers have less leaves??? No
-  NELLVG   = (1 + PHENRF) * NELLVM                                   ! leaves tiller-1 Growing leaves per elongating tiller. Simon made it higher than NELLVM
+  NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller.
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
 !  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
@@ -246,9 +252,10 @@ end Subroutine Growth
    ! Calculate allocation of CRES to GRES,GRT,GLV,GST
    Subroutine Allocation(GRES,GRT,GLV,GST)
      real :: GRES, GRT, GLV, GST
+     ! Sinks RESPHARDSI, GLVSI, GSTSI, GRESSI,
      GSHSI = GLVSI + GSTSI
 !     if (DAYLGE >= 0.1) then   ! Simon thinks maybe this value should be a parameter
-     if (DAYLGE >= DAYLGEA) then   ! Simon added DAYLGEA parameter
+     if (DAYL >= DAYLGEA) then   ! Simon modified since DAYLGE could remain high
      ! Situation 1: Growth has priority over storage (spring and growth period)
        ! Calculate amount of assimilates allocated to shoot
        ALLOSH = min( ALLOTOT, GSHSI )
@@ -263,7 +270,7 @@ end Subroutine Growth
      end if
      ! All surplus carbohydrate goes to roots
      ALLORT  = ALLOTOT - ALLOSH - GRES
-     if (GSHSI == 0.) GSHSI = 1
+     if (GSHSI == 0.) GSHSI = 1           ! avoid divide by zero error when GSHSI==0.
      ALLOLV  = GLVSI * (ALLOSH / GSHSI)
      ALLOST  = GSTSI * (ALLOSH / GSHSI)
      GLV     = ALLOLV * YG
@@ -403,8 +410,8 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, GLAI,GTILV,
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate. Initially slow on reproductive tillers then accelerates.
-!  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate
+  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
+!  RLEAF   = TV1 * NOHARV * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) ) ! d-1 Leaf appearance rate.
   TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
 !  GTILV   = TILV  * RGRTV * NOHARV                                           ! Simon moved NOHARV switch to here

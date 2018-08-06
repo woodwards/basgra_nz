@@ -46,7 +46,7 @@ real :: VERND, DVERND, WALS
 ! Define intermediate and rate variables
 real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
-real :: HARVFR, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
+real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 integer :: HARV
@@ -87,7 +87,7 @@ LAI     = max(SLAMAX * FSLAMIN * CLV, min(LAII, SLAMAX * CLV)) ! Simon constrain
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
-ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT
+ROOTD   = ROOTDM * CRT / (CRT + KCRT) ! Simon tied ROOTD to CRT like this
 Sdepth  = SDEPTHI
 TANAER  = TANAERI
 TILG1   = TILTOTI *       FRTILGI *    FRTILGG1I
@@ -95,9 +95,14 @@ TILG2   = TILTOTI *       FRTILGI * (1-FRTILGG1I)
 TILV    = TILTOTI * (1. - FRTILGI)
 VERN    = 0
 VERND   = floor(VERNDI)         ! Simon initialise count of cold days
+  if ((VERN==0).and.(VERND .ge. TVERND)) then ! copied from Vernalisation()
+	VERN = 1
+ 	VERND = 0.0
+    DVERND = 0.0
+  end if
 YIELD   = YIELDI
 YIELD_LAST = YIELDI
-WAL     = 1000. * (ROOTD - Fdepth) * max(WCAD, min(WCI, WCST))  ! Simon modified
+WAL     = 1000. * (ROOTDM - Fdepth) * max(WCAD, min(WCI, WCST))  ! Simon redefined WAL to ROOTDM
 WALS    = min(WAL, 25.0) ! Simon added WALS rapid surface layer (see manual section 4.3)
 WAPL    = WAPLI
 WAPS    = WAPSI
@@ -110,8 +115,8 @@ do day = 1, NDAYS
   ! Calculate intermediate and rate variables (many variable and parameters are passed implicitly)
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
-  call Harvest        (CLV,CRES,CST,CSTUB,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARV)
+  call Harvest        (CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
+                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARVFRIN,HARV)
   LAI     = LAI     - HARVLA
   CLV     = CLV     - HARVLV
   PHEN    = PHEN    - HARVPH
@@ -177,7 +182,7 @@ do day = 1, NDAYS
   LINT      = PARINT / PAR                       ! = Percentage light interception
   YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
   if (YIELD>0) YIELD_LAST = YIELD
-  DEBUG     = WALS                         ! Output any variable as "DEBUG" for debugging purposes
+  DEBUG     = HARVFRIN * HARV                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -205,7 +210,7 @@ do day = 1, NDAYS
   y(day,21) = TILG1        ! (Simon changed)
   y(day,22) = TILV
   y(day,23) = WAL          ! mm Soil water amount liquid
-  y(day,24) = WCL * 100.0  ! WCL = volumetric water content pecentage (Simon changed)
+  y(day,24) = WCLM * 100.0 ! Soil moisture to ROOTDM (Simon changed)
   y(day,25) = DAYLGE       ! (Simon changed)
   y(day,26) = RDLVD        ! (Simon changed)
   y(day,27) = HARVFR * HARV! (Simon changed)
@@ -233,6 +238,10 @@ do day = 1, NDAYS
   y(day,45) = DEBUG
   y(day,46) = ROOTD
   y(day,47) = TSIZE
+  y(day,48) = LERV
+  y(day,49) = WCL * 100.0
+  y(day,50) = HARVFRIN * HARV
+  y(day,51) = SLANEW
 
   ! Update state variables
   AGE     = AGE     + 1.0
@@ -249,7 +258,7 @@ do day = 1, NDAYS
   O2      = O2      + O2IN - O2OUT
   PHEN    = PHEN    + GPHEN - DPHEN
 !  ROOTD   = ROOTD   + RROOTD                              ! Simon tied ROOTD to CRT
-  ROOTD   = ROOTDM * (1 - exp(-CRT/KCRT)) ! Simon tied ROOTD to CRT like this
+  ROOTD   = ROOTDM * CRT / (CRT + KCRT)                    ! Simon tied ROOTD to CRT like this
   Sdepth  = Sdepth  + Psnow/RHOnewSnow - PackMelt
   TANAER  = TANAER  + dTANAER
   TILG1   = TILG1           + TILVG1 - TILG1G2

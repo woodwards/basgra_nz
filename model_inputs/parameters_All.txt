@@ -1,7 +1,7 @@
 PARAMETER	Scott	Lincoln	Northland	Name	Units	Description
 LOG10CLVI	1.5	1.5	1.5	CLVI	gC m-2	Initial value of leaves
 LOG10CRESI	0.5	0.5	0.5	CRESI	gC m-2	Initial value of reserves
-LOG10CRTI	2	2	2	CRTI	gC m-2	Initial value of roots
+LOG10CRTI	1.5	1.5	1.5	CRTI	gC m-2	Initial value of roots
 CSTI	0	0	0	CSTI	gC m-2	Initial value of stems
 LOG10LAII	-0.3	-0.3	-0.3	LAII	m2 m-2	Initial value of leaf area index
 PHENI	0.01	0.01	0.01	PHENI	-	Initial value of phenological stage
@@ -41,7 +41,7 @@ TCRES	1.9	1.9	1.9	TCRES	d	Time constant of mobilisation of reserves
 TOPTGE	20	20	20	TOPTGE	°C	Optimum temperature for vegetative tillers to become generative (must be > TBASE)
 TRANCO	8	8	8	TRANCO	mm d-1 g-1 m2	Transpiration effect of root mass
 YG	0.85	0.85	0.85	YG	gC gC-1	Growth yield per unit expended carbohydrate (must be < 1)
-LAT	-37.77	-43.642037	-35.61	LAT	degN	Latitude
+LAT	-37.77	-43.642037	-35.606047	LAT	degN	Latitude
 WCI	0.3	0.3	0.3	WCI	m3 m-3	Initial value of volumetric water content
 FWCAD	0.05	0.05	0.05	WCAD	m3 m-3	Relative saturation at air dryness
 FWCWP	0.1294	0.1294	0.1294	WCWP	m3 m-3	Relative saturation at wilting point
@@ -84,7 +84,7 @@ TVERND	21	21	21	TVERND	d	Days of cold after which vernalisation completed
 AGEH	932.8	932.8	932.8	AGEH	d	Age at which persistence is half
 KAGE	0.0458	0.0458	0.0458	KAGE	d-1	Curvature of persistence
 RDRROOT	0.0022	0.0022	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
-DAYLGEA	0.66	0.66	0.66	DAYLGEA	-	Value of DAYLGE above which growth is prioritised over storage
+DAYLGEA	0.66	0.66	0.66	DAYLGEA	-	DAYL above which growth is prioritised over storage
 DAYLRV	0.55	0.55	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 FCOCRESMN	0.5	0.5	0.5	FCOCRESMN	-	Minimum concentration of reserves in aboveground biomass as fraction of COCRESMX
 KCRT	50	50	50	KCRT	gC m-2	Root mass at which ROOTD is 67% of ROOTDM

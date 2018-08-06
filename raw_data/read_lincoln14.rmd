@@ -700,7 +700,7 @@ data_rpm <- data_rpm %>%
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
 calib_start <- ymd("20120401") # period for data weight = 1
-calib_end <- ymd("20141231") # period for data weight = 1
+calib_end <- ymd("20171231") # period for data weight = 1
 ablock <- 3
 
 for (ablock in c(1,2,3,4,5)) { # loop through data sets
@@ -764,9 +764,9 @@ data_c[[5]] <- with(temp, tibble(var='CST', year=year(date_bot),
 temp <- data_sm %>%
   select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar)
-data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date_sm),
+data_c[[6]] <- with(temp, tibble(var='WCLM', year=year(date_sm),
                                  doy=yday(date_sm), data=mean_sm, sd=2, type="sd",
-                                 weight=ifelse(((date_sm>=calib_start)&(date_sm<=calib_end)), 1, 0)) %>% drop_na())
+                                 weight=1) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)
