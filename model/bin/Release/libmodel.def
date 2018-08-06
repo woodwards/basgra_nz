@@ -219,5 +219,6 @@ EXPORTS
     __soil_MOD_soilwatercontent @218
     __soil_MOD_tsurf @219 DATA
     __soil_MOD_wcl @220 DATA
-    basgra_ @221
-    set_params_ @222
+    __soil_MOD_wclm @221 DATA
+    basgra_ @222
+    set_params_ @223

@@ -15,8 +15,8 @@
   # Scott weather data is 2010-1 to 2017-318 (14 Nov)
   year_start     <- as.integer(2011)
   doy_start      <- as.integer(244) # 1 Sept
-  year_stop      <- as.integer(2014)
-  doy_stop       <- as.integer(151) # 31 May
+  year_stop      <- year_start + 2
+  doy_stop       <- doy_start - 1
   
   # calculate sim length --- WARNING this needs to fit within weather data!
   NDAYS          <- as.integer(difftime(

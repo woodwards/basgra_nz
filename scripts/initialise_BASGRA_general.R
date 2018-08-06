@@ -118,17 +118,18 @@ outputMax <- rep( as.double(NA), length(outputNames))
 
 # choose outputs to display
 chooseNames <- c(
-  "DAYL", "DAYLGE", "DAVTMP", "LT50",
+  "DAYL", "DAYLGE", 
+  "DAVTMP", "LT50",
   "RAIN", "EVAP", "TRAN", "DRAIN",   
-  "WAL", "WCL", "ROOTD", "TRANRF",
+  "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-  "SLA", "LAI", "LINT", "PHOT", 
-  "RES", "RESMOB", 
-  "HARVFR",
   "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
   "PHEN", "VERND", "VERN", 
-  "RLEAF", "RDRT", 
-  "RDLVD", 
+  "HARVFRIN", "HARVFR",  
+  "RES", "RESMOB", 
+  "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
+  "LERV", "LERG",
+  "RLEAF", "RDRT", "RDLVD", 
   "DEBUG"
 )
 # check chooseNames are in outputNames
@@ -159,9 +160,14 @@ plot_output <- function(
   for (iv in 1:nvars) {
     c       <- col_vars[iv]
     t_range <- unique(round(list_output[[1]][,1]))
-    g_range <- range( sapply( 1:nlist, function(il){range(list_output[[il]][,c])} ) )
+    g_range <- range( sapply( 1:nlist, 
+                              function(il){
+                                range(list_output[[il]][,c], 
+                                      na.rm=TRUE, finite=TRUE )
+                                } ), 
+                      na.rm=TRUE, finite=TRUE )
     plot( list_output[[1]][,1], list_output[[1]][,c],
-          xlab="", ylab="", cex.main=1,
+          xlab="", ylab="", cex.main=1, 
 #          main=paste(outputNames[c]," ",outputUnits[c],sep=""),
           main=paste(easyNames[c]," ",outputUnits[c],sep=""),
           type='l', col=1, lty=lty[1], lwd=lwd[1], ylim=g_range, xaxt="n", yaxt="n" )

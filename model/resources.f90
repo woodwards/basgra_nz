@@ -47,9 +47,9 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
     FR = 0.0                                                     ! Simon added this case explicitly instead of setting lower bound to WCCR
   end if
   TRAN = PTRAN * FR                                             ! = mm d-1 Transpiration reduction due to WCL
-  WAAD = 1000. * WCAD * (ROOTD-Fdepth)                          ! = mm Water in non-frozen soil at air dryness
+  WAAD = 1000. * WCAD * (ROOTDM-Fdepth)                         ! = mm Water in non-frozen soil at air dryness, Simon modified to ROOTDM
   if (EVAP+TRAN > 0.) then
-    AVAILF = min( 1., ((WAL-WAAD)/DELT) / (EVAP+TRAN) )         ! = Reduction when near air dryness to prevent WAL<WAAD
+    AVAILF = min( 1., ((WAL-WAAD)/DELT) / (EVAP+TRAN) )         ! = Prevent WAL falling below WAAD
   else
     AVAILF = 0
   end if
@@ -77,9 +77,9 @@ Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT, EXPLOR,RROOTD)
 !  else
 !     RROOTD = 0.
 !  end if
-  RROOTD = ROOTDM / KCRT * exp(-CRT / KCRT) * (GRT - DRT) ! = m d-1 Root depth growth/death rate calculated using chain rule
+  RROOTD = 0
 !  EXPLOR = 1000. * RROOTD * WCFC                 ! = mm d-1 Increased access to water by root depth growth, FIXME root death effect needed
-  EXPLOR = WAL * RROOTD / ROOTD                   ! = mm d-1 Increased/decreased access to water by root depth growth/death
+  EXPLOR = 0
 end Subroutine ROOTDG
 
 end module resources

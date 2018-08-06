@@ -647,43 +647,54 @@ data_li %>%
 
 ## Soil Moisture
 
-```{r include=FALSE, eval=FALSE}
+```{r include=FALSE}
 # read soil moisture data
-data_sm <- read_xlsx(infile_name, sheet='Soil moisture data')
-names(data_sm) <- ensnakeify(names(data_sm))
+data_sm <- read_xlsx(infile_name, sheet='SoilMoist', skip=1, 
+                     col_names = c("date_sm", "sm20cm"))
 
 # rename useful variables
 data_sm <- data_sm %>%
-  mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
-  rename(
-    date_sm = date_measured_d,
-    sm = soil_moisture
-  ) %>%
+  # mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
+  mutate(
+    date_sm = as.POSIXct(floor(date_sm)*(60*60*24), origin="1899-12-30"),
+    seed_rate = factor("18kg", levels=seed_rate_levels),
+    block = 3,
+    cultivar = "Alto",
+    dom = day(date_sm),
+    sm = sm20cm
+  ) %>% 
+  filter(dom==1) %>%  # only take one point per month
   group_by(block, cultivar, seed_rate, date_sm) %>%
-  summarise(mean_sm = mean(sm))
+  summarise(mean_sm = mean(sm)) %>% 
+  ungroup()
+data_sm <- rbind(mutate(data_sm, block=1), 
+                 mutate(data_sm, block=2), 
+                 mutate(data_sm, block=3), 
+                 mutate(data_sm, block=4), 
+                 mutate(data_sm, block=5)) 
 
 ```
 
 <!-- Average soil moisture = r round(mean(data_sm$mean_sm, na.rm=TRUE)) -->
 
-```{r echo=FALSE, message=FALSE, results="hide", eval=FALSE}
+```{r echo=FALSE, message=FALSE, results="hide"}
 # plot sol moisture data
 ybreaks <- seq(0, round_any(max(data_sm$mean_sm, na.rm=TRUE), 20, ceiling), 20)
-xbreaks <- seq(floor_date(min(data_sm$date_sm), "months"), 
-               ceiling_date(max(data_sm$date_sm), "months"), by="1 month")
-data_sm %>%
-  split(.$block) %>%
-  map(~ggplot(.) +
+xbreaks <- seq(floor_date(min(data_sm$date_sm), "years"), 
+               ceiling_date(max(data_sm$date_sm), "years"), by="1 year")
+
+ggplot(filter(data_sm, block==3, seed_rate=="18kg", cultivar=="Alto")) +
     labs(x='Date', y='Soil Moisture %', 
-         title=paste('Soil Moisture 2017, Block', unique(.$block))) +
+         title=paste('Soil Moisture, All Blocks')) +
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
-    geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
+    geom_vline(data=filter(data_rpm, block==3, seed_rate=="18kg", cultivar=="Alto"),
+               mapping=aes(xintercept=date_grazed), colour='grey') +
     geom_point(mapping=aes(x=date_sm, y=mean_sm), colour='blue') +
     facet_grid(cultivar ~ seed_rate ) +
     scale_x_datetime(breaks=xbreaks, labels=format(xbreaks, "%b-%Y"), limits=c(xbreaks[1], tail(xbreaks, 1))) +
     scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
 
-  )
+  
 ```
 
 <!-- ## Calculations -->
@@ -719,7 +730,7 @@ data_rpm <- data_rpm %>%
 acultivar <- 'Alto' # only Alto and Halo have light interception data
 aseed_rate <- '18kg'
 calib_start <- ymd("20120401") # period for data weight = 1
-calib_end <- ymd("20141231") # period for data weight = 1
+calib_end <- ymd("20171231") # period for data weight = 1
 ablock <- 3
 
 for (ablock in c(1,2,3,4,5)) { # loop through data sets
@@ -779,12 +790,12 @@ data_c[[5]] <- with(temp, tibble(var='CST', year=year(date_bot),
 #                                  doy=yday(date), data=li) %>% drop_na())
 
 # soil moisture
-# temp <- data_sm %>%
-#   select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
-#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar)
-# data_c[[6]] <- with(temp, tibble(var='WCL', year=year(date_sm),
-#                                  doy=yday(date_sm), data=mean_sm, sd=2, type="sd",
-#                                  weight=1) %>% drop_na())
+temp <- data_sm %>%
+  select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
+  filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar)
+data_c[[6]] <- with(temp, tibble(var='WCLM', year=year(date_sm),
+                                 doy=yday(date_sm), data=mean_sm, sd=2, type="sd",
+                                 weight=1) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)
