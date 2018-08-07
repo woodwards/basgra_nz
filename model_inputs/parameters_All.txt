@@ -89,3 +89,6 @@ DAYLRV	0.55	0.55	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 FCOCRESMN	0.5	0.5	0.5	FCOCRESMN	-	Minimum concentration of reserves in aboveground biomass as fraction of COCRESMX
 KCRT	50	50	50	KCRT	gC m-2	Root mass at which ROOTD is 67% of ROOTDM
 VERNDI	0	0	0	VERNDI	d	Initial value of cumulative vernalisation days
+PERSDRT	0	0	0	PERSDRT	-	Persistence effect on root death
+PERSGTIL	0	0	0	PERSGTIL	-	Persistence effect on tillering
+PERSRES	0	0	0	PERSRES	-	Persistence effect on reserve sink

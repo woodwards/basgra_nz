@@ -21,6 +21,7 @@ implicit none
   real :: TBASE   , TCRES   , TOPTGE, TRANCO  , YG
   real :: RDRTMIN , TVERN   , TVERND, AGEH    , KAGE    , RDRROOT, DAYLGEA, DAYLRV
   real :: FCOCRESMN, KCRT
+  real :: PERSDRT , PERSGTIL, PERSRES ! Simon added persistence parameters
 
 ! Process parameters, continued
   real            :: Dparam, Hparam, KRDRANAER, KRESPHARD, KRSR3H

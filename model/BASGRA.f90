@@ -22,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 90        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 93        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -44,7 +44,7 @@ integer :: VERN
 real :: VERND, DVERND, WALS
 
 ! Define intermediate and rate variables
-real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR, FAGE
+real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
 real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV
@@ -139,27 +139,27 @@ do day = 1, NDAYS
 #endif
 
   call Light          (DAYL,DTR,LAI,PAR)                              ! calculate light interception DTRINT,PARINT,PARAV
-  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL,EVAP,TRAN)! calculate EVAP,TRAN,TRANRF
+  call EVAPTRTRF      (Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCLM,WCL,EVAP,TRAN)! calculate EVAP,TRAN,TRANRF
 
   call FRDRUNIR       (EVAP,Fdepth,Frate,INFIL,poolDRAIN,ROOTD,TRAN,WAL,WAS, &
                                                        DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS) ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
   call O2status       (O2,ROOTD)                                 ! calculate FO2
 
   call Biomass        (CLV,CRES,CST,CSTUB)                       ! calculate RESNOR
-  call Phenology      (DAYL,PHEN,AGE,                  DPHEN,GPHEN,HARVPH,FAGE) ! calculate GPHEN, DPHEN, PHENRF, DAYLGE
+  call Phenology      (DAYL,PHEN,            DPHEN,GPHEN,HARVPH) ! calculate GPHEN, DPHEN, PHENRF, DAYLGE
   call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND) ! Simon calculate VERN,VERND,DVERND
   call CalcSLA                                                   ! calculate LERV,LERG,SLANEW
   call LUECO2TM       (PARAV)                                    ! calculate LUEMXQ
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)                  ! calculate RESPHARDSI
-  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,GLV,GRES,GRT,GST) ! calculate assimilate partitioning
+  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,GST) ! calculate assimilate partitioning
   call PlantRespiration(FO2,RESPHARD)                            ! calculate RplantAer
-  call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf, &
+  call Senescence     (CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
-  call Decomposition  (CLVD,DAVTMP,WCL,                DLVD,RDLVD)    ! Simon decomposition function
-  call Tillering      (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,FAGE, &
+  call Decomposition  (CLVD,DAVTMP,WCLM,                DLVD,RDLVD)    ! Simon decomposition function
+  call Tillering      (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, &
                                                        GLAI,GTILV,TILVG1,TILG1G2)
 
-  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT, EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
+  call ROOTDG         (Fdepth,ROOTD,WAL,WCL,CRT,GRT,DRT, EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
 
 

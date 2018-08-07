@@ -5,7 +5,7 @@ use parameters_plant
 
 implicit none
 
-real      :: pa(90) ! Note: NPAR is also hardwired in BASGRA.f90
+real      :: pa(93) ! Note: NPAR is also hardwired in BASGRA.f90
 
 ! a script checks that these variable names match what is expected in the parameter.txt file (Simon)
 
@@ -104,6 +104,9 @@ DAYLRV       = pa(87)
 FCOCRESMN    = pa(88)
 KCRT         = pa(89)
 VERNDI       = pa(90)
+PERSDRT      = pa(91)
+PERSGTIL     = pa(92)
+PERSRES      = pa(93)
 
 ! Initial value transformations
 CLVI  = 10**LOG10CLVI

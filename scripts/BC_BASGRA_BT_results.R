@@ -9,7 +9,7 @@ suppressMessages({
 })
 
 # summary and correlation matrix
-if (FALSE){
+if (TRUE){
   cat(file=stderr(), 'Plot largest cells of posterior correlation grid', "\n")
   invisible(capture.output(cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
                            file=paste("model_outputs/BC_summary_BT.txt",sep=""))) # and export text summary

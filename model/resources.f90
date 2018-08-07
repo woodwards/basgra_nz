@@ -28,8 +28,8 @@ end Subroutine Light
 ! Calculate EVAP,TRAN,TRANRF
 ! See equations in Marcel van Oijen and Peter Leffelaar Crop Ecology 2010
 ! Chapter 10(B): Lintul-2: water limited crop growth
-Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
-  real :: Fdepth, PEVAP, PTRAN, CRT,ROOTD, WAL,WCL,  EVAP, TRAN
+Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCLM,WCL, EVAP,TRAN)
+  real :: Fdepth, PEVAP, PTRAN, CRT,ROOTD, WAL,WCLM,WCL,  EVAP, TRAN
   real :: AVAILF, FR, WAAD, WCCR
 !  real :: WCL ! Simon use previously calculated WCL
 !  if (Fdepth < ROOTD) then
@@ -37,7 +37,7 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
 !  else
 !    WCL = 0
 !  end if                                                       ! (m3 m-3)
-  EVAP = PEVAP * max(0., min(1., (WCL-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Reduction in evaporation due to soil water content
+  EVAP = PEVAP * max(0., min(1., (WCLM-WCAD)/(WCFC-WCAD) ))      ! = mm d-1 Reduction in evaporation due to soil water content
   WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
   if (WCL > WCCR) then                                          ! Transpiraiton reduction factor (Fig 4)
     FR = max(0., min(1., (WCST-WCL)/(WCST-WCWET) ))             ! Transpiration reduction in wet conditions
@@ -63,8 +63,8 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCL, EVAP,TRAN)
 end Subroutine EVAPTRTRF
 
 ! Calculate root depth growth rate RROOTD,EXPLOR
-Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT, EXPLOR,RROOTD)
-  real :: Fdepth,ROOTD,WAL,WCL,FAGE,CRT,GRT,DRT
+Subroutine ROOTDG(Fdepth,ROOTD,WAL,WCL,CRT,GRT,DRT, EXPLOR,RROOTD)
+  real :: Fdepth,ROOTD,WAL,WCL,CRT,GRT,DRT
   real :: EXPLOR,RROOTD
 !  real :: WCL ! Simon use previously calculated WCL
 !  if (Fdepth < ROOTD) then

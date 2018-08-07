@@ -14,14 +14,15 @@ real :: WCLM    ! = Liquid soil water content between frost depth and root depth
 
 contains
 
-! Calculate WCL = Liquid soil water content between frost depth and root depth
+! Calculate WCLM = Liquid soil water content between frost depth and root depth
+! Calculate WCL  = Effective water content exerienced by plant
 Subroutine SoilWaterContent(Fdepth,ROOTD,WAL,WALS)
   real :: Fdepth,ROOTD,WAL,WALS
   if (Fdepth < ROOTD) then
 !    WCL = WAL * 0.001 / (ROOTD-Fdepth) ! Average volumetric moisture content in non-frozen root zone
     WCLM = WAL * 0.001 / (ROOTDM-Fdepth) ! Average volumetric moisture content in ROOTDM-Fdepth zone
-    WCL = WCAD + (WCLM - WCAD) * ((ROOTD-Fdepth) / (ROOTDM-Fdepth)) ! Simon ROOTD effect
-!    WCL = max(WCL, WCAD + (WCFC - WCAD) * WALS / 25.0)                  ! Simon WALS effect
+    WCLM = max(WCLM, WCAD + (WCFC - WCAD) * WALS / 25.0)                  ! Simon WALS effect
+    WCL  = WCAD + (WCLM - WCAD) * ((ROOTD-Fdepth) / (ROOTDM-Fdepth))      ! Simon ROOTD effect
   else
     WCLM = 0
     WCL = 0
@@ -55,7 +56,7 @@ end Subroutine Physics
      else if (Fdepth > 0.) then          ! Soil partiatlly frozen
        WCeff = (0.001*WAS) / Fdepth
      else                                ! Soil not frozen
-       WCeff = WCL
+       WCeff = WCLM
      end if
      ! Calculating potential frost rate 'PFrate'
      if (((Fdepth == 0.).and.(Tsurf>0.)).or.(WCeff == 0.)) then ! No soil frost present AND no frost starting
@@ -66,7 +67,7 @@ end Subroutine Physics
      end if
      if ((PFrate >= 0.).and.(Fdepth > 0.).and.(Fdepth < ROOTDM)) then ! Simon modified to ROOTDM
 !       Frate = PFrate * (0.001*WAS/Fdepth) / WCFC ! Soil frost increasing
-       Frate = PFrate * (0.001*WAS/Fdepth) / WCL   ! Soil frost increasing, Simon modified (looks strange)
+       Frate = PFrate * (0.001*WAS/Fdepth) / WCLM   ! Soil frost increasing, Simon modified (looks strange)
      else if ((PFrate+Fdepth/DELT) < 0.) then
        Frate = -Fdepth / DELT                      ! Remaining soil frost thaws away
      else
