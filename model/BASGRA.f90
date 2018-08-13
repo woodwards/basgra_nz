@@ -22,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 93        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 96        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -47,7 +47,7 @@ real :: VERND, DVERND, WALS
 real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
 real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
-real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV
+real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV, RDRHARV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 integer :: HARV
 
@@ -116,14 +116,18 @@ do day = 1, NDAYS
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
   call Harvest        (CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARVFRIN,HARV)
-  LAI     = LAI     - HARVLA
-  CLV     = CLV     - HARVLV
-  PHEN    = PHEN    - HARVPH
-  CRES    = CRES    - HARVRE
+                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST, &
+                                                       HARVTILG2,HARVFR,HARVFRIN,HARV,RDRHARV)
+  LAI     = LAI     - HARVLA * (1 + RDRHARV)
+  CLV     = CLV     - HARVLV * (1 + RDRHARV)
+  CLVD    = CLVD    + (HARVLV + HARVRE) * RDRHARV
+  CRES    = CRES    - HARVRE * (1 + RDRHARV)
   CST     = CST     - HARVST   - GSTUB
   CSTUB   = CSTUB              + GSTUB
+  TILV    = TILV    - TILV * RDRHARV
+  TILG1   = TILG1   - TILG1 * RDRHARV
   TILG2   = TILG2   - HARVTILG2
+  PHEN    = PHEN    - HARVPH
 
   call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day, including DTR, PAR, which depend on DRYSTOR
   call SoilWaterContent(Fdepth,ROOTD,WAL,WALS)                   ! calculate WCL
@@ -145,7 +149,7 @@ do day = 1, NDAYS
                                                        DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS) ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
   call O2status       (O2,ROOTD)                                 ! calculate FO2
 
-  call Biomass        (CLV,CRES,CST,CSTUB)                       ! calculate RESNOR
+  call Biomass        (AGE,CLV,CRES,CST,CSTUB)                   ! calculate RESNOR
   call Phenology      (DAYL,PHEN,            DPHEN,GPHEN,HARVPH) ! calculate GPHEN, DPHEN, PHENRF, DAYLGE
   call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND,DVERND) ! Simon calculate VERN,VERND,DVERND
   call CalcSLA                                                   ! calculate LERV,LERG,SLANEW
@@ -157,7 +161,7 @@ do day = 1, NDAYS
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
   call Decomposition  (CLVD,DAVTMP,WCLM,                DLVD,RDLVD)    ! Simon decomposition function
   call Tillering      (DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, &
-                                                       GLAI,GTILV,TILVG1,TILG1G2)
+                                                       GLAI,RGRTV,GTILV,TILVG1,TILG1G2)
 
   call ROOTDG         (Fdepth,ROOTD,WAL,WCL,CRT,GRT,DRT, EXPLOR,RROOTD)! calculate root depth increase rate RROOTD,EXPLOR
   call O2fluxes       (O2,PERMgas,ROOTD,RplantAer,     O2IN,O2OUT)
@@ -182,7 +186,7 @@ do day = 1, NDAYS
   LINT      = PARINT / PAR                       ! = Percentage light interception
   YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
   if (YIELD>0) YIELD_LAST = YIELD
-  DEBUG     = HARVFRIN * HARV                         ! Output any variable as "DEBUG" for debugging purposes
+  DEBUG     = RGRTV                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
@@ -219,13 +223,13 @@ do day = 1, NDAYS
   y(day,28) = DM
   y(day,29) = RES
   y(day,30) = LERG                               ! = m d-1 Leaf elongation rate per leaf for generative tillers
-  y(day,31) = NELLVG                             ! = tiller-1 Number of growing leaves per elongating tiller
+  y(day,31) = PHENRF                             ! Phenology effect
   y(day,32) = RLEAF                              ! = leaves tiller-1 d-1 Leaf appearance rate per tiller
   y(day,33) = SLA
   y(day,34) = TILTOT
-  y(day,35) = FRTILG
-  y(day,36) = FRTILG1
-  y(day,37) = FRTILG2
+  y(day,35) = RGRTV
+  y(day,36) = RDRHARV
+  y(day,37) = GRT
   y(day,38) = RDRT                               ! = d-1 Relative leaf death rate due to high temperature
   y(day,39) = VERN                               ! = Vernalisation flag
 

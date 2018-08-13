@@ -20,12 +20,13 @@ contains
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 ! Simon plant processes are now calculated as if harvest did not happen
 Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR,HARVFRIN,HARV)
+                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST, &
+                             HARVTILG2,HARVFR,HARVFRIN,HARV,RDRHARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, CSTUB, CLVD, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
-  real    :: CLAI, HARVFR, TV1, HARVFRIN
+  real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV
   integer :: HARV
   integer :: i
 
@@ -63,6 +64,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   ! RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)               ! CRES is in CLV, CST and CSTUB
   TV1       = (HARVFR * CLV + HAGERE * CST + 0 * CSTUB)/(CLV + CST + CSTUB)    ! Simon proportion of CRES harvested
   HARVFR    = HARVFR * HARV                                                    ! Simon only return HARVFR on HARV days
+  RDRHARV   = RDRHARVMAX * HARVFR                                              ! Simon relative death rate due to harvest
 
 ! HARVFR = Fraction of leaf                                    that is harvested
 ! 1.0    = Fraction of leaf              in elongating tillers that is harvested (we assume)
@@ -75,24 +77,18 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
   GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
-
 !  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
 !  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
   HARVTILG2 = (HARV   * TILG2       ) / DELT           ! TILG2 zeroed after each harvest
 end Subroutine Harvest
 
 ! Calculate RESNOR (relative amount of CRES)
-Subroutine Biomass(CLV,CRES,CST,CSTUB)
-  real :: CLV, CRES, CST, CSTUB
-  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
+Subroutine Biomass(AGE,CLV,CRES,CST,CSTUB)
+  real :: AGE, CLV, CRES, CST, CSTUB
+!  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
+  CRESMX = COCRESMX * (CLV + CST)            ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMN = FCOCRESMN * CRESMX                ! Minimum reserves in aboveground biomass (not stubble) in terms of C (not DM)
-  if (CRESMX>CRESMN) then
-    RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
-  else if (CRES.gt.CRESMX) then
-	RESNOR = 1.0
-  else
-	RESNOR = 0.0
-  end if
+  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
 !  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
 end Subroutine Biomass
 
@@ -222,17 +218,17 @@ end Subroutine HardeningSink
 ! Calculate all the growth rates
 Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE
-  real :: GLV,GRES,GRT,GST
+  real :: GLV,GRES,GRT,GST,TV3
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
 !  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
-!  RESMOB   = ((CRES-CRESMN) * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, Simon included CRESMN
-  RESMOB   = max(0.0, CRES-CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
+  RESMOB   = max(0.0, min(CRESMX,CRES)-CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
-  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)          ! gC m-2 d-1	Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB))
-  GRESSI   = GRESSI * max(0.0, min(2.0, 1 + PERSRES * AGE / AGEH)) ! Simon added persistence effect
+!  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)         ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB))
+  TV3       = max(0.0, min(1.0, FGRESSI + PERSRES * AGE / 365.0))  ! Simon added effect of persistence on sink strength
+  GRESSI   = TV3 * max(0., CRESMX-CRES-RESMOB) / DELT              ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB)), Simon parameterised
   if (TILG2 > 0.0) then
     CSTAV  = CST/TILG2                                             ! gC tiller-1 Average stem mass of elongating tillers
   else
@@ -294,7 +290,7 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE, 
   integer :: doy
   real :: CLV,CRT,CSTUB,DAYL,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE
   real :: DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate
-  real :: RDRS, TV1, TV2
+  real :: RDRS, TV1, TV2, TV2TILMIN
   call AnaerobicDamage(LT50,PERMgas,TANAER, dTANAER)
   call Hardening(CLV,LT50,Tsurf, DeHardRate,HardRate)
   if (LAI < LAICR) then
@@ -302,18 +298,20 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE, 
   else
     TV1 = RDRSCO*(LAI-LAICR)/LAICR
   end if
-  RDRS   = min(TV1, RDRSMX)
-  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)
+  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
+  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
 !  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
   TV2    = max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate, Simon deleted NOHARV switch
-  TV2TIL = max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon deleted NOHARV switch
+!  TV2TIL = max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon deleted NOHARV switch
+  TV2TILMIN = RDRTILMIN * max(0.0, min(2.0, 1 - PERSDTIL * AGE / 365.0))          ! Simon added background death rate
+  TV2TIL = max(RDRS,TV2TILMIN,RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
   DLAI   = LAI    * TV2
   DLV    = CLV    * TV2
   DSTUB  = CSTUB  * RDRSTUB
   DTILV  = TILV   * TV2TIL
   DRT    = CRT    * RDRROOT
-  DRT    = DRT * max(0.0, min(2.0, 1 - PERSDRT * AGE / AGEH))              ! Simon added persistence effect
+  DRT    = DRT * max(0.0, min(2.0, 1 - PERSDRT * AGE / 365.0))              ! Simon added persistence effect
 
 end Subroutine Senescence
 
@@ -400,7 +398,7 @@ end Subroutine Decomposition
 
 ! Simon renamed Foliage2() to Tillering()
 ! Calculate GLAI,GTILV,TILVG1,TILG1G2
-Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,GTILV,TILVG1,TILG1G2)
+Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,RGRTV,GTILV,TILVG1,TILG1G2)
   real    :: DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,AGE
   integer :: VERN
   real    :: GLAI,GTILV,TILVG1,TILG1G2
@@ -411,12 +409,11 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,GTILV,T
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
-!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
+  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate.
+!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )         ! d-1 Leaf appearance rate.
   TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
-  GTILV   = GTILV * max(0.0, min(2.0, 1 + PERSGTIL * AGE / AGEH))             ! Simon added persistence effect
   TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
   RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                      ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
   RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day FIXME

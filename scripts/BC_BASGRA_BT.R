@@ -51,24 +51,42 @@ nInternal   <- 3 # internal chains for DREAMzs
 bt_settings <- list(startValue=nInternal, 
                     iterations=nChain/nChains, 
                     nrChains=nChains, 
-                    burnin=nBurnin/nChains*0, # burnin gets discarded but this causes a crash
+                    burnin=nBurnin/nChains+nChains, # burnin gets discarded but this causes a crash
                     parallel=TRUE,
                     message=TRUE) 
 
 # run BT
-bt_out <- runMCMC(bayesianSetup=bt_setup, 
+bt_out <- runMCMC(bayesianSetup = bt_setup, 
                   sampler = "DREAMzs", 
-                  settings=bt_settings)
+                  settings = bt_settings)
 cat(file=stderr(), " ", "\n")
+bt_chains <- nInternal * nChains
+bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
+bt_pars <- length(bt_names)
+bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
+cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
+cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+# browser()
 
-# rerun BT
+# rerun BT until target mpsrf achieved (provided run time remains reasonable)
+target_mpsrf <- 2.0
+max_seconds <- 1800
 if (FALSE){
-  while ((gelmanDiagnostics(bt_out)$mpsrf>1.1)&(bt_out[[1]]$settings$runtime[3]<1800)){
-    conv <- gelmanDiagnostics(bt_out)$mpsrf
-    cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(conv,3)), "\n")
-    cat(file=stderr(), paste("Continuing..."), "\n")
-    bt_out <- runMCMC(bayesianSetup=bt_out)
+  while ((gelmanDiagnostics(bt_out)$mpsrf > target_mpsrf)&
+         (bt_out[[1]]$settings$runtime[3] < max_seconds)){
+    cat(file=stderr(), paste("Greater than", target_mpsrf, "so continuing..."), "\n")
+    stopifnot(nBurnin==0) # restart doesn't currently work with burnin due to bug
+    bt_out <- runMCMC(bayesianSetup = bt_out) 
     cat(file=stderr(), " ", "\n")
+    # bt_chains <- nInternal * nChains
+    bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
+    # bt_pars <- length(bt_names)
+    bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
+    # cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
+    cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+    cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+    # browser()
   }
 }
 
@@ -79,25 +97,18 @@ stopParallel(bayesianSetup=bt_setup)
 cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
 psf <- gelmanDiagnostics(bt_out)$psrf[,1]
 print(round(psf,3))
-conv <- gelmanDiagnostics(bt_out)$mpsrf
-cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(conv,3)), "\n")
 
 # memory management
 save.image(file="temp.RData")
 rm(list=ls())
 load(file="temp.RData")
 
-# run this if memory error, then continue
-if (FALSE){
-  # restart R
-  load(file="temp.RData")
-  library(BayesianTools)
-  library(coda)
-  dyn.load(BASGRA_DLL) 
-}
-
-# return samples (scaled parameter space)
-pChain       <- getSample(bt_out) 
+# return samples (scaled parameter space) 
+# pChain       <- getSample(bt_out) #### Uses too much memory !
+post_num <- nSampling / bt_chains # posterior samples
+post_end <- bt_length  
+post_start <- bt_length - post_num + 1 
+pChain       <- getSample(bt_out, start=post_start, end=post_end) # extract sampling period only
 cat(file=stderr(), paste("Stored pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
 
 # define ML function

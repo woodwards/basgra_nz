@@ -123,13 +123,13 @@ chooseNames <- c(
   "RAIN", "EVAP", "TRAN", "DRAIN",   
   "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-  "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
-  "PHEN", "VERND", "VERN", 
-  "HARVFRIN", "HARVFR",  
+  "RGRTV", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
+  "PHEN", "PHENRF", "VERND", "VERN", 
+  "HARVFRIN", "HARVFR", "RDRHARV",  
   "RES", "RESMOB", 
   "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
   "LERV", "LERG",
-  "RLEAF", "RDRT", "RDLVD", 
+  "RLEAF", "GRT", "RDRT", "RDLVD", 
   "DEBUG"
 )
 # check chooseNames are in outputNames

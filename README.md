@@ -5,7 +5,5 @@ The official release of BASGRA was developed jointly by Marcel van Oijen, Mats H
 
 https://github.com/davcam/BASGRA
 
-The BASGRA NZ project tracks modifications to BASGRA for application to perennial ryegrass in New Zealand conditions. The test data comes from the Seed Rate Trial at Scott Farm from 2011-2017. Modifications to BASGRA were necessary to represent this data.
-
-
+The BASGRA NZ project tracks modifications to BASGRA for application to perennial ryegrass in New Zealand conditions. The test data comes from the Seed Rate Trial 2011-2017. Modifications to BASGRA were necessary to represent this data.
 

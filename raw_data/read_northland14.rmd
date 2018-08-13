@@ -410,6 +410,8 @@ data_till %>%
 
 ## Botanical Composition
 
+* FIXME This plot isn't showing all data and I don't know why
+
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # read botanical data. Skip blank line at top
 data_bot <- read_xlsx(infile_name, sheet='Botanical Composition data ', skip=1)
@@ -458,9 +460,9 @@ closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
   temp <- temp_cut %>% 
     filter(block==block_bot, cultivar==cultivar_bot, seed_rate==seed_rate_bot)
   ans <- as.POSIXct(rep(NA, length(date_bot)))
-  if (nrow(temp)>0){
+  if (nrow(temp)>0){ # there are some cut dates for this block-cultivar-seed_rate
     for (i in 1:length(date_bot)){
-      delay <- as.integer(difftime(date_bot[i], temp$date_cut, units="days"))
+      delay <- as.double(difftime(date_bot[i], temp$date_cut, units="days")) # vector of delays
       ans[i] <- temp$date_cut[which(abs(delay)==min(abs(delay)))[[1]]]
     }
   }
@@ -469,16 +471,21 @@ closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
 # debug(closest_cut)
 temp_bot <- data_bot %>% 
   group_by(block, cultivar, seed_rate, date_bot) %>%
-  mutate(date_cut = closest_cut(block, cultivar, seed_rate, date_bot)) %>% 
-  ungroup()
+  mutate(date_cut = closest_cut(block, cultivar, seed_rate, date_bot)) 
 temp_bot <- temp_bot %>%
   left_join(select(data_cut, block, cultivar, seed_rate, date_cut, grazing),
             by = c("block", "cultivar", "seed_rate", "date_cut")) %>%
-  mutate(delay = as.integer(difftime(date_bot, date_cut, units="days")),
-         date_cut = if_else(abs(delay) < 7, date_cut, as.POSIXct(NA)),
-         grazing = if_else(abs(delay) < 7, grazing, NA_real_)) %>%
+  mutate(delay = as.double(difftime(date_bot, date_cut, units="days")),
+         date_cut = if_else(abs(delay) <= 10, date_cut, as.POSIXct(NA)),
+         grazing = if_else(abs(delay) <= 10, grazing, NA_real_)) %>%
   arrange(desc(abs(delay)))
-  
+
+# why are there so few botanical data? and why are data getting duplicated in the outputs?
+temp <- temp_bot %>% 
+  select(-date_cut, -grazing, -delay) %>% 
+  filter_all(any_vars(is.na(.))) %>% # all rows with NA
+  select_if(has_missing) # only variables with NA
+
 # stopifnot(FALSE)
 
 data_bot <- temp_bot
@@ -487,13 +494,8 @@ data_bot <- temp_bot
 data_bot2 <- data_bot %>%
   gather(leaf, stem, ann, wc, og, weed, dead, key='species', value='fraction') %>%
   mutate(species = factor(species, 
-                          levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead'))) 
-
-# why are there so few botanical data? and why are data getting duplicated in the outputs?
-temp <- data_bot2 %>% 
-  select(-date_cut, -grazing, -delay) %>% 
-  filter_all(any_vars(is.na(.))) %>% # all rows with NA
-  select_if(has_missing) # only variables with NA
+                          levels=c('leaf', 'stem', 'ann', 'og', 'wc', 'weed', 'dead'))) %>% 
+  arrange(date_bot, block, cultivar, seed_rate, species) 
 
 # for debugging
 write_tsv(data_bot2, "data_bot2_Northland.tsv")
@@ -503,15 +505,39 @@ ybreaks <- seq(0, 100, 20)
 xbreaks <- seq(floor_date(min(data_bot2$date_bot), "years"), 
                ceiling_date(max(data_bot2$date_bot), "years"), by="1 year")
 
-data_bot2 %>% # FIXME not all data getting plotted for some reason??? Text coding??
-  split(.$block) %>%
+# test
+if (FALSE){
+  temp <- data_bot2 %>% 
+    filter(block==3, cultivar=="Alto", seed_rate=="18kg") %>% 
+    arrange(date_bot)
+  unique(temp$date_bot)
+  unique(temp$grazing)
+  
+  data_bot2 %>% 
+    filter(block==3) %>% 
+    filter(cultivar=="Alto") %>% # this makes facet_grid fail
+    # filter(seed_rate=="18kg") %>% # facet_grid chokes on the columns facet var
+    ggplot() +
+      labs(x='Date', y='Dry weight %', fill='Species',
+           title=paste('Botanical composition (cut to 4cm), Block', 3)) +
+      theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+      geom_bar(mapping=aes(x=date_bot, y=fraction, fill=species), stat='identity') +
+      scale_fill_brewer(palette='Paired') +
+      # facet_grid(cultivar ~ seed_rate) +
+      facet_grid(vars(cultivar), vars(seed_rate)) +
+      scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
+      scale_y_continuous(breaks=ybreaks, limits=c(0, 120))
+}
+
+data_bot2 %>% # FIXME not all data getting plotted for some reason???  
+  split(.$block) %>% # splits df into a list of df
   map(~ggplot(.) +
     labs(x='Date', y='Dry weight %', fill='Species',
          title=paste('Botanical composition (cut to 4cm), Block', unique(.$block))) +
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
     geom_bar(mapping=aes(x=date_bot, y=fraction, fill=species), stat='identity') +
     scale_fill_brewer(palette='Paired') +
-    facet_grid(cultivar ~ seed_rate ) +
+    facet_grid(cultivar ~ seed_rate) +
     scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
     scale_y_continuous(breaks=ybreaks, limits=c(0, 120))
   )

@@ -1,12 +1,24 @@
 # restart R and then run this to complete BT run if memory error occurs
 
+# reload stuff
 load(file="temp.RData")
 library(BayesianTools)
 library(coda)
 dyn.load(BASGRA_DLL) 
 
-# return samples (scaled parameter space)
-pChain       <- getSample(bt_out) 
+# memory management        
+library(pryr)
+mem_used() # 1.18Gb
+mem_objects <- as.data.frame(sort(sapply(ls(), function(x){
+  object.size(get(x))
+  }), decreasing=TRUE)) 
+
+# return samples (scaled parameter space) 
+# pChain       <- getSample(bt_out) #### Uses too much memory !
+post_num <- nSampling / bt_chains # posterior samples
+post_end <- bt_length  
+post_start <- bt_length - post_num + 1 
+pChain       <- getSample(bt_out, start=post_start, end=post_end) # extract sampling period only
 cat(file=stderr(), paste("Stored pChain =", dim(pChain)[1], "Iterations with", dim(pChain)[2], "Parameters"), "\n")
 
 # define ML function
