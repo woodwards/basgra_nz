@@ -3,19 +3,16 @@ Short list of known issues/to do
 Issues
 
 - 64-bit R won't run the DLL properly so need to use 32-bit R
-- R memory overflow with output object from lonmg chains
-- burnin setting not working correctly in BayesianTools::runMCMC()
+- memory error with output object from long chains
+- burnin>0 causes BayesianTools::runMCMC() to fail on restart
 - fix bar plot width vanishing in data docx reports
-- Northland soil moisture is from different site/soil than trial
+- Northland soil moisture data is from different site than trial
 - daylength effects too severe in model
 - LERG LERV hardcoded with no calibration
-- root depth poorly identified
+- root depth poorly identified, root mass often crashes
 - litter decomposition not linked to soil parameters
-- too many soil parameters
-- CRES is unstable, poorly determined 
+- CRES is unstable, poorly determined, often crashes
 
 To Do
 
-- calculate RMSE and NSE for model fits and print on output charts
 - reorganise scripts so separate script not needed for each site
-- calculate additional posterior predictions with modified inputs/parameters

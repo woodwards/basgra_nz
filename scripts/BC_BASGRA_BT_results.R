@@ -58,7 +58,7 @@ if (TRUE){
   
   source('scripts/plotResiduals_BT.r') # replacement functions
   
-  bt_predict <- function(par){
+  bt_predict <- function(par){ # needs s and data_col
     # use loop from BC_BASGRA_MCMC.R  
     candidatepValues_BC   <- par * sc
     # for (s in 1:nSites) {
@@ -76,9 +76,6 @@ if (TRUE){
     this_output[is.na(this_output)] <- -999 # catch NA
     return(this_output)
   }
-  s <- 1
-  data_col <- 1
-  bt_pred_times <- bt_predict(scparMAP_BC)
 
   # error function
   bt_error <- function(mean, par){
@@ -102,24 +99,38 @@ if (TRUE){
     ncolsPlots           <- ceiling((noutputsMeasured+1)/nrowsPlots)
     oldpar <- par(mfrow=c(nrowsPlots,ncolsPlots),omi=c(0,0,0.5,0), mar=c(2, 2, 2, 1) )
     
+    # statistics calculations
+    calc_rmse <- function(m,d){
+      sqrt(mean((m-d)^2, na.rm=TRUE))
+    }
+    calc_rsq <- function(m,d){
+      d[is.na(m)] <- NA
+      1-mean((m-d)^2, na.rm=TRUE)/var(d, na.rm=TRUE)
+    }
+
     # loop through calibration variables
+    data_col <- 1
+    bt_pred_times <- bt_predict(scparMAP_BC)
     data_col <- unique(data_index[[s]])[[1]]
     for (data_col in unique(data_index[[s]])){ 
       p <- data_col
       datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
       bt_obs_rows <- list_output_calibr_rows[[s]]
-      bt_obs_vals <- rep( as.double(NA), NDAYS )
+      bt_obs_vals <- rep( as.double(NA), list_NDAYS[[s]] )
       bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
-      bt_obs_wts <- rep( 0, NDAYS )
+      bt_obs_wts <- rep( 0, list_NDAYS[[s]] )
       bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
       # bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
-      bt_obs_errs <- rep( as.double(NA), NDAYS )
+      bt_obs_errs <- rep( as.double(NA), list_NDAYS[[s]] )
       bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
       bt_error_constant <- data_sd[[s]][datap][1] 
       # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
       bt_pred_MAP <- bt_predict(scparMAP_BC)
       bt_pred_MAP_obs <- bt_pred_MAP
       bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
+      keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts>0)
+      rmse <- calc_rmse(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
+      rsq <- calc_rsq(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
       bt_pred_ML <- bt_predict(scparMaxL_BC)
       scparMode_BC <- parmode_BC / sc
       bt_pred_Mode <- bt_predict(scparMode_BC)
@@ -159,7 +170,8 @@ if (TRUE){
                               predictionBand = predictionBand,
                               x=bt_pred_times,
                               # xlim=c(2012,2015), # show only a subset of time line (else = NULL)
-                              main=paste(easyNames[data_col], outputUnits[data_col])
+                              main=paste(easyNames[data_col], outputUnits[data_col], 
+                                         "RSME_MAP =", signif(rmse,3), "RSQ_MAP =", signif(rsq,3))
         )
         # plot key prediction lines
         lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
@@ -218,12 +230,12 @@ if (TRUE){
         p <- data_col
         datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
         bt_obs_rows <- list_output_calibr_rows[[s]]
-        bt_obs_vals <- rep( as.double(NA), NDAYS )
+        bt_obs_vals <- rep( as.double(NA), list_NDAYS[[s]] )
         bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
-        bt_obs_wts <- rep( 0, NDAYS )
+        bt_obs_wts <- rep( 0, list_NDAYS[[s]] )
         bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
         bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
-        bt_obs_errs <- rep( as.double(NA), NDAYS )
+        bt_obs_errs <- rep( as.double(NA), list_NDAYS[[s]] )
         bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
         bt_error_constant <- data_sd[[s]][datap][1] 
         # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
@@ -270,12 +282,12 @@ if (TRUE){
       p <- data_col
       # datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
       # bt_obs_rows <- list_output_calibr_rows[[s]]
-      # bt_obs_vals <- rep( as.double(NA), NDAYS )
+      # bt_obs_vals <- rep( as.double(NA), list_NDAYS[[s]] )
       # bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
-      # bt_obs_wts <- rep( 0, NDAYS )
+      # bt_obs_wts <- rep( 0, list_NDAYS[[s]] )
       # bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
       # # bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
-      # bt_obs_errs <- rep( as.double(NA), NDAYS )
+      # bt_obs_errs <- rep( as.double(NA), list_NDAYS[[s]] )
       # bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
       bt_error_constant <- 0 
       # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
@@ -391,7 +403,7 @@ if (TRUE){
       NDAYS          <- list_NDAYS         [[s]] 
       # modify
       ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
-      days_harvest[ii] <- days_harvest[ii]*0.9 # reduce grazing pressue by 10%
+      days_harvest[ii] <- days_harvest[ii]*1.0 # reduce grazing pressue by 0%
       # set
       list_params        [[s]] <- params 
       list_matrix_weather[[s]] <- matrix_weather
@@ -418,9 +430,6 @@ if (TRUE){
     #   this_output[is.na(this_output)] <- -999 # catch NA
     #   return(this_output)
     # }
-    s <- 1
-    data_col <- 1
-    bt_pred_times <- bt_predict(scparMAP_BC)
     # 
     # # error function
     # bt_error <- function(mean, par){
@@ -445,23 +454,28 @@ if (TRUE){
       oldpar <- par(mfrow=c(nrowsPlots,ncolsPlots),omi=c(0,0,0.5,0), mar=c(2, 2, 2, 1) )
       
       # loop through calibration variables
+      data_col <- 1
+      bt_pred_times <- bt_predict(scparMAP_BC)
       data_col <- unique(data_index[[s]])[[1]]
       for (data_col in unique(data_index[[s]])){ 
         p <- data_col
         datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
         bt_obs_rows <- list_output_calibr_rows[[s]]
-        bt_obs_vals <- rep( as.double(NA), NDAYS )
+        bt_obs_vals <- rep( as.double(NA), list_NDAYS[[s]] )
         bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
-        bt_obs_wts <- rep( 0, NDAYS )
+        bt_obs_wts <- rep( 0, list_NDAYS[[s]] )
         bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
         # bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
-        bt_obs_errs <- rep( as.double(NA), NDAYS )
+        bt_obs_errs <- rep( as.double(NA), list_NDAYS[[s]] )
         bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
         bt_error_constant <- data_sd[[s]][datap][1] 
         # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
         bt_pred_MAP <- bt_predict(scparMAP_BC)
         bt_pred_MAP_obs <- bt_pred_MAP
         bt_pred_MAP_obs[is.na(bt_obs_vals)] <- NA
+        keeps <- (!is.na(bt_obs_vals)) & (bt_obs_wts>0)
+        rmse <- calc_rmse(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
+        rsq <- calc_rsq(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
         bt_pred_ML <- bt_predict(scparMaxL_BC)
         scparMode_BC <- parmode_BC / sc
         bt_pred_Mode <- bt_predict(scparMode_BC)
@@ -501,7 +515,8 @@ if (TRUE){
                                 predictionBand = predictionBand,
                                 x=bt_pred_times,
                                 # xlim=c(2012,2015), # show only a subset of time line (else = NULL)
-                                main=paste(easyNames[data_col], outputUnits[data_col])
+                                main=paste(easyNames[data_col], outputUnits[data_col], 
+                                           "RSME_MAP =", signif(rmse,3), "RSQ_MAP =", signif(rsq,3))
           )
           # plot key prediction lines
           lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
@@ -571,12 +586,12 @@ if (TRUE){
         p <- data_col
         # datap     <- which( data_name[[s]] == as.character(outputNames[p]) ) # which data points are this variable?
         # bt_obs_rows <- list_output_calibr_rows[[s]]
-        # bt_obs_vals <- rep( as.double(NA), NDAYS )
+        # bt_obs_vals <- rep( as.double(NA), list_NDAYS[[s]] )
         # bt_obs_vals[bt_obs_rows[datap]] <- data_value[[s]][datap]
-        # bt_obs_wts <- rep( 0, NDAYS )
+        # bt_obs_wts <- rep( 0, list_NDAYS[[s]] )
         # bt_obs_wts[bt_obs_rows[datap]] <- data_weight[[s]][datap]
         # # bt_obs_vals[bt_obs_wts==0] <- NA # remove unweighted data
-        # bt_obs_errs <- rep( as.double(NA), NDAYS )
+        # bt_obs_errs <- rep( as.double(NA), list_NDAYS[[s]] )
         # bt_obs_errs[bt_obs_rows[datap]] <- data_sd[[s]][datap] # note: errors are constant
         bt_error_constant <- 0 
         # bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
