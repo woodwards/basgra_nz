@@ -406,7 +406,26 @@ if (TRUE){
     # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
     params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
     
+<<<<<<< HEAD
     # put changes here ####
+=======
+    # modify model inputs and/or parameters 
+    for (s in 1:nSites) {
+      # get
+      params         <- old_list_params        [[s]] 
+      matrix_weather <- old_list_matrix_weather[[s]] 
+      days_harvest   <- old_list_days_harvest  [[s]] 
+      NDAYS          <- old_list_NDAYS         [[s]] 
+      # modify
+      ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+      days_harvest[ii] <- days_harvest[ii]*1.0 # reduce grazing pressue by 0%
+      # set
+      list_params        [[s]] <- params 
+      list_matrix_weather[[s]] <- matrix_weather
+      list_days_harvest  [[s]] <- days_harvest
+      list_NDAYS         [[s]] <- NDAYS
+    }
+>>>>>>> 25c54c00dd351244dc1a5d22735b73fda6becad6
     
     output                    <- run_model(params,matrix_weather,days_harvest,NDAYS)
     # list_output[[s]]          <- output
