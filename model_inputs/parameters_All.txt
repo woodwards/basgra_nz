@@ -3,8 +3,8 @@ LOG10CLVI	1.5	1.5	1.5	CLVI	gC m-2	Initial value of leaves
 LOG10CRESI	0.5	0.5	0.5	CRESI	gC m-2	Initial value of reserves
 LOG10CRTI	1.5	1.5	1.5	CRTI	gC m-2	Initial value of roots
 CSTI	0	0	0	CSTI	gC m-2	Initial value of stems
-LOG10LAII	-0.3	-0.3	-0.3	LAII	m2 m-2	Initial value of leaf area index
-PHENI	0.01	0.01	0.01	PHENI	-	Initial value of phenological stage
+LOG10LAII	0.5	0.5	0.5	LAII	m2 m-2	Initial value of leaf area index
+PHENI	0.0	0.0	0.0	PHENI	-	Initial value of phenological stage
 TILTOTI	4000	4000	4000	TILTOTI	m-2	Initial value of tiller density
 FRTILGI	0	0	0	FRTILGI	-	Initial value of elongating tiller fraction
 LT50I	-4.7894	-4.7894	-4.7894	LT50I	°C	Initial value of LT50
@@ -23,7 +23,7 @@ LAIEFT	0.183	0.183	0.183	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area
 LAITIL	0.867	0.867	0.867	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
 LFWIDG	0.0128	0.0128	0.0128	LFWIDG	m	Leaf width on elongating tillers
 LFWIDV	0.0044	0.0044	0.0044	LFWIDV	m	Leaf width on non-elongating tillers
-NELLVM	2.1845	2.1845	2.1845	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
+NELLVM	1.3	1.3	1.3	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
 PHENCR	0.6144	0.6144	0.6144	PHENCR	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
 PHY	63	63	63	PHY	°C d	Phyllochron
 RDRSCO	0.1074	0.1074	0.1074	RDRSCO	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
@@ -33,7 +33,7 @@ RGENMX	0.01	0.01	0.01	RGENMX	d-1	Maximum relative rate of tillers becoming elong
 ROOTDM	0.5	0.5	0.5	ROOTDM	m	Initial and maximum value rooting depth
 RRDMAX	0.0101	0.0101	0.0101	RRDMAX	m d-1	Maximum root depth growth rate
 RUBISC	5.7803	5.7803	5.7803	RUBISC	g m-2 leaf	Rubisco content of upper leaves
-LSHAPE	0.751	0.751	0.751	SHAPE	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)
+LSHAPE	0.6	0.6	0.6	SHAPE	-	Area of a leaf relative to a rectangle of same length and width (must be < 1)
 SIMAX1T	0.004	0.004	0.004	SIMAX1T	gC tiller-1 d-1	Sink strength of small elongating tillers
 SLAMAX	0.025	0.025	0.025	SLAMAX	m2 leaf gC-1	Maximum SLA of new leaves (Note unusual units!)
 TBASE	4.0766	4.0766	4.0766	TBASE	°C	Minimum value of effective temperature for leaf elongation
@@ -75,7 +75,7 @@ TmeltFreeze	0	0	0	TmeltFreeze	°C	Temperature above which snow melts
 TrainSnow	0.01	0.01	0.01	TrainSnow	°C	Temperature below which precipitation is snow
 TsurfDiff	0.62279	0.62279	0.62279	TsurfDiff	°C	Constant in the calculation of dehardening rate
 KLUETILG	0.5	0.5	0.5	KLUETILG	-	LUE-increase with increasing fraction elongating tillers
-FRTILGG1I	0.1	0.1	0.1	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1
+FRTILGG1I	0.0	0.0	0.0	FRTILGG1I	-	Initial fraction of generative tillers that is still in stage 1
 DAYLG1G2	0.5249	0.5249	0.5249	DAYLG1G2	d d-1	Minimum day length above which generative tillers can start elongating
 RGRTG1G2	0.5973	0.5973	0.5973	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.0014	0.0014	0.0014	RDRTMIN	d-1	Minimum relative death rate of foliage
@@ -88,10 +88,13 @@ DAYLGEA	0.66	0.66	0.66	DAYLGEA	-	DAYL above which growth is prioritised over sto
 DAYLRV	0.55	0.55	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 FCOCRESMN	0.5	0.5	0.5	FCOCRESMN	-	Minimum concentration of reserves in aboveground biomass as fraction of COCRESMX
 KCRT	50	50	50	KCRT	gC m-2	Root mass at which ROOTD is 67% of ROOTDM
-VERNDI	0	0	0	VERNDI	d	Initial value of cumulative vernalisation days
+VERNDI	30	30	30	VERNDI	d	Initial value of cumulative vernalisation days
 PERSDRT	0	0	0	PERSDRT	-	Persistence effect on root death
 PERSDTIL	0	0	0	PERSDTIL	-	Persistence effect on tillering
 PERSRES	0	0	0	PERSRES	-	Persistence effect on reserve sink
 RDRTILMIN	0.00074	0.00074	0.00074	RDRTILMIN	d-1	Background relative rate of tiller death
 RDRHARVMAX	0.00057	0.00057	0.00057	RDRHARVMAX	d-1	Maximum relative death rate due to harvest
 FGRESSI	0.5	0.5	0.5	FGRESSI	-	CRES sink strength factor
+BD	1.2	1.2	1.2	BD	kg l-1	Bulk density of soil
+HARVFRD	0.2	0.2	0.2	HARVFRD	-	Harvest fraction of CLVD
+EBIOMAX	131	131	131	EBIOMAX	-	Earthworm biomass max

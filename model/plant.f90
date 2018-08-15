@@ -20,12 +20,12 @@ contains
 ! Calculate Harvest GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST,HARVTILG2,HARVFR
 ! Simon plant processes are now calculated as if harvest did not happen
 Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                             GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST, &
+                             GSTUB,HARVLA,HARVLV,HARVLVD,HARVPH,HARVRE,HARVST, &
                              HARVTILG2,HARVFR,HARVFRIN,HARV,RDRHARV)
   integer :: doy,year
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, CSTUB, CLVD, LAI, PHEN, TILG2, TILG1, TILV
-  real    :: GSTUB, HARVLV, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
+  real    :: GSTUB, HARVLV, HARVLVD, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV
   integer :: HARV
   integer :: i
@@ -38,11 +38,11 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
       HARV   = 1
       NOHARV = 0
       HARVFRIN = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction havested (however this is defined)
-      ! HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)=HARVRF*CLV+HAGERE*CST+0*CSTUB+0*CLVD+CRES/0.40*0.45*(HARVRF*CLV+HAGERE*CST+0*CSTUB)/(CLV+CST+CSTUB)
-      ! HARVFR*(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))=HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)
-      HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
+      ! HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)=HARVRF*CLV+HAGERE*CST+0*CSTUB+HARVFRD*CLVD+CRES/0.40*0.45*(HARVRF*CLV+HAGERE*CST+0*CSTUB)/(CLV+CST+CSTUB)
+      ! HARVFR*(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))=HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)
+      HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
               /(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))
-      HARVFR=max(0.0,min(HAGERE,HARVFR))
+      HARVFR=max(0.0,min(0.8,HARVFR)) ! Set an upper bound
 	end if
   end do
 
@@ -73,6 +73,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
 
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
+  HARVLVD   = (HARV   * CLVD * HARVFRD) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
   HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
   GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
@@ -356,21 +357,25 @@ end Subroutine Senescence
 Subroutine Decomposition(CLVD,DAVTMP,WCLM, DLVD,RDLVD)
   real :: CLVD,DAVTMP,WCLM
   real :: DLVD
-  real :: PSIA,PSIB,SWCS,BD,PSIS,DELD,DELE
-  real :: EBIOMASSMAX,EBIOMASS,CT,CP,WORMS
+  real :: PSIA,PSIB,SWCS,PSIS,DELD,DELE
+  real :: EBIOMASS,CT,CP,WORMS
   real :: DTEMP,DWATER,DECOMP,RDLVD
-  EBIOMASSMAX = 131.0
-  PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
-  PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
-  BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
+!  EBIOMASSMAX = 131.0              ! g m-2
+!  PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
+!  PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
+!  BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
   DELD    = 0.0148
   DELE    = 0.0005
   SWCS    = WCLM                    ! Volumetric soil water content near surface (WCL = in non-frozen root zone)
-  PSIS    =  -PSIA * (SWCS ** PSIB) ! Soil water tension near surface
+  ! PSIFC = -1500 kPa = -PSIA * (WCFC ** (-PSIB))
+  ! PSIWP =   -20 kPa = -PSIA * (WCWP ** (-PSIB))
+  PSIB    = -log(1500.0/20.0) / log(WCWP/WCFC)
+  PSIA    = 20.0 / (WCFC ** (-PSIB))
+  PSIS    =  -PSIA * (SWCS ** (-PSIB)) ! Soil water tension near surface
   ! Calculate number of worms and their grazing of dead matter
   ! Numbers at surface based on Baker et al., driven by GWCS
   ! Activity based on Daniels
-  EBIOMASS= max(0.0, min(1.0, 5.0*SWCS/BD-1.0)) * EBIOMASSMAX
+  EBIOMASS= max(0.0, min(1.0, 5.0*SWCS/BD-1.0)) * EBIOMAX ! EBIOMASSMAX
   if (DAVTMP > 20.0) then
     CT    = 0.0
   else
@@ -423,7 +428,8 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,RGRTV,G
   else if (YDAYL < DAYL) then
     TILG1G2 = 0.                                                              ! no conversion yet
   else
-    TILG1G2 = TILG1                                                           ! Simon convert all remaining tillers once DAYL < DAYLG1G2
+!    TILG1G2 = TILG1                                                           ! Simon convert all remaining tillers once DAYL < DAYLG1G2
+    TILG1G2 = 0.                                                              ! Simon remaining vernalised tillers remain vernalised once DAYL < DAYLG1G2
   end if
 end Subroutine Tillering
 

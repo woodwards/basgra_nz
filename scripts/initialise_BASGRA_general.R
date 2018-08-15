@@ -147,12 +147,13 @@ plot_output <- function(
   vars        = outputNames[-(1:3)],
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
+  main_title  = "TITLE",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
   ncol_plot   = ceiling( (length(vars)+1)/nrow_plot ),
   lty         = rep(1,length(list_output)),
   lwd         = rep(3,length(list_output)) 
 ) {
-  par( mfrow=c(nrow_plot,ncol_plot), mar=c(2, 2, 2, 1) )
+  par( mfrow=c(nrow_plot,ncol_plot), mar=c(2, 2, 2, 1), oma=c(0,0,2,0) )
   if (!is.list(list_output)) list_output <- list(list_output) ; nlist <- length(list_output)
   col_vars <- match(vars,outputNames)                         ; nvars <- length(vars)
   iv <- 1
@@ -185,6 +186,7 @@ plot_output <- function(
     }
   }
   par(mfrow=c(1,1)) # Simon
+  title(main_title, outer=TRUE)
 }
 
 table_output <- function(
@@ -215,6 +217,7 @@ export_output <- function(
   file_plot   = "model_outputs/basgra_trace_plots.png",
   leg         = paste( "Run", 1:length(list_output) ),
   leg_title   = "LEGEND",
+  main_title  = "TITLE",
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
   ncol_plot   = ceiling( (length(vars)+1)/nrow_plot ),
   lty         = rep(1,length(list_output)),
@@ -222,14 +225,15 @@ export_output <- function(
 ) {
   # output to screen
   plot_output(  list_output=list_output, vars=vars,
-                leg=leg, leg_title=leg_title,
+                leg=leg, leg_title=leg_title, main_title=main_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
+
 #  dev.off()
 #  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
   # and save to file (Simon)
   png(filename=file_plot, width=10, height=8, units="in", type="windows", res=300)
   plot_output(  list_output=list_output, vars=vars,
-                leg=leg, leg_title=leg_title,
+                leg=leg, leg_title=leg_title, main_title=main_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
   table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
   dev.off()

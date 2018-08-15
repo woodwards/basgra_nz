@@ -16,7 +16,7 @@ implicit none
 ! Soil
   real, parameter       :: DRATE  =  50   ! mm d-1 Maximum soil drainage rate
   real                  :: WCI
-  real                  :: FWCAD, FWCWP, FWCFC, FWCWET, WCST
+  real                  :: FWCAD, FWCWP, FWCFC, FWCWET, WCST, BD
   real                  ::  WCAD,  WCWP,  WCFC,  WCWET
 
 ! Soil - WINTER PARAMETERS
