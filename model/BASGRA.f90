@@ -22,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 96        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 99        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -46,16 +46,13 @@ real :: VERND, DVERND, WALS
 ! Define intermediate and rate variables
 real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, EVAP, EXPLOR
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
-real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
+real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVLVD, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV, RDRHARV
 real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
 integer :: HARV
 
 ! Extra output variables (Simon)
 real :: Time, DM, RES, SLA, TILTOT, FRTILG, FRTILG1, FRTILG2, LINT, DEBUG, TSIZE
-
-! Extract parameters
-call set_params(PARAMS)
 
 ! Extract calendar and weather data
 YEARI  = MATRIX_WEATHER(:,1)
@@ -72,29 +69,55 @@ TMMXI  = MATRIX_WEATHER(:,5)
   WNI   = MATRIX_WEATHER(:,8)
 #endif
 
+! Extract parameters
+call set_params(PARAMS)
+
+! Initial value transformations, Simon moved to here
+CLVI  = 10**LOG10CLVI
+CRESI = 10**LOG10CRESI
+CRTI  = 10**LOG10CRTI
+LAII  = 10**LOG10LAII
+
+! Soil water parameter scaling, Simon moved to here
+!WCAD  = FWCAD  * WCST
+!WCWP  = FWCWP  * WCST
+!WCFC  = FWCFC  * WCST
+!WCWET = FWCWET  * WCST
+
+! Grewal et al 1990 New Zealand: SP = 30-90
+! SP = MW/MS * 100 -> MS/MW = 100/SP
+! WCST = MW / (MW + MS/BD)
+! 1/WCST = 1 + 100/SP/BD
+! WCST = SP*BD/(SP*BD+100) = 0.21-0.57 if BD = 0.9-1.5
+! SP = WCST*100/(1-WCST)/BD
+WCWP  = 0.11 / 100.0 + 0.512 * WCST/(1-WCST)/BD ! Grewal et al 1990 New Zealand
+WCFC  = 17.9 / 100.0 + 0.422 * WCST/(1-WCST)/BD ! Grewal et al 1990 New Zealand
+WCWET = 0.95 * WCST                 ! Simon rough estimate
+WCAD  = 0.3 * WCWP                  ! Simon rough estimate
+
 ! Initialise state variables
 AGE     = 0.0
 CLV     = CLVI
-CLVD    = CLVDI
-CRES    = CRESI
-CRT     = CRTI
+CLVD    = CLVDI                                  ! Currently constant 0
+CRES    = COCRESMX * (CLVI + CSTI)               ! Simon set at max
+CRT     = CLVI + CSTI + COCRESMX * (CLVI + CSTI) ! Simon set equal to shoot mass
 CST     = CSTI
-CSTUB   = CSTUBI
+CSTUB   = CSTUBI                                 ! Currently constant 0
 DAYL    = 0.5        ! Simon used to initialise YDAYL
 DRYSTOR = DRYSTORI
 Fdepth  = FdepthI
-LAI     = max(SLAMAX * FSLAMIN * CLV, min(LAII, SLAMAX * CLV)) ! Simon constrain initial LAI (note SLAMAX is in gC units)
+LAI     = SLAMAX * CLV                           ! Simon set at max
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
-ROOTD   = ROOTDM * CRT / (CRT + KCRT) ! Simon tied ROOTD to CRT like this
+ROOTD   = ROOTDM * CRT / (CRT + KCRT)            ! Simon tied ROOTD to CRT like this
 Sdepth  = SDEPTHI
 TANAER  = TANAERI
 TILG1   = TILTOTI *       FRTILGI *    FRTILGG1I
 TILG2   = TILTOTI *       FRTILGI * (1-FRTILGG1I)
 TILV    = TILTOTI * (1. - FRTILGI)
 VERN    = 0
-VERND   = floor(VERNDI)         ! Simon initialise count of cold days
+VERND   = floor(VERNDI)                           ! Simon initialise count of cold days
   if ((VERN==0).and.(VERND .ge. TVERND)) then ! copied from Vernalisation()
 	VERN = 1
  	VERND = 0.0
@@ -102,8 +125,8 @@ VERND   = floor(VERNDI)         ! Simon initialise count of cold days
   end if
 YIELD   = YIELDI
 YIELD_LAST = YIELDI
-WAL     = 1000. * (ROOTDM - Fdepth) * max(WCAD, min(WCI, WCST))  ! Simon redefined WAL to ROOTDM
-WALS    = min(WAL, 25.0) ! Simon added WALS rapid surface layer (see manual section 4.3)
+WAL     = 1000. * (ROOTDM - Fdepth) * WCFC        ! Simon set to WCFC
+WALS    = min(WAL, 25.0)                          ! Simon added WALS rapid surface layer (see manual section 4.3)
 WAPL    = WAPLI
 WAPS    = WAPSI
 WAS     = WASI
@@ -116,11 +139,11 @@ do day = 1, NDAYS
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
   call Harvest        (CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
-                                                       GSTUB,HARVLA,HARVLV,HARVPH,HARVRE,HARVST, &
+                                                       GSTUB,HARVLA,HARVLV,HARVLVD,HARVPH,HARVRE,HARVST, &
                                                        HARVTILG2,HARVFR,HARVFRIN,HARV,RDRHARV)
   LAI     = LAI     - HARVLA * (1 + RDRHARV)
   CLV     = CLV     - HARVLV * (1 + RDRHARV)
-  CLVD    = CLVD    + (HARVLV + HARVRE) * RDRHARV
+  CLVD    = CLVD    - HARVLVD     + (HARVLV + HARVRE) * RDRHARV
   CRES    = CRES    - HARVRE * (1 + RDRHARV)
   CST     = CST     - HARVST   - GSTUB
   CSTUB   = CSTUB              + GSTUB
@@ -184,9 +207,9 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                       ! = Percentage light interception
-  YIELD     = (HARVLV + HARVST) / 0.45 + HARVRE / 0.40
+  YIELD     = (HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40
   if (YIELD>0) YIELD_LAST = YIELD
-  DEBUG     = RGRTV                         ! Output any variable as "DEBUG" for debugging purposes
+  DEBUG     = HARVLVD                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 

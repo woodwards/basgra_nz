@@ -164,7 +164,7 @@ if (TRUE){
         predicted <- pred$posteriorPredictivePredictionInterval[2,]
         confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
         predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
-        plotTimeSeries(       observed=bt_obs_vals, 
+        plotTimeSeries(       observed = bt_obs_vals, 
                               predicted = predicted,
                               confidenceBand = confidenceBand,
                               predictionBand = predictionBand,
@@ -397,10 +397,10 @@ if (TRUE){
     # modify model inputs and/or parameters 
     for (s in 1:nSites) {
       # get
-      params         <- list_params        [[s]] 
-      matrix_weather <- list_matrix_weather[[s]] 
-      days_harvest   <- list_days_harvest  [[s]] 
-      NDAYS          <- list_NDAYS         [[s]] 
+      params         <- old_list_params        [[s]] 
+      matrix_weather <- old_list_matrix_weather[[s]] 
+      days_harvest   <- old_list_days_harvest  [[s]] 
+      NDAYS          <- old_list_NDAYS         [[s]] 
       # modify
       ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
       days_harvest[ii] <- days_harvest[ii]*1.0 # reduce grazing pressue by 0%

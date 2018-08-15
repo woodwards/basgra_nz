@@ -75,7 +75,8 @@
     output <- run_model()
     file_table  = paste("model_outputs/basgra_trace_table_",s,".txt", sep="")
     file_plot   = paste("model_outputs/basgra_trace_plots_",s,".png", sep="")
-    export_output(file_table=file_table, file_plot=file_plot)
+    main_title <- paste("SITE ",s," MAP (",sitenames[s],")",sep="") 
+    export_output(file_table=file_table, file_plot=file_plot, main_title=main_title)
     NDAYS <- NDAYS_all
     y     <- matrix(0,NDAYS,NOUT)
   }

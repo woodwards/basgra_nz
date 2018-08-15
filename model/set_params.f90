@@ -5,7 +5,7 @@ use parameters_plant
 
 implicit none
 
-real      :: pa(96) ! Note: NPAR is also hardwired in BASGRA.f90
+real      :: pa(99) ! Note: NPAR is also hardwired in BASGRA.f90
 
 ! a script checks that these variable names match what is expected in the parameter.txt file (Simon)
 
@@ -110,18 +110,9 @@ PERSRES      = pa(93)
 RDRTILMIN    = pa(94)
 RDRHARVMAX   = pa(95)
 FGRESSI      = pa(96)
-
-! Initial value transformations
-CLVI  = 10**LOG10CLVI
-CRESI = 10**LOG10CRESI
-CRTI  = 10**LOG10CRTI
-LAII  = 10**LOG10LAII
-
-! Soil water parameter scaling
-WCAD  = FWCAD  * WCST
-WCWP  = FWCWP  * WCST
-WCFC  = FWCFC  * WCST
-WCWET = FWCWET * WCST
+BD           = pa(97)
+HARVFRD      = pa(98)
+EBIOMAX      = pa(99)
 
 return
 end

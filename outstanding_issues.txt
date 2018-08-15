@@ -8,9 +8,8 @@ Issues
 - fix bar plot width vanishing in data docx reports
 - Northland soil moisture data is from different site than trial
 - daylength effects too severe in model
-- LERG LERV hardcoded with no calibration
+- LERG LERV hardcoded with no calibration (but leaf width is calibrated)
 - root depth poorly identified, root mass often crashes
-- litter decomposition not linked to soil parameters
 - CRES is unstable, poorly determined, often crashes
 
 To Do
