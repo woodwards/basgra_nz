@@ -388,7 +388,7 @@ if (TRUE){
   
 }
 
-# new model predictions with modified inputs ####
+# new predictions with modified inputs ####
 # code copied from previous section and slightly modified
 if (TRUE){
   
@@ -406,26 +406,12 @@ if (TRUE){
     # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
     params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
     
-<<<<<<< HEAD
     # put changes here ####
-=======
-    # modify model inputs and/or parameters 
-    for (s in 1:nSites) {
-      # get
-      params         <- old_list_params        [[s]] 
-      matrix_weather <- old_list_matrix_weather[[s]] 
-      days_harvest   <- old_list_days_harvest  [[s]] 
-      NDAYS          <- old_list_NDAYS         [[s]] 
-      # modify
-      ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
-      days_harvest[ii] <- days_harvest[ii]*1.0 # reduce grazing pressue by 0%
-      # set
-      list_params        [[s]] <- params 
-      list_matrix_weather[[s]] <- matrix_weather
-      list_days_harvest  [[s]] <- days_harvest
-      list_NDAYS         [[s]] <- NDAYS
-    }
->>>>>>> 25c54c00dd351244dc1a5d22735b73fda6becad6
+    # ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    # days_harvest[ii] <- as.integer(days_harvest[ii]*0.9) # reduce grazing by 10%
+    #  1  32  60  91 121 152 182 213 244 274 305 335
+    ii <- matrix_weather[,2] %in% c(274,305,335,1,32,60,91,121)
+    matrix_weather[ii,6] <- matrix_weather[ii,6] + 50.0 # irrigate
     
     output                    <- run_model(params,matrix_weather,days_harvest,NDAYS)
     # list_output[[s]]          <- output

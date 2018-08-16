@@ -1,0 +1,14 @@
+Short guide to the BASGRA NZ project folders/files
+
+BC = Bayesian Calibration
+BT = BayesianTools R package
+
+outstandings_issues.txt List of known issues with the data and model
+/docs/		miscellaneous background documents, including original BASGRA user guide
+/model/		BASGRA Fortran code and executable, also miscellaneous notes on model logic, model.cbp is a CodeBlocks Fortran Project
+  output_names.tsv	list of model outputs, must match code in BASGRA.f90
+/raw_data/		trial data and weather files, R scripts for processing these, weather and calibration data files for BASGRA
+/model_inputs/	model inputs files (weather, harvest, calibration data, parameters, BC_parameters), R scripts to check variable consistency
+  parameters_All.txt	default model parameter values with units and descriptions
+/scripts/		R scripts for running and calibrating BASGRA
+/model_outputs/	figures and tables produced from BASGRA runs/calibrations

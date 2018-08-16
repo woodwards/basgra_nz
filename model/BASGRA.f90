@@ -48,7 +48,7 @@ real :: DeHardRate, DLAI, DLV, DLVD, DPHEN, DRAIN, DRT, DSTUB, dTANAER, DTILV, E
 real :: Frate, FREEZEL, FREEZEPL, GLAI, GLV, GPHEN, GRES, GRT, GST, GSTUB, GTILV, HardRate
 real :: HARVFR, HARVFRIN, HARVLA, HARVLV, HARVLVD, HARVPH, HARVRE, HARVST, HARVTILG2, INFIL, IRRIG, O2IN
 real :: O2OUT, PackMelt, poolDrain, poolInfil, Psnow, reFreeze, RGRTV, RDRHARV
-real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain
+real :: RGRTVG1, RROOTD, RUNOFF, SnowMelt, THAWPS, THAWS, TILVG1, TILG1G2, TRAN, Wremain, SP
 integer :: HARV
 
 ! Extra output variables (Simon)
@@ -85,13 +85,10 @@ LAII  = 10**LOG10LAII
 !WCWET = FWCWET  * WCST
 
 ! Grewal et al 1990 New Zealand: SP = 30-90
-! SP = MW/MS * 100 -> MS/MW = 100/SP
-! WCST = MW / (MW + MS/BD)
-! 1/WCST = 1 + 100/SP/BD
-! WCST = SP*BD/(SP*BD+100) = 0.21-0.57 if BD = 0.9-1.5
-! SP = WCST*100/(1-WCST)/BD
-WCWP  = 0.11 / 100.0 + 0.512 * WCST/(1-WCST)/BD ! Grewal et al 1990 New Zealand
-WCFC  = 17.9 / 100.0 + 0.422 * WCST/(1-WCST)/BD ! Grewal et al 1990 New Zealand
+! SP and WCST are ratios, SP can be > 1 if BD < 1
+SP = WCST/BD*100.0
+WCFC  = (2.62 + 0.595 * SP)/100*BD  ! Grewal et al 1990 New Zealand
+WCWP  = (-7.92 + 0.593 * SP)/100*BD ! Grewal et al 1990 New Zealand
 WCWET = 0.95 * WCST                 ! Simon rough estimate
 WCAD  = 0.3 * WCWP                  ! Simon rough estimate
 
@@ -207,7 +204,7 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                       ! = Percentage light interception
-  YIELD     = (HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40
+  YIELD     = ((HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40) * 10.0
   if (YIELD>0) YIELD_LAST = YIELD
   DEBUG     = HARVLVD                         ! Output any variable as "DEBUG" for debugging purposes
 
@@ -269,6 +266,7 @@ do day = 1, NDAYS
   y(day,49) = WCL * 100.0
   y(day,50) = HARVFRIN * HARV
   y(day,51) = SLANEW
+  y(day,52) = YIELD
 
   ! Update state variables
   AGE     = AGE     + 1.0
