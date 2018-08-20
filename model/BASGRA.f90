@@ -146,6 +146,10 @@ do day = 1, NDAYS
   end if
   TILTOT  = TILG1 + TILG2 + TILV
   PHEN    = PHEN    - HARVPH
+  if (doy.eq.152) then                               ! Reset yield on 1 June
+    YIELD = 0.0
+  end if
+  YIELD     = YIELD + ((HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40) * 10.0 / 1000.0 ! tDM ha-1 Simon cumulative harvest
 
   call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day, including DTR, PAR, which depend on DRYSTOR
   call SoilWaterContent(Fdepth,ROOTD,WAL,WALS)                   ! calculate WCL
@@ -201,7 +205,6 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                       ! = Percentage light interception
-  YIELD     = ((HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40) * 10.0
   DEBUG     = TGE                         ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)

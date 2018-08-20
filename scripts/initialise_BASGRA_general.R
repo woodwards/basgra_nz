@@ -130,8 +130,7 @@ chooseNames <- c(
   "RES", "RESMOB", 
   "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
   "LERV", "LERG",
-  "RLEAF", "GRT", "RDRT", "RDLVD", 
-  "DEBUG"
+  "RLEAF", "GRT", "RDRT", "RDLVD", "YIELD"
 )
 # check chooseNames are in outputNames
 i <- which(is.na(match(chooseNames, outputNames)))

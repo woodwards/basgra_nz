@@ -52,12 +52,14 @@
   
   # run with MAP parameters (can run shorter time window)
   for (s in 1:nSites){
-    dyn.load(BASGRA_DLL) 
+    
+    # set up
     cat(file=stderr(), paste('Running BASGRA_All with BC MAP parameters, site',s), "\n")
-    source(sitesettings_filenames[[s]])
-    # modify sitesettings
+    dyn.load(BASGRA_DLL) # useful for rerunning this loop
+    source(sitesettings_filenames[[s]]) # site initialisation
+    # modify simulation length if desired
     # year_start     <- as.integer(2011)
-    # doy_start      <- as.integer(152) # 1 June
+    # doy_start      <- as.integer(244) # 1 September
     year_stop      <- as.integer(2017)
     doy_stop       <- as.integer(151) # 31 May
     NDAYS_all <- NDAYS # will need to restore this for other functions
@@ -66,21 +68,46 @@
       as.Date(doy_start-1, origin=paste(year_start,1,1,sep='-')),
       units="days")) + 1L
     y              <- matrix(0,NDAYS,NOUT)
-    # overwrite parameters with MAP
+    
+    # get MAP parameters 
     file_params    <- 'model_outputs/BASGRA_parModes.txt' 
-    # temp <- read.csv(file_params, sep="\t")
     parcol         <- 2 + 8*(s-1)
     df_params      <- read.table(file_params,header=T,sep="\t",row.names=1)
     params         <- df_params[,parcol]
-    # now run
-    output <- run_model()
+    
+    # create output lists
+    leg <- vector("character", 3)
+    list_output <- vector("list", 3)
+    
+    # run MAP and scenarios
+    leg[1] <- "Current"
+    list_output[[1]] <- run_model()
+    
+    leg[2] <- "Irrig+50mm"
+    matrix_weather <- list_matrix_weather[[s]]
+    ii <- matrix_weather[,2] %in% c(274,305,335,1,32,60,91,121) # irrig days
+    matrix_weather[ii,6] <- matrix_weather[ii,6] + 50.0 # add irrig
+    list_output[[2]] <- run_model()
+    matrix_weather <- list_matrix_weather[[s]]
+    
+    leg[3] <- "Destock-30%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.7) # destock
+    list_output[[3]] <- run_model()
+    days_harvest <- list_days_harvest[[s]]
+    
+    # export output using functions in initialise_BASGRA_general.R
     file_table  = paste("model_outputs/basgra_trace_table_",s,".txt", sep="")
     file_plot   = paste("model_outputs/basgra_trace_plots_",s,".png", sep="")
     main_title <- paste("SITE ",s," MAP (",sitenames[s],")",sep="") 
-    export_output(file_table=file_table, file_plot=file_plot, main_title=main_title)
+    export_output(file_table=file_table, file_plot=file_plot, main_title=main_title,
+                  list_output=list_output, leg=leg, leg_title="SCENARIOS")
+    
+    # restore 
     NDAYS <- NDAYS_all
     y     <- matrix(0,NDAYS,NOUT)
-    dyn.unload(BASGRA_DLL) 
+    dyn.unload(BASGRA_DLL) # useful for rerunning this loop 
   }
   
   # save workspace since it takes a long time to generate
