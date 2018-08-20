@@ -14,15 +14,15 @@ real :: TRANRF    ! = Transpiration realisation factor
 contains
 
 ! Calculate DTRINT,PARAV,PARINT = light interception variables
-Subroutine Light(DAYL,DTR,LAI,PAR)
-  real :: DAYL,DTR,LAI,PAR
+Subroutine Light(DAYL,DTR,LAI,BASAL,PAR)
+  real :: DAYL,DTR,LAI,BASAL,PAR
   if (DAYL > 0) then
     PARAV = PAR * (1E6/(24*3600)) / DAYL
   else
     PARAV = 0.
   end if
-  PARINT = PAR * (1 - exp(-1.0*KLAI*LAI))  ! PAR extinction, Simon renamed K to KLAI
-  DTRINT = DTR * (1 - exp(-0.75*KLAI*LAI)) ! GR has different extinction, Simon renamed K to KLAI
+  PARINT = PAR * (1 - exp(-1.0*KLAI*LAI/BASAL))  ! PAR extinction, Simon renamed K to KLAI, adjust for BASAL area
+  DTRINT = DTR * (1 - exp(-0.75*KLAI*LAI/BASAL)) ! GR has different extinction, Simon renamed K to KLAI, adjust for BASAL area
 end Subroutine Light
 
 ! Calculate EVAP,TRAN,TRANRF

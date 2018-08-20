@@ -43,8 +43,8 @@
 			<Add option="-shared" />
 			<Add option="-o BASGRA_WG.DLL" />
 		</Linker>
-		<Unit filename="../model_inputs/parameters_BC_Scott.txt" />
-		<Unit filename="../model_inputs/parameters_Scott.txt" />
+		<Unit filename="../model_inputs/parameters_All.txt" />
+		<Unit filename="../model_inputs/parameters_BC_All_Nine.txt" />
 		<Unit filename="BASGRA.DLL" />
 		<Unit filename="BASGRA.f90">
 			<Option weight="3" />
@@ -53,6 +53,7 @@
 		<Unit filename="environment.f90">
 			<Option weight="1" />
 		</Unit>
+		<Unit filename="output_names.tsv" />
 		<Unit filename="parameters_plant.f90">
 			<Option weight="0" />
 		</Unit>

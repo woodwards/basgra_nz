@@ -123,9 +123,9 @@ chooseNames <- c(
   "RAIN", "EVAP", "TRAN", "DRAIN",   
   "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
   "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-  "RGRTV", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
+  "RGRTV", "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
   "PHEN", "PHENRF", "VERND", "VERN", 
-  "HARVFRIN", "HARVFR", "YIELD",
+  "HARVFRIN", "HARVFR",
   "RDRHARV",  
   "RES", "RESMOB", 
   "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
@@ -232,7 +232,7 @@ export_output <- function(
 #  dev.off()
 #  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )
   # and save to file (Simon)
-  png(filename=file_plot, width=10, height=8, units="in", type="windows", res=300)
+  png(filename=file_plot, width=8*16/9, height=8, units="in", type="windows", res=300)
   plot_output(  list_output=list_output, vars=vars,
                 leg=leg, leg_title=leg_title, main_title=main_title,
                 nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )

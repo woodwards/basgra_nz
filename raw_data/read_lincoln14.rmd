@@ -719,7 +719,9 @@ write.table(days_harvest, file=file_name, row.names=FALSE, col.names=FALSE, sep=
 file_name <- paste("data_calibration_Lincoln_", ablock, ".txt", sep="")
 
 # collect the data in this list
-data_c <- vector("list", 6) 
+data_c <- vector("list", 7) 
+err_c <- c(TILTOTI=400, CLV=10, CST=4, WCLM=2, BASAL=2)
+err_c <- c(TILTOTI=1000, CLV=40, CST=5, WCLM=5, BASAL=10)
 
 # pre and post mass (but this includes other species!)
 # temp <- data_rpm %>%
@@ -736,7 +738,7 @@ temp <- data_till %>%
   select(block, seed_rate, cultivar, mean_tillers, date_till) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(date_till), 
-                                 doy=yday(date_till), data=mean_tillers, sd=400, type="sd",
+                                 doy=yday(date_till), data=mean_tillers, sd=err_c['TILTOTI'], type="sd",
                                  weight=ifelse(((date_till>=calib_start)&(date_till<=calib_end)), 1, 0)) %>% drop_na())
 
 # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
@@ -746,11 +748,11 @@ temp <- data_bm %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[4]] <- with(temp, tibble(var='CLV', year=year(date_bot), 
                                  doy=yday(date_bot), data=leaf/100*yield_bot/10*0.45+leaf_below/100*below/10*0.45, 
-                                 sd=10, type="sd",
+                                 sd=err_c['CLV'], type="sd",
                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 data_c[[5]] <- with(temp, tibble(var='CST', year=year(date_bot), 
                                  doy=yday(date_bot), data=stem/100*yield_bot/10*0.45+stem_below/100*below/10*0.45, 
-                                 sd=4, type="sd",
+                                 sd=err_c['CST'], type="sd",
                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 
 # light interception (but this includes all species!)
@@ -765,8 +767,16 @@ temp <- data_sm %>%
   select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar)
 data_c[[6]] <- with(temp, tibble(var='WCLM', year=year(date_sm),
-                                 doy=yday(date_sm), data=mean_sm, sd=2, type="sd",
-                                 weight=1) %>% drop_na())
+                                 doy=yday(date_sm), data=mean_sm, sd=err_c['WCLM'], type="sd",
+                                 weight=ifelse(((date_sm>=calib_start)&(date_sm<=calib_end)), 1, 0)) %>% drop_na())
+
+# ryegrass fraction of green
+# temp <- data_bot %>%
+#   select(block, seed_rate, cultivar, rgfrac, date_bot) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# data_c[[7]] <- with(temp, tibble(var='BASAL', year=year(date_bot), 
+#                                  doy=yday(date_bot), data=rgfrac, sd=err_c['BASAL'], type="sd",
+#                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)

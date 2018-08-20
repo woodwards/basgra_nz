@@ -1,6 +1,6 @@
 # test the WCST code from BASGRA (turns out FORTRAN almost runs in R!)
 
-BD = 0.9
+BD = 1.1
 TRANCO = 6
 
 SP = 30:90

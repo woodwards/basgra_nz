@@ -52,6 +52,7 @@
   
   # run with MAP parameters (can run shorter time window)
   for (s in 1:nSites){
+    dyn.load(BASGRA_DLL) 
     cat(file=stderr(), paste('Running BASGRA_All with BC MAP parameters, site',s), "\n")
     source(sitesettings_filenames[[s]])
     # modify sitesettings
@@ -79,6 +80,7 @@
     export_output(file_table=file_table, file_plot=file_plot, main_title=main_title)
     NDAYS <- NDAYS_all
     y     <- matrix(0,NDAYS,NOUT)
+    dyn.unload(BASGRA_DLL) 
   }
   
   # save workspace since it takes a long time to generate
@@ -94,7 +96,7 @@
   
   # finish
   cat(file=stderr(), 'Finished BC_BASGRA_All.r', "\n")
-  dyn.unload(BASGRA_DLL) 
+  # dyn.unload(BASGRA_DLL) 
   # installr::kill_all_Rscript_s() # kills processes left from BT parallel
   closeAllConnections()
   graphics.off()

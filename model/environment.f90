@@ -55,12 +55,12 @@ contains
   end Subroutine set_weather_day
 #endif
 
-Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
+Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
           FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,wRemain)
   integer :: doy
-  real :: DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR
+  real :: DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR
   real :: FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,wRemain
-  call RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
+  call RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
        FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain)
   if (WAPS == 0.) then
     PERMgas = 1.                ! Permeable to gas if no pool ice
@@ -70,15 +70,15 @@ Subroutine MicroClimate(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETS
 end Subroutine MicroClimate
 
    ! See equation in Marcel van Oijen and Peter Leffelaar Crop Ecology 2010
-   Subroutine RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
+   Subroutine RainSnowSurfacePool(doy,DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &
        FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain)
      integer :: doy
-     real :: DRYSTOR,Fdepth,Frate,LAI,Sdepth,Tsurf,WAPL,WAPS,WETSTOR
+     real :: DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR
      real :: FREEZEPL,INFIL,PackMelt,poolDrain,poolInfil,pSnow,reFreeze,SnowMelt,THAWPS,Wremain
      real :: PINFIL
      call precForm(Psnow)
      call WaterSnow(doy,DRYSTOR,Psnow,Sdepth,WETSTOR, PackMelt,reFreeze,SnowMelt,Wremain)
-     RNINTC = min( Wsupply, 0.25*LAI ) ! Leaf can intercept 0.25 mm of water (Eqn 12)
+     RNINTC = min( Wsupply, 0.25*LAI/BASAL ) ! Leaf can intercept 0.25 mm of water (Eqn 12)
      PINFIL = Wsupply - RNINTC         ! Not-intercepted fraction
      call INFILrunOn(Fdepth,PINFIL, INFIL)
      call SurfacePool(Fdepth,Frate,Tsurf,WAPL,WAPS, &
@@ -237,14 +237,14 @@ end Subroutine DDAYL
 
 ! Calculate PEVAP and PTRAN = potential evaporation and transpiration rates
 #ifdef weathergen
-  Subroutine PEVAPINPUT(LAI)
-    real :: LAI
-    PEVAP  =     exp(-0.5*LAI)  * PET                      ! mm d-1 = Partitioning of PET into PEVAP (http://www.fao.org/docrep/x0490e/x0490e04.htm)
-    PTRAN  = (1.-exp(-0.5*LAI)) * PET                      ! mm d-1 = Partitioning of PET into PTRAN
+  Subroutine PEVAPINPUT(LAI,BASAL)
+    real :: LAI,BASAL
+    PEVAP  =     exp(-0.5*LAI/BASAL)  * PET                      ! mm d-1 = Partitioning of PET into PEVAP (http://www.fao.org/docrep/x0490e/x0490e04.htm)
+    PTRAN  = (1.-exp(-0.5*LAI/BASAL)) * PET                      ! mm d-1 = Partitioning of PET into PTRAN
     PTRAN  = max( 0., PTRAN-0.5*RNINTC )                   ! mm d-1 = Reduction in PTRAN due to wet leaves?
   end Subroutine PEVAPINPUT
 #else
-  Subroutine PENMAN(LAI)
+  Subroutine PENMAN(LAI,BASAL)
   !=============================================================================
   ! Calculate potential rates of evaporation and transpiration (mm d-1)
   ! Inputs: LAI (m2 m-2), DTR (MJ GR m-2 d-1), RNINTC (mm d-1)
@@ -252,7 +252,7 @@ end Subroutine DDAYL
   ! Outputs: PEVAP & PTRAN (mm d-1)
   ! Author - Marcel van Oijen (CEH-Edinburgh)
   !=============================================================================
-    real :: LAI
+    real :: LAI,BASAL
     real :: BBRAD, BOLTZM, DTRJM2, LHVAP, NRADC, NRADS
     real :: PENMD, PENMRC, PENMRS, PSYCH, RLWN, SLOPE, SVP, WDF
     DTRJM2 = DTR * 1.E6                                    ! (J GR m-2 d-1)
@@ -269,8 +269,8 @@ end Subroutine DDAYL
     PENMRC = NRADC * SLOPE/(SLOPE+PSYCH)                   ! (J m-2 d-1)
     WDF    = 2.63 * (1.0 + 0.54 * WN)                      ! (kg m-2 d-1 kPa-1)
     PENMD  = LHVAP * WDF * (SVP-VP) * PSYCH/(SLOPE+PSYCH)  ! (J m-2 d-1)
-    PEVAP  =     exp(-0.5*LAI)  * (PENMRS + PENMD) / LHVAP ! (mm d-1)
-    PTRAN  = (1.-exp(-0.5*LAI)) * (PENMRC + PENMD) / LHVAP ! (mm d-1)
+    PEVAP  =     exp(-0.5*LAI/BASAL)  * (PENMRS + PENMD) / LHVAP ! (mm d-1)
+    PTRAN  = (1.-exp(-0.5*LAI/BASAL)) * (PENMRC + PENMD) / LHVAP ! (mm d-1)
     PTRAN  = max( 0., PTRAN-0.5*RNINTC )                   ! (mm d-1)
   end Subroutine PENMAN
 #endif

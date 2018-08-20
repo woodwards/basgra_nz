@@ -7,10 +7,13 @@ Issues
 - burnin>0 causes BayesianTools::runMCMC() to fail on restart
 - fix bar plot width vanishing in data docx reports
 - Northland soil moisture data is from different site than trial
+- Scott tiller not always collected on a single date. May be other date issues
 - daylength effects too severe in model
 - LERG LERV hardcoded with no calibration (but leaf width is calibrated)
 - root depth poorly identified, root mass often crashes
 - CRES is unstable, poorly determined, often crashes
+- BASAL area effects on LAI, ROOTD, GTIL, DTIL not included
+- generative tillers are immune to environmental death rates
 
 To Do
 

@@ -94,54 +94,62 @@ Subroutine Biomass(AGE,CLV,CRES,CST,CSTUB)
 end Subroutine Biomass
 
 ! Calculate phenological changes
-Subroutine Phenology(DAYL,PHEN, DPHEN,GPHEN,HARVPH)
-  real :: DAYL,PHEN
+Subroutine Phenology(DAYL,TILG2,PHEN, DPHEN,GPHEN,HARVPH)
+  real :: DAYL,TILG2,PHEN
   real :: DPHEN,GPHEN,HARVPH
-  GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) )       ! Basically degree days * day length
-  DPHEN = 0.
-!  if (DAYL < DAYLB) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
-  if (DAYL < DAYLRV) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLRV
-    GPHEN  = 0.0
+  if (TILG2 > 0.0) then                                                       ! Simon PHEN only refers to elongating tillers
+    GPHEN = max(0., (DAVTMP-0.01)*0.000144*24. * (min(DAYLP,DAYL)-0.24) ) ! Basically degree days * day length
+    DPHEN = 0.
+  else
+	GPHEN = 0.
     DPHEN  = PHEN / DELT
-    HARVPH = 0.0
   end if
+!  if (DAYL < DAYLB) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLB
+!  if (DAYL < DAYLRV) then                                       ! Simon adjusted resetting of PHEN whenever DAYL < DAYLRV
+!    GPHEN  = 0.0
+!    DPHEN  = PHEN / DELT
+!  end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Phenological stage decreases leaf number and appearance on elongating tillers
   DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length increases tillering, leaf appearance, leaf elongation (very crude)
 end Subroutine Phenology
 
-! Simon added vernalisation function
+! Simon added vernalisation function, based on STICS model (Brisson et al 2009)
 ! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers
-Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,VERN,VERND, DVERND)
-  real :: DAYL, PHEN, YDAYL, TMMN, TMMX
-  integer :: VERN
+Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,VERN,VERND, DVERND)
+  real :: DAYL, PHEN, YDAYL, TMMN, TMMX, DAVTMP
+!  integer :: VERN
+  real :: VERN
   real :: VERND, DVERND
-  real :: X, Y
-  ! assume no change in vernalisation
-  DVERND = 0.
-  ! accumulate sum of cold temperatures
-  if (VERN==0) then
-    if (TVERN.le.TMMN) then
-      DVERND = 0.0
-    else if (TVERN.ge.TMMX) then
-      DVERND = 1.0
-	else
-      DVERND = 1.0 ! FIXME. Also FIXME effect of vernalisation on heading date
-!	  Y      = (TVERN-TMMN)/(TMMX-TMMN) * 2.0 - 1.0   ! TVERN relative to max and min
-!	  X      = acos(Y)                                ! position on first half of cos wave
-!      DVERND = 1.0 - X / pi                           ! proportion of day below TVERN
-	end if
-  end if
-  ! does vernalisation occur?
-  if ((VERN==0).and.(VERND .ge. TVERND)) then
-	VERN = 1
- 	VERND = 0.0
-    DVERND = 0.0
-  end if
+!  real :: X, Y
+!  ! assume no change in vernalisation
+!  DVERND = 0.
+!  ! accumulate sum of cold temperatures
+!  if (VERN==0) then
+!    if (TVERN.le.TMMN) then
+!      DVERND = 0.0
+!    else if (TVERN.ge.TMMX) then
+!      DVERND = 1.0
+!	else
+!      DVERND = 1.0 ! FIXME. Also FIXME effect of vernalisation on heading date
+!!	  Y      = (TVERN-TMMN)/(TMMX-TMMN) * 2.0 - 1.0   ! TVERN relative to max and min
+!!	  X      = acos(Y)                                ! position on first half of cos wave
+!!      DVERND = 1.0 - X / pi                           ! proportion of day below TVERN
+!	end if
+!  end if
+!  ! does vernalisation occur?
+!  if ((VERN==0).and.(VERND .ge. TVERND)) then
+!	VERN = 1
+! 	VERND = 0.0
+!    DVERND = 0.0
+!  end if
   ! reset vernalisation
-  if ((VERN==1).and.(DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
-	VERN = 0
-	VERND = 0.0
+!  if ((VERN==1).and.(DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
+  if ((DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
+!	VERN = 0
+	VERND  = 0.0
     DVERND = 0.0
+  else
+    DVERND  = max(0.0, 1.0 - ((DAVTMP - TVERN) / 7.5)**2)  ! Simon, vernalisation rate, based on STICS and Streck models
   end if
 end Subroutine Vernalisation
 
@@ -160,14 +168,14 @@ Subroutine CalcSLA
 end Subroutine CalcSLA
 
 ! Calculate light use efficiency LUEMXQ
-Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
+Subroutine LUECO2TM(PARAV,BASAL) ! also uses KLUETILG, FRACTV, KLAI
 !=============================================================================
 ! Calculate LUEMXQ (mol CO2 mol-1 PAR quanta)
 ! Inputs : PARAV (micromol PAR quanta m-2 s-1)
 ! See equations in M. van Oijen et al. / Ecological Modelling 179 (2004) 39-60 (for spring wheat)
 ! See aldo Rodriguez et al 1999
 !=============================================================================
-  real :: PARAV
+  real :: PARAV,BASAL
   real :: CO2I, EA, EAKMC, EAKMO, EAVCMX, EFF, GAMMAX, KC25, KMC, KMC25
   real :: KMO, KMO25, KOKC, O2, PMAX, R, RUBISCN, T, TMPFAC, VCMAX
   T      = DAVTMP                                            ! degC
@@ -189,7 +197,7 @@ Subroutine LUECO2TM(PARAV) ! also uses KLUETILG, FRACTV, KLAI
   PMAX   = VCMAX * (CO2I-GAMMAX) / (CO2I + KMC * (1+O2/KMO)) ! micromol CO2 m-2 s-1	Photosynthesis rate of upper leaves at light saturation (Eqn 6a)
   TMPFAC = max( 0., min( 1., (T+4.)/5. ) )                   ! Linear decrease of photosynthetic quantum yield at low temperature (below 1 degC)
   EFF    = TMPFAC * (1/2.1) * (CO2I-GAMMAX) / (4.5*CO2I+10.5*GAMMAX) ! mol CO2 mol-1 PAR quanta	Quantum yield of photosynthesis (Eqn 6b)
-  LUEMXQ = EFF*PMAX*(1+KLUETILG*(1-FRACTV)) / (EFF*KLAI*PARAV + PMAX)   ! mol CO2 mol-1 PAR Light-use efficiency (Eqn 5)
+  LUEMXQ = EFF*PMAX*(1+KLUETILG*(1-FRACTV)) / (EFF*KLAI/BASAL*PARAV + PMAX)   ! mol CO2 mol-1 PAR Light-use efficiency (Eqn 5)
 end Subroutine LUECO2TM
 
 ! Calculate RESPHARDSI respiration for use in Growth()
@@ -237,7 +245,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
   end if
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
   NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller.
-  GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
+  GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*(LFWIDV+LFWIDG))) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1, redefined LFWIDG)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
 !  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
 !  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
@@ -286,27 +294,26 @@ Subroutine PlantRespiration(FO2,RESPHARD)
 end Subroutine PlantRespiration
 
 ! Calculate death rates
-Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE, &
+Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
                                  DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
   integer :: doy
-  real :: CLV,CRT,CSTUB,DAYL,LAI,LT50,PERMgas,TANAER,TILV,Tsurf,AGE
+  real :: CLV,CRT,CSTUB,DAYL,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE
   real :: DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate
-  real :: RDRS, TV1, TV2, TV2TILMIN
+  real :: RDRS, TV1, TV2, RDRW
   call AnaerobicDamage(LT50,PERMgas,TANAER, dTANAER)
   call Hardening(CLV,LT50,Tsurf, DeHardRate,HardRate)
-  if (LAI < LAICR) then
+  if (LAI/BASAL < LAICR) then
     TV1 = 0.0
   else
-    TV1 = RDRSCO*(LAI-LAICR)/LAICR
+    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
   end if
   RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
+  RDRW   = RDRWMAX * (1 - TRANRF)                   ! d-1 Relative leaf and tiller death rate due to water stress
   RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
 !  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
-  TV2    = max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate, Simon deleted NOHARV switch
-!  TV2TIL = max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon deleted NOHARV switch
-  TV2TILMIN = RDRTILMIN * max(0.0, min(2.0, 1 - PERSDTIL * AGE / 365.0))          ! Simon added background death rate
-  TV2TIL = max(RDRS,TV2TILMIN,RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+  TV2    = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
+  TV2TIL = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
   DLAI   = LAI    * TV2
   DLV    = CLV    * TV2
   DSTUB  = CSTUB  * RDRSTUB
@@ -403,9 +410,10 @@ end Subroutine Decomposition
 
 ! Simon renamed Foliage2() to Tillering()
 ! Calculate GLAI,GTILV,TILVG1,TILG1G2
-Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,RGRTV,GTILV,TILVG1,TILG1G2)
-  real    :: DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,AGE
-  integer :: VERN
+Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,RGRTV,GTILV,TILVG1,TILG1G2)
+  real    :: DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,AGE
+!  integer :: VERN
+  real :: VERN
   real    :: GLAI,GTILV,TILVG1,TILG1G2
   real    :: RGRTV,RGRTVG1,TV1,TV2
   GLAI    = SLANEW * GLV                                                      ! Note SLANEW is in m2 leaf gC-1
@@ -414,22 +422,21 @@ Subroutine Tillering(DAYL,GLV,LAI,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,RGRTV,G
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
   end if
-  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate.
-!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )         ! d-1 Leaf appearance rate.
-  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI ))                       ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
+  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
+  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
   TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
   RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                      ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
-  RGRTVG1 = min( 1.0 - TV2TIL, RGRTVG1)                                       ! Make sure TILV doesn't all disappear in one day FIXME
   TILVG1  = TILV  * RGRTVG1
   if (DAYL > DAYLG1G2) then                                                   ! Generative tiller conversion controlled by DAYL
     TILG1G2 = TILG1 * RGRTG1G2                                                ! d-1 Rate of generative tiller conversion to elongating
   else if (YDAYL < DAYL) then
     TILG1G2 = 0.                                                              ! no conversion yet
   else
-!    TILG1G2 = TILG1                                                           ! Simon convert all remaining tillers once DAYL < DAYLG1G2
-    TILG1G2 = 0.                                                              ! Simon remaining vernalised tillers remain vernalised once DAYL < DAYLG1G2
+    TILG1G2 = 0.                                                              ! Simon remaining vernalised tillers remain vernalised
+!    TILG1G2 = TILG1                                                           ! Simon remaining tillers elongate
+!    TILVG1  = TILVG1 - TILG1                                                  ! Simon remaining vernalised tillers revert to vegetative
   end if
 end Subroutine Tillering
 

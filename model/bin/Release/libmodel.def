@@ -45,189 +45,194 @@ EXPORTS
     __environment_MOD_wsupply @44 DATA
     __environment_MOD_ydayl @45 DATA
     __environment_MOD_yeari @46 DATA
-    __parameters_plant_MOD_ageh @47 DATA
-    __parameters_plant_MOD_claiv @48 DATA
-    __parameters_plant_MOD_clvi @49 DATA
-    __parameters_plant_MOD_cocresmx @50 DATA
-    __parameters_plant_MOD_cresi @51 DATA
-    __parameters_plant_MOD_crti @52 DATA
-    __parameters_plant_MOD_cstavm @53 DATA
-    __parameters_plant_MOD_csti @54 DATA
-    __parameters_plant_MOD_daylb @55 DATA
-    __parameters_plant_MOD_daylg1g2 @56 DATA
-    __parameters_plant_MOD_daylgea @57 DATA
-    __parameters_plant_MOD_daylp @58 DATA
-    __parameters_plant_MOD_daylrv @59 DATA
-    __parameters_plant_MOD_dlmxge @60 DATA
-    __parameters_plant_MOD_dparam @61 DATA
-    __parameters_plant_MOD_ebiomax @62 DATA
-    __parameters_plant_MOD_fcocresmn @63 DATA
-    __parameters_plant_MOD_fgressi @64 DATA
-    __parameters_plant_MOD_frtilgg1i @65 DATA
-    __parameters_plant_MOD_frtilgi @66 DATA
-    __parameters_plant_MOD_fslamin @67 DATA
-    __parameters_plant_MOD_fsmax @68 DATA
-    __parameters_plant_MOD_hagere @69 DATA
-    __parameters_plant_MOD_harvfrd @70 DATA
-    __parameters_plant_MOD_hparam @71 DATA
-    __parameters_plant_MOD_kage @72 DATA
-    __parameters_plant_MOD_kcrt @73 DATA
-    __parameters_plant_MOD_klai @74 DATA
-    __parameters_plant_MOD_kluetilg @75 DATA
-    __parameters_plant_MOD_krdranaer @76 DATA
-    __parameters_plant_MOD_kresphard @77 DATA
-    __parameters_plant_MOD_krsr3h @78 DATA
-    __parameters_plant_MOD_laicr @79 DATA
-    __parameters_plant_MOD_laieft @80 DATA
-    __parameters_plant_MOD_laii @81 DATA
-    __parameters_plant_MOD_laitil @82 DATA
-    __parameters_plant_MOD_ldt50a @83 DATA
-    __parameters_plant_MOD_ldt50b @84 DATA
-    __parameters_plant_MOD_lfwidg @85 DATA
-    __parameters_plant_MOD_lfwidv @86 DATA
-    __parameters_plant_MOD_log10clvi @87 DATA
-    __parameters_plant_MOD_log10cresi @88 DATA
-    __parameters_plant_MOD_log10crti @89 DATA
-    __parameters_plant_MOD_log10laii @90 DATA
-    __parameters_plant_MOD_lshape @91 DATA
-    __parameters_plant_MOD_lt50i @92 DATA
-    __parameters_plant_MOD_lt50mn @93 DATA
-    __parameters_plant_MOD_lt50mx @94 DATA
-    __parameters_plant_MOD_nellvm @95 DATA
-    __parameters_plant_MOD_persdrt @96 DATA
-    __parameters_plant_MOD_persdtil @97 DATA
-    __parameters_plant_MOD_persres @98 DATA
-    __parameters_plant_MOD_phencr @99 DATA
-    __parameters_plant_MOD_pheni @100 DATA
-    __parameters_plant_MOD_phy @101 DATA
-    __parameters_plant_MOD_ratedmx @102 DATA
-    __parameters_plant_MOD_rdrharvmax @103 DATA
-    __parameters_plant_MOD_rdrroot @104 DATA
-    __parameters_plant_MOD_rdrsco @105 DATA
-    __parameters_plant_MOD_rdrsmx @106 DATA
-    __parameters_plant_MOD_rdrtem @107 DATA
-    __parameters_plant_MOD_rdrtilmin @108 DATA
-    __parameters_plant_MOD_rdrtmin @109 DATA
-    __parameters_plant_MOD_rehardredday @110 DATA
-    __parameters_plant_MOD_rgenmx @111 DATA
-    __parameters_plant_MOD_rgrtg1g2 @112 DATA
-    __parameters_plant_MOD_rootdm @113 DATA
-    __parameters_plant_MOD_rrdmax @114 DATA
-    __parameters_plant_MOD_rubisc @115 DATA
-    __parameters_plant_MOD_simax1t @116 DATA
-    __parameters_plant_MOD_slamax @117 DATA
-    __parameters_plant_MOD_slamin @118 DATA
-    __parameters_plant_MOD_tbase @119 DATA
-    __parameters_plant_MOD_tcres @120 DATA
-    __parameters_plant_MOD_thardmx @121 DATA
-    __parameters_plant_MOD_tiltoti @122 DATA
-    __parameters_plant_MOD_toptge @123 DATA
-    __parameters_plant_MOD_tranco @124 DATA
-    __parameters_plant_MOD_tsurfdiff @125 DATA
-    __parameters_plant_MOD_tvern @126 DATA
-    __parameters_plant_MOD_tvernd @127 DATA
-    __parameters_plant_MOD_verndi @128 DATA
-    __parameters_plant_MOD_yg @129 DATA
-    __parameters_site_MOD_bd @130 DATA
-    __parameters_site_MOD_doyha @131 DATA
-    __parameters_site_MOD_fgas @132 DATA
-    __parameters_site_MOD_fo2mx @133 DATA
-    __parameters_site_MOD_fwcad @134 DATA
-    __parameters_site_MOD_fwcfc @135 DATA
-    __parameters_site_MOD_fwcwet @136 DATA
-    __parameters_site_MOD_fwcwp @137 DATA
-    __parameters_site_MOD_krtotaer @138 DATA
-    __parameters_site_MOD_ksnow @139 DATA
-    __parameters_site_MOD_ktsnow @140 DATA
-    __parameters_site_MOD_lambdasoil @141 DATA
-    __parameters_site_MOD_lat @142 DATA
-    __parameters_site_MOD_rhonewsnow @143 DATA
-    __parameters_site_MOD_rhopack @144 DATA
-    __parameters_site_MOD_swret @145 DATA
-    __parameters_site_MOD_swrf @146 DATA
-    __parameters_site_MOD_tmeltfreeze @147 DATA
-    __parameters_site_MOD_trainsnow @148 DATA
-    __parameters_site_MOD_wcad @149 DATA
-    __parameters_site_MOD_wcfc @150 DATA
-    __parameters_site_MOD_wci @151 DATA
-    __parameters_site_MOD_wcst @152 DATA
-    __parameters_site_MOD_wcwet @153 DATA
-    __parameters_site_MOD_wcwp @154 DATA
-    __parameters_site_MOD_wpoolmax @155 DATA
-    __plant_MOD_allocation @156
-    __plant_MOD_allolv @157 DATA
-    __plant_MOD_allort @158 DATA
-    __plant_MOD_allosh @159 DATA
-    __plant_MOD_allost @160 DATA
-    __plant_MOD_allotot @161 DATA
-    __plant_MOD_anaerobicdamage @162
-    __plant_MOD_biomass @163
-    __plant_MOD_calcsla @164
-    __plant_MOD_cresmn @165 DATA
-    __plant_MOD_cresmx @166 DATA
-    __plant_MOD_cstav @167 DATA
-    __plant_MOD_daylge @168 DATA
-    __plant_MOD_daylgemx @169 DATA
-    __plant_MOD_decomposition @170
-    __plant_MOD_fractv @171 DATA
-    __plant_MOD_glaisi @172 DATA
-    __plant_MOD_glvsi @173 DATA
-    __plant_MOD_gressi @174 DATA
-    __plant_MOD_growth @175
-    __plant_MOD_gshsi @176 DATA
-    __plant_MOD_gstsi @177 DATA
-    __plant_MOD_hardening @178
-    __plant_MOD_hardeningsink @179
-    __plant_MOD_harvest @180
-    __plant_MOD_lerg @181 DATA
-    __plant_MOD_lerv @182 DATA
-    __plant_MOD_lueco2tm @183
-    __plant_MOD_luemxq @184 DATA
-    __plant_MOD_nellvg @185 DATA
-    __plant_MOD_noharv @186 DATA
-    __plant_MOD_phenology @187
-    __plant_MOD_phenrf @188 DATA
-    __plant_MOD_phot @189 DATA
-    __plant_MOD_plantrespiration @190
-    __plant_MOD_rateh @191 DATA
-    __plant_MOD_rdlvd @192 DATA
-    __plant_MOD_rdrfrost @193 DATA
-    __plant_MOD_rdrt @194 DATA
-    __plant_MOD_rdrtox @195 DATA
-    __plant_MOD_rehardperiod @196 DATA
-    __plant_MOD_resmob @197 DATA
-    __plant_MOD_resnor @198 DATA
-    __plant_MOD_respgrt @199 DATA
-    __plant_MOD_respgsh @200 DATA
-    __plant_MOD_resphard @201 DATA
-    __plant_MOD_resphardsi @202 DATA
-    __plant_MOD_rleaf @203 DATA
-    __plant_MOD_rplantaer @204 DATA
-    __plant_MOD_senescence @205
-    __plant_MOD_sink1t @206 DATA
-    __plant_MOD_slanew @207 DATA
-    __plant_MOD_source @208 DATA
-    __plant_MOD_tge @209 DATA
-    __plant_MOD_tillering @210
-    __plant_MOD_tv2til @211 DATA
-    __plant_MOD_vernalisation @212
-    __resources_MOD_dtrint @213 DATA
-    __resources_MOD_evaptrtrf @214
-    __resources_MOD_light @215
-    __resources_MOD_parav @216 DATA
-    __resources_MOD_parint @217 DATA
-    __resources_MOD_rootdg @218
-    __resources_MOD_tranrf @219 DATA
-    __soil_MOD_fo2 @220 DATA
-    __soil_MOD_fperm @221 DATA
-    __soil_MOD_frdrunir @222
-    __soil_MOD_frozensoil @223
-    __soil_MOD_o2fluxes @224
-    __soil_MOD_o2status @225
-    __soil_MOD_physics @226
-    __soil_MOD_soilwatercontent @227
-    __soil_MOD_tsurf @228 DATA
-    __soil_MOD_wcl @229 DATA
-    __soil_MOD_wclm @230 DATA
-    basgra_ @231
-    set_params_ @232
+    __parameters_plant_MOD_abasal @47 DATA
+    __parameters_plant_MOD_ageh @48 DATA
+    __parameters_plant_MOD_basali @49 DATA
+    __parameters_plant_MOD_claiv @50 DATA
+    __parameters_plant_MOD_clvi @51 DATA
+    __parameters_plant_MOD_cocresmx @52 DATA
+    __parameters_plant_MOD_cresi @53 DATA
+    __parameters_plant_MOD_crti @54 DATA
+    __parameters_plant_MOD_cstavm @55 DATA
+    __parameters_plant_MOD_csti @56 DATA
+    __parameters_plant_MOD_daylb @57 DATA
+    __parameters_plant_MOD_daylg1g2 @58 DATA
+    __parameters_plant_MOD_daylgea @59 DATA
+    __parameters_plant_MOD_daylp @60 DATA
+    __parameters_plant_MOD_daylrv @61 DATA
+    __parameters_plant_MOD_dlmxge @62 DATA
+    __parameters_plant_MOD_dparam @63 DATA
+    __parameters_plant_MOD_ebiomax @64 DATA
+    __parameters_plant_MOD_fcocresmn @65 DATA
+    __parameters_plant_MOD_fgressi @66 DATA
+    __parameters_plant_MOD_frtilgg1i @67 DATA
+    __parameters_plant_MOD_frtilgi @68 DATA
+    __parameters_plant_MOD_fslamin @69 DATA
+    __parameters_plant_MOD_fsmax @70 DATA
+    __parameters_plant_MOD_hagere @71 DATA
+    __parameters_plant_MOD_harvfrd @72 DATA
+    __parameters_plant_MOD_hparam @73 DATA
+    __parameters_plant_MOD_kage @74 DATA
+    __parameters_plant_MOD_kcrt @75 DATA
+    __parameters_plant_MOD_klai @76 DATA
+    __parameters_plant_MOD_kluetilg @77 DATA
+    __parameters_plant_MOD_krdranaer @78 DATA
+    __parameters_plant_MOD_kresphard @79 DATA
+    __parameters_plant_MOD_krsr3h @80 DATA
+    __parameters_plant_MOD_ktil @81 DATA
+    __parameters_plant_MOD_laicr @82 DATA
+    __parameters_plant_MOD_laieft @83 DATA
+    __parameters_plant_MOD_laii @84 DATA
+    __parameters_plant_MOD_laitil @85 DATA
+    __parameters_plant_MOD_ldt50a @86 DATA
+    __parameters_plant_MOD_ldt50b @87 DATA
+    __parameters_plant_MOD_lfwidg @88 DATA
+    __parameters_plant_MOD_lfwidv @89 DATA
+    __parameters_plant_MOD_log10clvi @90 DATA
+    __parameters_plant_MOD_log10cresi @91 DATA
+    __parameters_plant_MOD_log10crti @92 DATA
+    __parameters_plant_MOD_log10laii @93 DATA
+    __parameters_plant_MOD_lshape @94 DATA
+    __parameters_plant_MOD_lt50i @95 DATA
+    __parameters_plant_MOD_lt50mn @96 DATA
+    __parameters_plant_MOD_lt50mx @97 DATA
+    __parameters_plant_MOD_nellvm @98 DATA
+    __parameters_plant_MOD_persdrt @99 DATA
+    __parameters_plant_MOD_persdtil @100 DATA
+    __parameters_plant_MOD_persres @101 DATA
+    __parameters_plant_MOD_phencr @102 DATA
+    __parameters_plant_MOD_pheni @103 DATA
+    __parameters_plant_MOD_phy @104 DATA
+    __parameters_plant_MOD_ratedmx @105 DATA
+    __parameters_plant_MOD_rdrharvmax @106 DATA
+    __parameters_plant_MOD_rdrroot @107 DATA
+    __parameters_plant_MOD_rdrsco @108 DATA
+    __parameters_plant_MOD_rdrsmx @109 DATA
+    __parameters_plant_MOD_rdrtem @110 DATA
+    __parameters_plant_MOD_rdrtilmin @111 DATA
+    __parameters_plant_MOD_rdrtmin @112 DATA
+    __parameters_plant_MOD_rdrwmax @113 DATA
+    __parameters_plant_MOD_rehardredday @114 DATA
+    __parameters_plant_MOD_rgenmx @115 DATA
+    __parameters_plant_MOD_rgrtg1g2 @116 DATA
+    __parameters_plant_MOD_rootdm @117 DATA
+    __parameters_plant_MOD_rrdmax @118 DATA
+    __parameters_plant_MOD_rubisc @119 DATA
+    __parameters_plant_MOD_simax1t @120 DATA
+    __parameters_plant_MOD_slamax @121 DATA
+    __parameters_plant_MOD_slamin @122 DATA
+    __parameters_plant_MOD_tbase @123 DATA
+    __parameters_plant_MOD_tcres @124 DATA
+    __parameters_plant_MOD_thardmx @125 DATA
+    __parameters_plant_MOD_tiltoti @126 DATA
+    __parameters_plant_MOD_toptge @127 DATA
+    __parameters_plant_MOD_tranco @128 DATA
+    __parameters_plant_MOD_tsurfdiff @129 DATA
+    __parameters_plant_MOD_tvern @130 DATA
+    __parameters_plant_MOD_tvernd @131 DATA
+    __parameters_plant_MOD_tverndmn @132 DATA
+    __parameters_plant_MOD_verndi @133 DATA
+    __parameters_plant_MOD_yg @134 DATA
+    __parameters_site_MOD_bd @135 DATA
+    __parameters_site_MOD_doyha @136 DATA
+    __parameters_site_MOD_fgas @137 DATA
+    __parameters_site_MOD_fo2mx @138 DATA
+    __parameters_site_MOD_fwcad @139 DATA
+    __parameters_site_MOD_fwcfc @140 DATA
+    __parameters_site_MOD_fwcwet @141 DATA
+    __parameters_site_MOD_fwcwp @142 DATA
+    __parameters_site_MOD_krtotaer @143 DATA
+    __parameters_site_MOD_ksnow @144 DATA
+    __parameters_site_MOD_ktsnow @145 DATA
+    __parameters_site_MOD_lambdasoil @146 DATA
+    __parameters_site_MOD_lat @147 DATA
+    __parameters_site_MOD_rhonewsnow @148 DATA
+    __parameters_site_MOD_rhopack @149 DATA
+    __parameters_site_MOD_swret @150 DATA
+    __parameters_site_MOD_swrf @151 DATA
+    __parameters_site_MOD_tmeltfreeze @152 DATA
+    __parameters_site_MOD_trainsnow @153 DATA
+    __parameters_site_MOD_wcad @154 DATA
+    __parameters_site_MOD_wcfc @155 DATA
+    __parameters_site_MOD_wci @156 DATA
+    __parameters_site_MOD_wcst @157 DATA
+    __parameters_site_MOD_wcwet @158 DATA
+    __parameters_site_MOD_wcwp @159 DATA
+    __parameters_site_MOD_wpoolmax @160 DATA
+    __plant_MOD_allocation @161
+    __plant_MOD_allolv @162 DATA
+    __plant_MOD_allort @163 DATA
+    __plant_MOD_allosh @164 DATA
+    __plant_MOD_allost @165 DATA
+    __plant_MOD_allotot @166 DATA
+    __plant_MOD_anaerobicdamage @167
+    __plant_MOD_biomass @168
+    __plant_MOD_calcsla @169
+    __plant_MOD_cresmn @170 DATA
+    __plant_MOD_cresmx @171 DATA
+    __plant_MOD_cstav @172 DATA
+    __plant_MOD_daylge @173 DATA
+    __plant_MOD_daylgemx @174 DATA
+    __plant_MOD_decomposition @175
+    __plant_MOD_fractv @176 DATA
+    __plant_MOD_glaisi @177 DATA
+    __plant_MOD_glvsi @178 DATA
+    __plant_MOD_gressi @179 DATA
+    __plant_MOD_growth @180
+    __plant_MOD_gshsi @181 DATA
+    __plant_MOD_gstsi @182 DATA
+    __plant_MOD_hardening @183
+    __plant_MOD_hardeningsink @184
+    __plant_MOD_harvest @185
+    __plant_MOD_lerg @186 DATA
+    __plant_MOD_lerv @187 DATA
+    __plant_MOD_lueco2tm @188
+    __plant_MOD_luemxq @189 DATA
+    __plant_MOD_nellvg @190 DATA
+    __plant_MOD_noharv @191 DATA
+    __plant_MOD_phenology @192
+    __plant_MOD_phenrf @193 DATA
+    __plant_MOD_phot @194 DATA
+    __plant_MOD_plantrespiration @195
+    __plant_MOD_rateh @196 DATA
+    __plant_MOD_rdlvd @197 DATA
+    __plant_MOD_rdrfrost @198 DATA
+    __plant_MOD_rdrt @199 DATA
+    __plant_MOD_rdrtox @200 DATA
+    __plant_MOD_rehardperiod @201 DATA
+    __plant_MOD_resmob @202 DATA
+    __plant_MOD_resnor @203 DATA
+    __plant_MOD_respgrt @204 DATA
+    __plant_MOD_respgsh @205 DATA
+    __plant_MOD_resphard @206 DATA
+    __plant_MOD_resphardsi @207 DATA
+    __plant_MOD_rleaf @208 DATA
+    __plant_MOD_rplantaer @209 DATA
+    __plant_MOD_senescence @210
+    __plant_MOD_sink1t @211 DATA
+    __plant_MOD_slanew @212 DATA
+    __plant_MOD_source @213 DATA
+    __plant_MOD_tge @214 DATA
+    __plant_MOD_tillering @215
+    __plant_MOD_tv2til @216 DATA
+    __plant_MOD_vernalisation @217
+    __resources_MOD_dtrint @218 DATA
+    __resources_MOD_evaptrtrf @219
+    __resources_MOD_light @220
+    __resources_MOD_parav @221 DATA
+    __resources_MOD_parint @222 DATA
+    __resources_MOD_rootdg @223
+    __resources_MOD_tranrf @224 DATA
+    __soil_MOD_fo2 @225 DATA
+    __soil_MOD_fperm @226 DATA
+    __soil_MOD_frdrunir @227
+    __soil_MOD_frozensoil @228
+    __soil_MOD_o2fluxes @229
+    __soil_MOD_o2status @230
+    __soil_MOD_physics @231
+    __soil_MOD_soilwatercontent @232
+    __soil_MOD_tsurf @233 DATA
+    __soil_MOD_wcl @234 DATA
+    __soil_MOD_wclm @235 DATA
+    basgra_ @236
+    set_params_ @237

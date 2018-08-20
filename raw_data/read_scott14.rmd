@@ -82,7 +82,12 @@ data_rpm <- data_rpm %>%
        mass_post = postgrazing_mass_kg_dm_ha,
        date_grazed = date_grazed_d
        ) %>%
-  select(date_grazed, block, cultivar, seed_rate, grazing, date_pre, mass_pre, date_post, mass_post)
+  select(date_grazed, block, cultivar, seed_rate, grazing, date_pre, mass_pre, date_post, mass_post) %>%
+  group_by(block, cultivar, seed_rate, grazing) %>% 
+  mutate(mean_date_grazed = mean(date_grazed)) %>% 
+  ungroup()
+
+stopifnot(all(data_rpm$mean_date_grazed==data_rpm$date_grazed))
 
 ```
 
@@ -118,18 +123,21 @@ data_rpm %>%
 <!-- * Growth rate calculated from RPM data and assumed constant between grazings. -->
 
 ```{r include=FALSE, eval=FALSE}
-# calculate growth rate before grazing by cultivar, seed_rate and block.
+# calculate growth rate before grazing by cultivar, seed_rate, block, grazing.
 data_rpm <- data_rpm %>%
   group_by(block, cultivar, seed_rate) %>%
-  arrange(date_grazed) %>%
+  arrange(grazing) %>%
   mutate(
-    date_post_last = lag(date_post ,1), # FIXME could fail 
-    mass_post_last = lag(mass_post ,1), # FIXME could fail 
+    lag_grazing = grazing-lag(grazing,1),
+    date_post_last = lag(date_post ,1), # FIXME could fail if missing grazings
+    mass_post_last = lag(mass_post ,1), # FIXME could fail if missing grazings 
     growth_days_pre = as.numeric(difftime(date_pre, date_post_last), units="days"),
     growth_pre = mass_pre - mass_post_last,
     growth_rate_pre = growth_pre / as.double(growth_days_pre),
     growth_rate_post = lead(growth_rate_pre, 1)
     ) 
+
+stopifnot(all(data_rpm$lag_grazing %in% c(NA,1)))
 
 ```
 
@@ -163,16 +171,18 @@ data_rpm %>%
 * Assume no pasture growth between pre and post RPM.
 
 ```{r include=FALSE}
-# calculate harvest % by cultivar, seed_rate and block.
+# calculate harvest % 
 data_rpm <- data_rpm %>%
-  group_by(block, cultivar, seed_rate) %>%
+  group_by(block, cultivar, seed_rate, grazing) %>%
   mutate(
     delay_pre = as.numeric(difftime(date_grazed, date_pre), units="days"),
     delay_post = as.numeric(difftime(date_post, date_grazed), units="days"),
     mass_grazed = mass_pre, # + growth_rate_pre * delay_pre * 0,
     mass_resid = mass_post, # - growth_rate_post * delay_post * 0, 
-    harv = (1 - mass_resid / mass_grazed) * 100 # proportion harvested
-    )
+    harv = (1 - mass_resid / mass_grazed) * 100, # proportion harvested
+    mean_harv = mean(harv),
+    mean_date_grazed = mean(date_grazed)
+    ) 
 
 ```
 
@@ -190,7 +200,7 @@ data_rpm %>%
              title=paste('Harvest %, Block', unique(.$block))) +
         theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
         geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
-        geom_point(mapping=aes(x=date_grazed, y=harv), colour='purple') +
+        geom_point(mapping=aes(x=mean_date_grazed, y=mean_harv), colour='purple') +
         facet_grid(cultivar ~ seed_rate) +
         scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
         scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
@@ -218,7 +228,7 @@ data_cut1 <- data_cut1 %>%
   mutate(
     month = month(month)
   ) %>%
-  group_by(date_cut, block, seed_rate, cultivar, grazing) %>%
+  group_by(block, seed_rate, cultivar, grazing) %>%
   summarise(yield = mean(yield)) %>% 
   ungroup()
 
@@ -368,8 +378,10 @@ data_till <- data_till %>%
     date_till = date_d,
     tillers = ryegrass_tiller_density_tillers_m2
   ) %>%
-  group_by(block, cultivar, seed_rate, date_till) %>%
-  summarise(mean_tillers = mean(tillers)) %>% 
+  mutate(sampling_month = floor_date(date_till, "months")) %>% 
+  group_by(block, cultivar, seed_rate, sampling_month) %>% 
+  summarise(mean_tillers = mean(tillers),
+            mean_date_till = mean(date_till)) %>% 
   ungroup()
 
 ```
@@ -379,8 +391,8 @@ Average tiller density = `r round(mean(data_till$mean_tillers, na.rm=TRUE))`
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # plot tiller data 
 ybreaks <- seq(0, round_any(max(data_till$mean_tillers, na.rm=TRUE), 2500, ceiling), 2500)
-xbreaks <- seq(floor_date(min(data_till$date_till), "years"), 
-               ceiling_date(max(data_till$date_till), "years"), by="1 year")
+xbreaks <- seq(floor_date(min(data_till$mean_date_till), "years"), 
+               ceiling_date(max(data_till$mean_date_till), "years"), by="1 year")
 data_till %>%
   split(.$block) %>%
   map(~ggplot(.) +
@@ -388,7 +400,7 @@ data_till %>%
          title=paste('Tiller Density, Block', unique(.$block))) +
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
     geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
-    geom_point(mapping=aes(x=date_till, y=mean_tillers), colour='darkgreen') +
+    geom_point(mapping=aes(x=mean_date_till, y=mean_tillers), colour='darkgreen') +
     facet_grid(cultivar ~ seed_rate ) +
     scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
     scale_y_continuous(breaks=ybreaks, 
@@ -434,6 +446,7 @@ data_bot <- data_bot %>%
 # add grazing number
 temp_cut <- data_cut %>% 
   distinct(block, cultivar, seed_rate, date_cut) 
+
 closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
   temp <- temp_cut %>% 
     filter(block==block_bot, cultivar==cultivar_bot, seed_rate==seed_rate_bot)
@@ -444,6 +457,7 @@ closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
   }
   return(ans)
 }
+
 temp_bot <- data_bot %>% 
   group_by(block, cultivar, seed_rate, date_bot) %>%
   mutate(date_cut = closest_cut(block, cultivar, seed_rate, date_bot)) %>% 
@@ -670,8 +684,8 @@ data_rpm <- data_rpm %>%
     doy_pre = yday(date_pre),
     year_post = year(date_post2),
     doy_post = yday(date_post2),
-    year_grazed = year(date_grazed),
-    doy_grazed = yday(date_grazed), 
+    year_grazed = year(mean_date_grazed),
+    doy_grazed = yday(mean_date_grazed), 
     days_pre = difftime(date_grazed, date_pre),
     days_post = difftime(date_post2, date_grazed)
     )
@@ -693,18 +707,20 @@ for (ablock in c(1,2,3,4,5)) { # loop through data sets
 # write harvest dates and harvest % for selected series
 file_name <- paste("harvest_Scott_", ablock, ".txt", sep="")
 data_h <- data_rpm %>%
-  select(block, seed_rate, cultivar, year_grazed, doy_grazed, harv) %>%
+  select(block, seed_rate, cultivar, year_grazed, doy_grazed, mean_harv) %>%
   filter(block == ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
   drop_na()
 days_harvest <- matrix(as.integer(-1), nrow=100, ncol=3) # up to 100 harvests
-days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$harv)
+days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$mean_harv)
 write.table(days_harvest, file=file_name, row.names=FALSE, col.names=FALSE, sep='\t')
 
 # write calibration data
 file_name <- paste("data_calibration_Scott_", ablock, ".txt", sep="")
 
 # collect the data in this list
-data_c <- vector("list", 6) 
+data_c <- vector("list", 7) 
+err_c <- c(TILTOTI=400, CLV=10, CST=4, WCLM=2, BASAL=2)
+err_c <- c(TILTOTI=1000, CLV=40, CST=5, WCLM=5, BASAL=10)
 
 # pre and post mass (but this includes other species!)
 # temp <- data_rpm %>%
@@ -718,11 +734,13 @@ data_c <- vector("list", 6)
 
 # ryegrass tillers
 temp <- data_till %>%
-  select(block, seed_rate, cultivar, mean_tillers, date_till) %>%
+  select(block, seed_rate, cultivar, mean_tillers, mean_date_till) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(date_till), 
-                                 doy=yday(date_till), data=mean_tillers, sd=400, type="sd",
-                                 weight=ifelse(((date_till>=calib_start)&(date_till<=calib_end)), 1, 0)) %>% drop_na())
+data_c[[3]] <- with(temp, tibble(var='TILTOT', year=year(mean_date_till), doy=yday(mean_date_till), 
+                                 data=mean_tillers, sd=err_c['TILTOTI'], type="sd",
+                                 weight=ifelse(((mean_date_till>=calib_start)&
+                                                  (mean_date_till<=calib_end)), 1, 0))
+                    %>% drop_na())
 
 # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
 temp <- data_bm %>%
@@ -731,11 +749,11 @@ temp <- data_bm %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[4]] <- with(temp, tibble(var='CLV', year=year(date_bot), 
                                  doy=yday(date_bot), data=leaf/100*yield_bot/10*0.45+leaf_below/100*below/10*0.45, 
-                                 sd=10, type="sd",
+                                 sd=err_c['CLV'], type="sd",
                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 data_c[[5]] <- with(temp, tibble(var='CST', year=year(date_bot), 
                                  doy=yday(date_bot), data=stem/100*yield_bot/10*0.45+stem_below/100*below/10*0.45, 
-                                 sd=4, type="sd",
+                                 sd=err_c['CST'], type="sd",
                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 
 # light interception (but this includes all species!)
@@ -750,8 +768,16 @@ temp <- data_sm %>%
   select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
 data_c[[6]] <- with(temp, tibble(var='WCLM', year=year(date_sm), 
-                                 doy=yday(date_sm), data=mean_sm, sd=2, type="sd",
-                                 weight=1) %>% drop_na())
+                                 doy=yday(date_sm), data=mean_sm, sd=err_c['WCLM'], type="sd",
+                                 weight=ifelse(((date_sm>=calib_start)&(date_sm<=calib_end)), 1, 0)) %>% drop_na())
+
+# ryegrass fracton of green
+# temp <- data_bot %>%
+#   select(block, seed_rate, cultivar, rgfrac, date_bot) %>%
+#   filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
+# data_c[[7]] <- with(temp, tibble(var='BASAL', year=year(date_bot), 
+#                                  doy=yday(date_bot), data=rgfrac, sd=err_c['BASAL'], type="sd",
+#                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
 
 # bind list and write file
 data_calib <- bind_rows(data_c)
