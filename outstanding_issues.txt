@@ -12,9 +12,6 @@ Issues
 - LERG LERV hardcoded with no calibration (but leaf width is calibrated)
 - root depth poorly identified, root mass often crashes
 - CRES is unstable, poorly determined, often crashes
-- BASAL area effects on LAI, ROOTD, GTIL, DTIL not included
+- ROOTD and BASAL area dynamics are rather crude
 - generative tillers are immune to environmental death rates
 
-To Do
-
-- reorganise scripts so separate script not needed for each site
