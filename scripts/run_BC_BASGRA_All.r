@@ -104,6 +104,7 @@
     list_output[[3]] <- run_model()
     days_harvest <- list_days_harvest[[s]]
     
+<<<<<<< HEAD
     leg[4] <- "Destock-20%"
     days_harvest <- list_days_harvest[[s]]
     ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
@@ -115,6 +116,19 @@
     days_harvest <- list_days_harvest[[s]]
     ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
     days_harvest[ii] <- as.integer(days_harvest[ii] * 0.7) # destock
+=======
+    leg[4] <- "Destock-15%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.85) # destock
+    list_output[[4]] <- run_model()
+    days_harvest <- list_days_harvest[[s]]
+
+    leg[5] <- "Destock-20%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.8) # destock
+>>>>>>> 4caab784fc78c016c6d2936495aedd43f07460df
     list_output[[5]] <- run_model()
     days_harvest <- list_days_harvest[[s]]
     
