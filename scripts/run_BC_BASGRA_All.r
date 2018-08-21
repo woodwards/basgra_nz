@@ -76,25 +76,46 @@
     params         <- df_params[,parcol]
     
     # create output lists
-    leg <- vector("character", 3)
-    list_output <- vector("list", 3)
+    leg <- vector("character", 5)
+    list_output <- vector("list", 5)
     
     # run MAP and scenarios
     leg[1] <- "Current"
     list_output[[1]] <- run_model()
     
-    leg[2] <- "Irrig+50mm"
-    matrix_weather <- list_matrix_weather[[s]]
-    ii <- matrix_weather[,2] %in% c(274,305,335,1,32,60,91,121) # irrig days
-    matrix_weather[ii,6] <- matrix_weather[ii,6] + 50.0 # add irrig
-    list_output[[2]] <- run_model()
-    matrix_weather <- list_matrix_weather[[s]]
+    # leg[2] <- "Irrig+50mm"
+    # matrix_weather <- list_matrix_weather[[s]]
+    # ii <- matrix_weather[,2] %in% c(274,305,335,1,32,60,91,121) # irrig days
+    # matrix_weather[ii,6] <- matrix_weather[ii,6] + 50.0 # add irrig
+    # list_output[[2]] <- run_model()
+    # matrix_weather <- list_matrix_weather[[s]]
     
-    leg[3] <- "Destock-30%"
+    leg[2] <- "Destock-5%"
     days_harvest <- list_days_harvest[[s]]
     ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
-    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.7) # destock
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.95) # destock
+    list_output[[2]] <- run_model()
+    days_harvest <- list_days_harvest[[s]]
+    
+    leg[3] <- "Destock-10%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.9) # destock
     list_output[[3]] <- run_model()
+    days_harvest <- list_days_harvest[[s]]
+    
+    leg[4] <- "Destock-15%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.85) # destock
+    list_output[[4]] <- run_model()
+    days_harvest <- list_days_harvest[[s]]
+
+    leg[5] <- "Destock-20%"
+    days_harvest <- list_days_harvest[[s]]
+    ii <- seq(length(days_harvest)/3*2+1, length(days_harvest))
+    days_harvest[ii] <- as.integer(days_harvest[ii] * 0.8) # destock
+    list_output[[5]] <- run_model()
     days_harvest <- list_days_harvest[[s]]
     
     # export output using functions in initialise_BASGRA_general.R

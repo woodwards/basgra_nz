@@ -117,21 +117,32 @@ outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max sc
 outputMax <- rep( as.double(NA), length(outputNames))
 
 # choose outputs to display
-chooseNames <- c(
-  "DAYL", "DAYLGE", 
-  "DAVTMP", "LT50",
-  "RAIN", "EVAP", "TRAN", "DRAIN",   
-  "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
-  "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-  "RGRTV", "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
-  "PHEN", "PHENRF", "VERND", "VERN", 
-  "HARVFRIN", "HARVFR",
-  "RDRHARV",  
-  "RES", "RESMOB", 
-  "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
-  "LERV", "LERG",
-  "RLEAF", "GRT", "RDRT", "RDLVD", "YIELD"
-)
+if (FALSE){
+  chooseNames <- c(
+    "DAYL", "DAYLGE", 
+    "DAVTMP", "LT50",
+    "RAIN", "EVAP", "TRAN", "DRAIN",   
+    "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
+    "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
+    "RGRTV", "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
+    "PHEN", "PHENRF", "VERND", "VERN", 
+    "HARVFRIN", "HARVFR",
+    "RDRHARV",  
+    "RES", "RESMOB", 
+    "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
+    "LERV", "LERG",
+    "RLEAF", "GRT", "RDRT", "RDLVD", "YIELD"
+  )
+} else {
+  chooseNames <- c(
+    "WAL", "ROOTD", "WCL", 
+    "CLV", "CLVD", "CRES", "CRT", "CST", "DM",
+    "BASAL", "TILTOT", "TILG2", "TSIZE", 
+    "LAI", "PHOT", "RESMOB", 
+    "YIELD"
+  )
+}
+
 # check chooseNames are in outputNames
 i <- which(is.na(match(chooseNames, outputNames)))
 # chooseNames[i]
