@@ -34,7 +34,7 @@
   cat(file=stderr(), 'Calling  BC_BASGRA_BT.r', "\n")
   source('scripts/BC_BASGRA_BT.R') # new solver
   extraOutputs <- c("TSIZE", "CRT", "LAI", "DM", "RES", "WCLM")
-  source('scripts/BC_BASGRA_BT_results.R') # new solver results
+  source('scripts/BC_BASGRA_BT_plots.R') # new solver results
   # which in turn calls:
   # source('scripts/plotResiduals_BT.r') # replacement functions
   

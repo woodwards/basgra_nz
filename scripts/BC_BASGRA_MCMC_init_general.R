@@ -21,7 +21,9 @@
      list_days_harvest[[s]] <- days_harvest ; list_NDAYS         [[s]] <- NDAYS   
      # check df_params matches for_par
      i <- which(row.names(df_params)!=for_par$var)
-     stopifnot(length(i)==0) 
+  	 if (length(i)>0){
+	   	stop(paste("mismatched param names:", paste(row.names(df_params)[i], "=", for_par$var[i], collapse="  ")))
+	 }
    } 
    cat(file=stderr(), 'Finished calling site init scripts', "\n")
    
@@ -165,7 +167,6 @@
    # check priors encompass default values (not necessary but could reveal errors)
    # i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
    # # parname_BC[i]
-   # stopifnot(length(i)==0)
    
    ip_BC_site   <- sitelist ; icol_pChain_site <- sitelist
    for (p in 1:np_BC) {

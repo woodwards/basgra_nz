@@ -65,7 +65,7 @@ read_weather_WG <- function(y = year_start,
 ### 3. OUTPUT VARIABLES DEFINITIONS (see BASGRA.f90)
 
 # parse output list from fortran
-for_out<- tibble(line=readLines("model/BASGRA.f90")) %>%
+for_out <- tibble(line=readLines("model/BASGRA.f90")) %>%
   filter(str_detect(line, "y\\(day,[:space:]*[:digit:]+\\)")) %>%
   mutate(yday=str_extract(line,"y\\(day,[:space:]*[:digit:]+\\)"),
          index=as.numeric(str_sub(yday,7,-2)),
@@ -82,7 +82,9 @@ outputUnits <- temp$units
 # check outputNames match for_out
 i <- which(outputNames != for_out$var)
 # outputNames[i]
-stopifnot(length(i)==0) # check 
+if (length(i)>0){
+	stop(paste("mismatched output variables:", paste(outputNames[i], "=", for_out$var[i], collapse="  ")))
+}
 
 # outputNames <- c(
 #   "Time"      , "year"     , "doy"      , "DAVTMP"    , "CLV"      , "CLVD"     ,
@@ -146,7 +148,9 @@ if (FALSE){
 # check chooseNames are in outputNames
 i <- which(is.na(match(chooseNames, outputNames)))
 # chooseNames[i]
-stopifnot(length(i)==0) # check
+if (length(i)>0){
+	stop(paste("unknown output variables:", paste(chooseNames[i], collapse="  ")))
+}
 
 ################################################################################
 ### 4. FUNCTIONS FOR EXPORTING THE RESULTS TO FILE (pdf with plots, txt with table)

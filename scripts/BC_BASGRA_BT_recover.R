@@ -43,10 +43,10 @@ names(params_BC_MAP) <- parname_BC
 cat(file=stderr(), paste("MAP parameter values"), "\n")
 print(round(params_BC_MAP,4))
 
-# results are generated in BC_BASGRA_BT_results.R
+# results are generated in BC_BASGRA_BT_plots.R
 
 extraOutputs <- c("TSIZE", "CRT", "LAI", "DM", "RES")
-source('scripts/BC_BASGRA_BT_results.R') # new solver results
+source('scripts/BC_BASGRA_BT_plots.R') # new solver results
 # which in turn calls:
 # source('scripts/plotResiduals_BT.r') # replacement functions
 

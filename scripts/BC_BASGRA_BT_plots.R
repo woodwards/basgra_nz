@@ -1,7 +1,7 @@
 # Show results of Bayesian calibration of BASGRA model using BayesianTools package
 
 # 
-cat(file=stderr(), 'Results of calibrating BASGRA using BayesianTools package', "\n")
+cat(file=stderr(), 'Plotting results of calibrating BASGRA using BayesianTools package', "\n")
 suppressMessages({
   library(tidyverse)
   library(BayesianTools)

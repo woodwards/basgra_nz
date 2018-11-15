@@ -33,7 +33,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   HARV   = 0
   NOHARV = 1
   HARVFR = 0.0
-  do i=1,100
+  do i=1,100 ! FIXME this is inefficient
     if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
       HARV   = 1
       NOHARV = 0
