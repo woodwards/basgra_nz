@@ -52,7 +52,7 @@ suppressMessages({
 #### 3. OTHER OUTPUTS AND PLOTTING ####
 
   cat(file=stderr(), 'Calling BC_BASGRA_other_plots.r', "\n")
-  source("BC_BASGRA_other_plots.r")
+  source("scripts/BC_BASGRA_other_plots.r")
   
 #### 4. CLEAN UP ####
   

@@ -119,7 +119,7 @@ outputMin <- rep( as.double(NA), length(outputNames)) # simon add min and max sc
 outputMax <- rep( as.double(NA), length(outputNames))
 
 # choose outputs to display
-if (FALSE){
+if (TRUE){
   chooseNames <- c(
     "DAYL", "DAYLGE", 
     "DAVTMP", "LT50",
