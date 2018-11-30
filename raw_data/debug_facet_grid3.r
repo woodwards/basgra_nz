@@ -1,13 +1,14 @@
 
-library(reprex)
+temp <- data_bot2 %>%
+  filter(block==3) 
 
-library(ggplot2)
-ggplot(mtcars) +
-  geom_col(aes(x=disp, y=mpg)) +
-  geom_point(aes(x=disp, y=mpg)) 
+ggplot(temp) +
+  geom_bar(mapping=aes(x=date_bot, y=fraction, fill=species), stat='identity') +
+  geom_point(mapping=aes(x=date_bot, y=fraction, fill=species), alpha=0.1) +
+  facet_grid(cultivar ~ seed_rate ) 
+      
+temp <- filter(temp, cultivar=="Alto", seed_rate=="18kg")
 
-# this is the reprex
-# copy code to clipboard then type reprex() at console
-# reprex code will be in clipboard and can be pasted to e.g. Github
-# https://github.com/tidyverse/ggplot2/issues/2773
-
+ggplot(temp) +
+  geom_bar(mapping=aes(x=date_bot, y=fraction, fill=species), stat='identity') +
+  facet_grid(cultivar ~ seed_rate ) 

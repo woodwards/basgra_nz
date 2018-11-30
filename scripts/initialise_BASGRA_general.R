@@ -239,9 +239,9 @@ export_output <- function(
   lwd         = rep(1,length(list_output)) # line width was 3
 ) {
   # output to screen
-  plot_output(  list_output=list_output, vars=vars,
-                leg=leg, leg_title=leg_title, main_title=main_title,
-                nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
+  # plot_output(  list_output=list_output, vars=vars,
+  #               leg=leg, leg_title=leg_title, main_title=main_title,
+  #               nrow_plot=nrow_plot, ncol_plot=ncol_plot, lty=lty, lwd=lwd )
 
 #  dev.off()
 #  table_output( list_output=list_output, vars=vars, file_table=file_table, leg=leg )

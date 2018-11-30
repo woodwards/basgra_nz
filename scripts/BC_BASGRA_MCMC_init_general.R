@@ -23,7 +23,7 @@
      i <- which(row.names(df_params)!=for_par$var)
   	 if (length(i)>0){
 	   	stop(paste("mismatched param names:", paste(row.names(df_params)[i], "=", for_par$var[i], collapse="  ")))
-	 }
+	   }
    } 
    cat(file=stderr(), 'Finished calling site init scripts', "\n")
    
@@ -75,6 +75,17 @@
      data_type  [[s]] <-     database[[s]][,6]
      data_weight[[s]] <-     database[[s]][,7]
 
+     # adjust sd
+     if (FALSE){
+       if (s==1){
+         cat("adjusting data_sd in BC_BASGRA_MCMC_init_general.R\n")
+       }
+       data_sd    [[s]][data_name  [[s]]=="CLV"] <- 40 # 40
+       data_sd    [[s]][data_name  [[s]]=="CST"] <- 10 # 5
+       data_sd    [[s]][data_name  [[s]]=="TILTOT"] <- 800 # 1000
+       data_sd    [[s]][data_name  [[s]]=="WCLM"] <- 4 # 5 
+     }
+     
      # data uncertainty (these ones use Sivia distribution)
 #      data_sd   [[s]]        <- abs(database[[s]][,4])         * cv_default[s] 
 #      # special cases 
@@ -115,7 +126,7 @@
 
    # Now find the maximum value for each variable across the whole database
    BCvarname <- NULL
-   for (s in 1:nSites) BCvarname <- c( BCvarname, data_name[[s]] )
+   for (s in 1:nSites) BCvarname <- c( BCvarname, as.character(data_name[[s]]) ) # convert from factor
    BCvarname <- unique( BCvarname ) ; nBCvar <- length( BCvarname )
    BCvarmax  <- rep( 0, nBCvar )
    for (s in 1:nSites) {
@@ -153,7 +164,7 @@
 ## PRIOR DISTRIBUTION FOR THE PARAMETERS ##
    
    # read priors
-   df_params_BC <- read.table( file_prior, header=T, sep="" )
+   df_params_BC <- read.table( file_prior, header=T, sep="")
    parname_BC   <-               df_params_BC[,1] # parameter that this BC line refers to
    parmin_BC    <-               df_params_BC[,2]
    parmode_BC    <-               df_params_BC[,3]
@@ -237,7 +248,7 @@
 	       which( output[,2]==data_mm_year[[s]][i] & output[,3]==data_mm_doy[[s]][i] ) )
 	   }
    }
-   
+
    # calculate log-likelihood for one site
    # Simon this function is quite fragile to errors!
    calc_logL_s <- function( s=1, output=output ) {

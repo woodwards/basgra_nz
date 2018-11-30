@@ -1,3 +1,4 @@
+# replaces functions from bayesianTools
 plotTimeSeriesResults <- function(sampler, model, observed, error = NULL, plotResiduals = TRUE, start = 1, prior = FALSE, ...){
   oldPar = par(no.readonly = TRUE)
   

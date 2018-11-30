@@ -67,30 +67,31 @@ bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
 cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
 cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
 cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
-# browser()
 
 # rerun BT until target mpsrf achieved (provided run time remains reasonable)
-target_mpsrf <- 2.0
-max_seconds <- 1800
-if (FALSE){
-  while ((gelmanDiagnostics(bt_out)$mpsrf > target_mpsrf)&
-         (bt_out[[1]]$settings$runtime[3] < max_seconds)){
-    cat(file=stderr(), paste("Greater than", target_mpsrf, "so continuing..."), "\n")
-	if (nBurnin>0){
-		stop("restart doesn't work with nBurnin>0 due to a bug")
-	}
-    bt_out <- runMCMC(bayesianSetup = bt_out) 
-    cat(file=stderr(), " ", "\n")
-    # bt_chains <- nInternal * nChains
-    bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
-    # bt_pars <- length(bt_names)
-    bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
-    # cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
-    cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
-    cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
-    # browser()
-  }
-}
+# DOESN'T REALLY SEEM TO CONVERGE, AND OFTEN CAUSES A CRASH, ALSO CAN'T HANDLE BURNIN
+# target_mpsrf <- 2.0
+# max_minutes <- 60
+# if (FALSE){ 
+#   while ((gelmanDiagnostics(bt_out)$mpsrf > target_mpsrf)&
+#          (bt_out[[1]]$settings$runtime[3] < max_minutes*60)){
+#     # restart
+#   	if (nBurnin==0){
+#   	  cat(file=stderr(), paste("Greater than", target_mpsrf, "so continuing..."), "\n")
+#   	} else {
+#   		stop("restart doesn't work with nBurnin>0 due to a bug")
+#   	}
+#     bt_out <- runMCMC(bayesianSetup = bt_out) 
+#     cat(file=stderr(), " ", "\n")
+#     # bt_chains <- nInternal * nChains
+#     bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
+#     # bt_pars <- length(bt_names)
+#     bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
+#     # cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
+#     cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+#     cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+#   }
+# }
 
 # stop parallel
 stopParallel(bayesianSetup=bt_setup)
@@ -101,8 +102,8 @@ psf <- gelmanDiagnostics(bt_out)$psrf[,1]
 print(round(psf,3))
 
 # memory management
-cat(file=stderr(), 'Saving BASGRA calibration to temp.RData', "\n")
-save.image(file="temp.RData")
-rm(list=ls())
+cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
+save.image(file="model_outputs/checkpoint_after_calibration.RData")
+rm(list=ls()) # avoid memory overflow
 
 

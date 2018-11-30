@@ -37,35 +37,24 @@ suppressMessages({
   cat(file=stderr(), 'Calling BC_BASGRA_BT.r', "\n")
   source('scripts/BC_BASGRA_BT.R') # new solver
 
-#### 2a. READ BT RESULTS ####
-  
-  source('scripts/BC_BASGRA_BT_read.R') # read new solver results
-  
 #### 2b. PLOT BT RESULTS ####
   
-  cat(file=stderr(), 'Calling BC_BASGRA_BT_plots.r', "\n")
-  extraOutputs <- c("TSIZE", "CRT", "LAI", "DM", "RES")
-  source('scripts/BC_BASGRA_BT_plots.R') # plot new solver results
+  cat(file=stderr(), 'Calling BC_BASGRA_BT_results.r', "\n")
+  source('scripts/BC_BASGRA_BT_results.R') # plot new solver results
   # which in turn calls:
   # source('scripts/plotResiduals_BT.r') # replacement functions
   
 #### 3. OTHER OUTPUTS AND PLOTTING ####
 
-  cat(file=stderr(), 'Calling BC_BASGRA_other_plots.r', "\n")
-  source("scripts/BC_BASGRA_other_plots.r")
+  cat(file=stderr(), 'Calling BC_BASGRA_BT_other_results.r', "\n")
+  source("scripts/BC_BASGRA_BT_other_results.r")
   
 #### 4. CLEAN UP ####
   
   # save workspace since it takes a long time to generate
-  cat(file=stderr(), 'Saving BASGRA_Workspace.RData', "\n")
-  file_save <- 'model_outputs/BASGRA_Workspace.RData' 
+  cat(file=stderr(), 'Saving checkpoint_finished.RData', "\n")
+  file_save <- 'model_outputs/checkpoint_finished.RData' 
   save.image(file_save)
-  
-  # get latest output
-  output <- as.data.frame(output)
-  names(output) <- outputNames
-  x <- output$Time
-  # plot(x,output$DEBUG,main="DEBUG")
   
   # finish
   cat(file=stderr(), 'Finished BC_BASGRA_All.r', "\n")
@@ -77,7 +66,7 @@ suppressMessages({
   # reload workspace
   if (FALSE){
     suppressMessages(library(tidyverse))
-    file_save <- 'model_outputs/BASGRA_Workspace.RData' 
+    file_save <- 'model_outputs/checkpoint_finished.RData' 
     load(file_save)  
     BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
     dyn.load(BASGRA_DLL) 
