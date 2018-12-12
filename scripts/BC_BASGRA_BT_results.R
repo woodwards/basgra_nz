@@ -1,11 +1,11 @@
 # Show results of Bayesian calibration of BASGRA model using BayesianTools package
 
 # 
-cat(file=stderr(), 'Plotting results of calibrating BASGRA using BayesianTools package', "\n")
+cat(file=stderr(), "Plotting results of calibrating BASGRA using BayesianTools package", "\n")
 
 # reload BT results
-cat(file=stderr(), 'Reading checkpoint after BASGRA calibration', "\n")
-load(file="model_outputs/checkpoint_after_calibration.RData")
+cat(file=stderr(), "Reading checkpoint after BASGRA calibration", "\n")
+load(file=paste(scenario, "/checkpoint_after_calibration.RData", sep=""))
 suppressMessages({
   library(tidyverse)
   library(BayesianTools)
@@ -50,11 +50,11 @@ print(round(params_BC_MAP,4))
 
 # calibration summary ####
 invisible(capture.output(cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
-                         file=paste("model_outputs/BC_summary_BT.txt",sep=""))) # and export text summary
+                         file=paste(scenario, "/BC_summary_BT.txt", sep=""))) # and export text summary
 
 # correlation matrix ####
 if (TRUE){
-  cat(file=stderr(), 'Plot largest cells of posterior correlation grid', "\n")
+  cat(file=stderr(), "Plot largest cells of posterior correlation grid", "\n")
   nmatrix <- dim(cmatrix)[1]
   flat <- tibble(row=rep(1:nmatrix, times=nmatrix),
                      col=rep(1:nmatrix,  each=nmatrix),
@@ -70,39 +70,90 @@ if (TRUE){
     whichp <- c(whichp, flat$row[i], flat$col[i])
   }
   whichp <- unique(whichp, whichx)
-  png( paste("model_outputs/BC_parameters_correlations_BT.png",sep=""),
+  png( paste(scenario, "/BC_parameter_correlations_BT.png", sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
   correlationPlot(bt_out, whichParameters=whichp) # parameter correlation plot, very slow and big!
   dev.off()
 }
 
 # traceplots (multiple plots) ####
-if (FALSE){
-  tracePlot(bt_out) # parameter traces (don't know how to combine onto one sheet)
+if (TRUE){
+  # modified coda::traceplot code : edit title, include sc
+  traceplot <-
+    function (x, smooth = FALSE, col = 1:6, type = "l", xlab = "Iterations",
+              ylab = "", ...) 
+    {
+      x <- mcmc.list(x)
+      args <- list(...)
+      for (j in 1:nvar(x)) {
+        xp <- as.vector(time(x))
+        yp <- if (nvar(x) > 1) 
+          x[, j, drop = TRUE]
+        else x
+        yp <- do.call("cbind", yp) 
+        matplot(xp, yp*sc[j], xlab = xlab, ylab = ylab, type = type, col = col, ...)
+        if (!is.null(varnames(x)) && is.null(list(...)$main)) 
+          title(paste(varnames(x)[j]))
+        if (smooth) {
+          scol <- rep(col, length = nchain(x))
+          for (k in 1:nchain(x)) lines(lowess(xp, yp[, k]), 
+                                       col = scol[k])
+        }
+      }
+    }
+  png( paste(scenario, "/BC_parameter_traces.png", sep=""),
+       width=pagew, height=pageh, units="in", type="windows", res=300)
+  nrowsPlots <- ceiling( sqrt((np_BC+1)*pageh/pagew) )
+  ncolsPlots <- ceiling( (np_BC+1)/nrowsPlots )
+  oldpar <- par(no.readonly = TRUE) 
+  par( mfrow = c(nrowsPlots,ncolsPlots) )
+  par(mar=c(2, 2, 2, 1))
+  traceplot(getSample(bt_out, coda=TRUE)) 
+  dev.off()
+  par(oldpar)
+  
 }
 
 # prior and posterior histograms (old Basgra one is nicer) ####
 if (FALSE){
-  cat(file=stderr(), 'Plot prior/posterior histograms', "\n")
-  png( paste("model_outputs/BC_parameters_histograms_BT.png",sep=""),
+  cat(file=stderr(), "Plot prior/posterior histograms", "\n")
+  png( paste(scenario, "/BC_parameter_histograms_BT.png", sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
   marginalPlot(bt_out) # prior and posterior histograms (scaled parameters)
   dev.off()
 }
 
 # gelman convergence plots (multiple plots) ####
-if (FALSE){
+if (TRUE){
   # gelmanDiagnostics(bt_out, plot=TRUE, 
   #                   start=1, 
   #                   end=nChain/(nInternal*nChains)) # Rhat for each parameter
-  gelman.plot(getSample(bt_out, coda=TRUE), ylim=c(1.0,1.5))
+  png( paste(scenario, "/BC_parameter_gelman.png", sep=""),
+       width=pagew, height=pageh, units="in", type="windows", res=300)
+  nrowsPlots <- ceiling( sqrt((np_BC+1)*pageh/pagew) )
+  ncolsPlots <- ceiling( (np_BC+1)/nrowsPlots )
+  oldpar <- par(no.readonly = TRUE) 
+  par( mfrow = c(nrowsPlots,ncolsPlots) )
+  par(mar=c(2, 2, 2, 1))
+  gelman.plot(getSample(bt_out, coda=TRUE), 
+              ylim=c(1.0,2.0), 
+              ask=FALSE, 
+              auto.layout=FALSE, 
+              bin.width=50)
+  plot(1,type='n', axes=FALSE, xlab="", ylab="")
+  plot_colors <- c("black","red")
+  legend("bottomright", c("Gelman-R","95% C.I."),
+         bty="n", lty=c(1,2), lwd=c(1,2), col=plot_colors, title = "LEGEND:")
+  dev.off()
+  par(oldpar)
+  
 }
 
 # prediction function ####
 # https://github.com/florianhartig/BayesianTools/blob/master/Examples/PlotTimeSeriesResults.Rmd
 if (TRUE){
   
-  source('scripts/plotResiduals_BT.r') # replacement functions
+  source("scripts/plotResiduals_BT.r") # replacement functions
   
   bt_predict <- function(par){ # needs s and data_col
     # use loop from BC_BASGRA_MCMC.R  
@@ -144,6 +195,18 @@ if (TRUE){
       1-mean((m-d)^2, na.rm=TRUE)/var(d, na.rm=TRUE)
     }
   }
+  # https://stackoverflow.com/questions/17549762/is-there-such-colsd-in-r
+  colSds <- function(x, na.rm=TRUE) {
+    if (is.null(dim(x))){ # vector
+      return(sd(x, na.rm=na.rm))
+    } else if (na.rm) {
+      n <- colSums(!is.na(x)) # thanks @flodel
+    } else {
+      n <- nrow(x)
+    }
+    colVar <- colMeans(x*x, na.rm=na.rm) - (colMeans(x, na.rm=na.rm))^2
+    return(sqrt(colVar * n/(n-1)))
+  }
   
   # plot predictive results for each site (and collect residuals into a dataframe) ####
   residual_df <- vector("list", nSites * nBCvar)
@@ -152,10 +215,10 @@ if (TRUE){
   for (s in 1:nSites){ 
 
     # predictins against data
-    cat(file=stderr(), 'Plot model calibration fits against data, site', s, "\n")
-    # pdf( paste('model_outputs/BC_calibration_fits_BT_', s, '.pdf',sep=""),
+    cat(file=stderr(), "Plot model calibration fits against data, site", s, "\n")
+    # pdf( paste("model_outputs/BC_calibration_fits_BT_", s, ".pdf",sep=""),
     #      width=pagew, height=pageh)
-    png( paste('model_outputs/BC_calibration_fits_BT_', s, '.png',sep=""),
+    png( paste(scenario, "/BC_calibration_fits_BT_", s, ".png", sep=""),
          width=11, height=8, units="in", type="windows", res=300)
 
     # set up plot grid
@@ -194,6 +257,20 @@ if (TRUE){
                                        numSamples=1000,
                                        quantiles=c(0.05, 0.5, 0.95),
                                        error=bt_error)
+        predicted <- pred$posteriorPredictivePredictionInterval[2,]
+        confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
+        x <- pred$posteriorPredictiveSimulations[,bt_obs_rows]
+        if (length(bt_obs_rows)>1){
+          bt_pred_mean <- colMeans(x)
+          bt_pred_sd <- colSds(x)
+        } else if (length(bt_obs_rows)==1) {
+          bt_pred_mean <- mean(x)
+          bt_pred_sd <- sd(x)
+        } else {
+          bt_pred_mean <- NA
+          bt_pred_sd <- NA
+        }
         plotTimeSeries <- function(observed = NULL, predicted = NULL, x = NULL, xlim = NULL,
                                    confidenceBand = NULL, predictionBand = NULL, 
                                    xlab = "Time", ylab = "Observed / predicted values", ...){
@@ -215,9 +292,6 @@ if (TRUE){
           if(!is.null(predicted)) lines(x, predicted, col = "red")
           if(!is.null(observed)) points(x, observed, col = NA, pch = 3, cex = 0.6)
         }
-        predicted <- pred$posteriorPredictivePredictionInterval[2,]
-        confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
-        predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
         plotTimeSeries(       observed = rep_len(bt_obs_vals, length(predicted)), # only used to set the range
                               predicted = predicted,
                               confidenceBand = confidenceBand,
@@ -271,6 +345,11 @@ if (TRUE){
           pred_map=bt_pred_MAP[bt_obs_rows],
           pred_min=confidenceBand[1,bt_obs_rows],
           pred_max=confidenceBand[2,bt_obs_rows],
+          pred_mean=bt_pred_mean,
+          pred_sd=bt_pred_sd,
+          resid_mean=pred_mean-obs_vals,
+          resid_sd=pred_sd,
+          resid_rmse=sqrt(pred_sd^2+2*resid_mean*pred_mean+(obs_vals^2-pred_mean^2)),
           rmse=rmse,
           rmse2=rmse2
         )
@@ -281,7 +360,7 @@ if (TRUE){
     } # next data_col
     
     # legend and title
-    plot(1, type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
+    plot(1, type="n", axes=FALSE, xlab="", ylab="") # empty plot with legend
     legend( "bottomright", title="Predictions", 
             legend=c("Prior Mode", "Median", "Max L",      "MAP",      "Calib Data", "Other Data", "Residuals"),
             # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
@@ -297,7 +376,7 @@ if (TRUE){
     # plot residual analysis (slow) ####
     # FIXME doesn't work if more than one obs one a row
     # if (FALSE){
-    #   cat(file=stderr(), 'Plot residual analysis, site', s, "\n")
+    #   cat(file=stderr(), "Plot residual analysis, site", s, "\n")
     #   i <- 1
     #   for (i in 1:nBCvar){
     #     data_col <- unique(data_index[[s]])[[i]] # corresponding column in output
@@ -331,8 +410,8 @@ if (TRUE){
     
     # plot other model outputs for each site ####
     if (TRUE){
-      cat(file=stderr(), 'Plot model calibration other outputs, site', s, "\n")
-      png( paste('model_outputs/BC_calibration_other_BT_', s, '.png',sep=""),
+      cat(file=stderr(), "Plot model calibration other outputs, site", s, "\n")
+      png( paste(scenario, "/BC_calibration_other_BT_", s, ".png", sep=""),
            width=11, height=8, units="in", type="windows", res=300)
       
       # set up plot grid
@@ -374,7 +453,7 @@ if (TRUE){
       } # next data_col
       
       # legend and title
-      plot(1, type='n', axes=FALSE, xlab="", ylab="") # empty plot with legend
+      plot(1, type="n", axes=FALSE, xlab="", ylab="") # empty plot with legend
       legend( "bottomright", title="Predictions", 
               legend=c("Prior Mode", "Median", "Max L",      "MAP",      "Calib Data", "Other Data", "Residuals"),
               # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
@@ -413,24 +492,27 @@ if (TRUE){
 
 # plot residuals using ggplot ####
 if (TRUE){
+
   cat(file=stderr(), "Plot residuals using ggplot", "\n")
+  
   # model-data plot
-  temp <- filter(residual_df, obs_wts==1)
+  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot1 <- temp %>% 
     ggplot() +
-    labs(title="Model-Data Plot", x="MAP Model", y="Data", colour="Region") +
-    geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max, colour=region)) +
-    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
+    labs(title="Model-Data Plot", x="Model MAP +/- CI", y="Data +/- 1.96*Error", colour="Region") +
+    geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max), colour="lightgrey") +
+    geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=pred_map, y=obs_vals, colour=region)) +
     geom_blank(mapping=aes(x=all_min, y=all_min)) +
     geom_blank(mapping=aes(x=all_max, y=all_max)) +
     geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
-    geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
+    # geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot1)
-  png("model_outputs/model_data.png", width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot1)
   dev.off()
+  
   # residuals (data - model)/error
   temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot2 <- temp %>% 
@@ -442,11 +524,49 @@ if (TRUE){
     scale_x_continuous(limits=c(-5, 5)) +
     facet_wrap(~var_name, scale="free")
   print(plot2)
-  png("model_outputs/residual_density.png", width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_density.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot2)
   dev.off()
+  
+  # residuals bias and precision
+  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) %>%  # avoid Stem C data and model == 0
+    mutate(xjitter=runif(n())*0.1-0.05)
+  plot3 <- temp %>% 
+    ggplot() +
+    labs(title="Posterior Bias Plot", x="Year", y="Residual (Model - Data)", colour="Region") +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=obs_min-pred_max, ymax=obs_max-pred_min), colour="lightgrey") +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
+    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=times+xjitter, y=pred_map-obs_vals, colour=region)) +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
+    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free")
+  print(plot3)
+  png(paste(scenario, "/residual_bias.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  print(plot3)
+  dev.off()
+  
+  # model-data plot 2
+  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
+  plot4 <- temp %>% 
+    ggplot() +
+    labs(title="Data-Posterior Plot", x="Data +/- 1.96*Error", y="Model MAP +/- CI", colour="Region") +
+    geom_errorbarh(mapping=aes(y=pred_map, xmin=obs_min, xmax=obs_max), colour="lightgrey") +
+    geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min, ymax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=obs_vals, y=pred_map, colour=region)) +
+    geom_blank(mapping=aes(x=all_min, y=all_min)) +
+    geom_blank(mapping=aes(x=all_max, y=all_max)) +
+    geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
+    # geom_smooth(mapping=aes(x=obs_vals, y=pred_map, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free")
+  print(plot4)
+  png(paste(scenario, "/prediction_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  print(plot4)
+  dev.off()
+  
 }
 
 # memory management
-cat(file=stderr(), 'Saving checkpoint after BASGRA results', "\n")
-save.image(file="model_outputs/checkpoint_after_results.RData")
+cat(file=stderr(), "Saving checkpoint after BASGRA results", "\n")
+save.image(file=paste(scenario, "/checkpoint_after_results.RData", sep=""))

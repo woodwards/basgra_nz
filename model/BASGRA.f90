@@ -22,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 104        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 105        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -249,7 +249,7 @@ do day = 1, NDAYS
   y(day,35) = RGRTV
   y(day,36) = RDRHARV
   y(day,37) = GRT
-  y(day,38) = RDRT                               ! = d-1 Relative leaf death rate due to high temperature
+  y(day,38) = RDRL                               ! = d-1 Relative leaf death rate
   y(day,39) = VERN                               ! = Vernalisation degree
 
   ! Simon added additional output variables
@@ -266,7 +266,7 @@ do day = 1, NDAYS
   y(day,50) = HARVFRIN * HARV
   y(day,51) = SLANEW
   y(day,52) = YIELD
-  y(day,53) = BASAL * 100.0
+  y(day,53) = BASAL
 
   ! Update state variables
   AGE     = AGE     + 1.0

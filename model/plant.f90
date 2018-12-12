@@ -10,7 +10,7 @@ implicit none
 integer :: NOHARV
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RESMOB
 real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
-real :: RDRFROST,RDRT,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
+real :: RDRFROST,RDRT,RDRL,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
 real :: RATEH,reHardPeriod,TV2TIL
 real :: CRESMN,DAYLGEMX
 real :: ALLOSH, ALLORT, ALLOLV, ALLOST
@@ -237,7 +237,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
 !  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)         ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB))
   TV3       = max(0.0, min(1.0, FGRESSI + PERSRES * AGE / 365.0))  ! Simon added effect of persistence on sink strength
-  GRESSI   = TV3 * max(0., CRESMX-CRES-RESMOB) / DELT              ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB)), Simon parameterised
+  GRESSI   = TV3 * max(0., CRESMX-(CRES-RESMOB)) / DELT              ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB)), Simon parameterised
   if (TILG2 > 0.0) then
     CSTAV  = CST/TILG2                                             ! gC tiller-1 Average stem mass of elongating tillers
   else
@@ -312,8 +312,20 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
   RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
 !  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
-  TV2    = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
-  TV2TIL = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+! Simon try different ways to combine death rates to make parameters more responsive
+! Maximum stress
+!  TV2    = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
+!  TV2TIL = max(RDRS,RDRW,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+! Euclidean combination
+!  TV2    = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRT*RDRT)           ! d-1 Relative leaf death rate
+!  TV2TIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+! Joint survival probability
+  TV2    = 1 - (1-RDRS)*(1-RDRW)*(1-RDRFROST)*(1-RDRTOX)*(1-RDRT)           ! d-1 Relative leaf death rate
+  TV2TIL = 1 - (1-RDRS)*(1-RDRW)*(1-RDRFROST)*(1-RDRTOX)*(1-RDRTILMIN)      ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+! Additive stress
+!  TV2    = RDRS+RDRW+RDRFROST+RDRTOX+RDRT      ! d-1 Relative leaf death rate
+!  TV2TIL = RDRS+RDRW+RDRFROST+RDRTOX+RDRTILMIN ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+  RDRL   = TV2
   DLAI   = LAI    * TV2
   DLV    = CLV    * TV2
   DSTUB  = CSTUB  * RDRSTUB

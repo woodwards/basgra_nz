@@ -46,13 +46,13 @@ for (s in 1:nSites) {
 #              paste('model_outputs/BASGRA_parModes',format(Sys.time(),"_%H_%M.txt"),sep=""),
 #              sep="\t", row.names=F )
 write.table( df_parModes,
-             file=paste('model_outputs/BASGRA_parModes.txt',sep=""),
+             file=paste(scenario, '/BASGRA_parModes.txt',sep=""),
              quote=FALSE,
              sep="\t", 
              row.names=FALSE )
 
 write.table( df_parModes[,c(1,3)],
-             file=paste('model_outputs/BASGRA_parModes_MAP1.txt',sep=""),
+             file=paste(scenario, '/BASGRA_parModes_MAP1.txt',sep=""),
              quote=FALSE,
              sep="\t", 
              row.names=FALSE )

@@ -12,7 +12,9 @@ suppressMessages({
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
 
 # parameter names
-bt_names <- parname_BC
+bt_names <- if_else(parsites_BC=="1:nSites",
+                    as.character(parname_BC),
+                    paste(parname_BC, "(", parsites_BC, ")", sep=""))
 cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 
 # likelihood function (work with scaled parameters)
@@ -47,6 +49,7 @@ bt_setup <- createBayesianSetup(likelihood=bt_likelihood,
                                 names=bt_names)
 
 # construct settings (note: DREAMzs has startValue=3 internal chains by default)
+# Possibly DREAMzs has limited capability to use parallel cores
 nInternal   <- 3 # internal chains for DREAMzs
 bt_settings <- list(startValue=nInternal, 
                     iterations=nChain/nChains, 
@@ -60,7 +63,7 @@ bt_out <- runMCMC(bayesianSetup = bt_setup,
                   sampler = "DREAMzs", 
                   settings = bt_settings)
 cat(file=stderr(), " ", "\n")
-bt_chains <- nInternal * nChains
+bt_chains <- nInternal * nChains 
 bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
 bt_pars <- length(bt_names)
 bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
@@ -103,7 +106,8 @@ print(round(psf,3))
 
 # memory management
 cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
-save.image(file="model_outputs/checkpoint_after_calibration.RData")
-rm(list=ls()) # avoid memory overflow
+file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
+save.image(file=file_save)
+rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
 
 
