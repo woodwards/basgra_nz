@@ -7,3 +7,6 @@ README.html
 /Release/
 temp.RData
 *.xls
+*.xlsx
+*.xlsm
+*.RData
