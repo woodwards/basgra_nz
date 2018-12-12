@@ -69,7 +69,6 @@ bt_pars <- length(bt_names)
 bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
 cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
 cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
-cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
 
 # rerun BT until target mpsrf achieved (provided run time remains reasonable)
 # DOESN'T REALLY SEEM TO CONVERGE, AND OFTEN CAUSES A CRASH, ALSO CAN'T HANDLE BURNIN
@@ -103,6 +102,10 @@ stopParallel(bayesianSetup=bt_setup)
 cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
 psf <- gelmanDiagnostics(bt_out)$psrf[,1]
 print(round(psf,3))
+cat(file=stderr(), paste("Convergence of worst parameter (psf)"), "\n")
+print(round(psf[which.max(psf)],3))
+cat(file=stderr(), paste("Multivariate convergence (mpsrf) ="), "\n")
+print(round(bt_conv,3))
 
 # memory management
 cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")

@@ -95,5 +95,5 @@ data3 <- data3 %>%
 
 # write BASGRA weather file
 write_tsv(data3, 'raw_data/weather_Lincoln.txt')
-print('Remember to copy weather to model_inputs folder!')
+print('Remember to copy weather to scenario folder!')
 

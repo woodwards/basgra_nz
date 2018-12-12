@@ -101,6 +101,8 @@ if (TRUE){
         }
       }
     }
+  cat(file=stderr(), "Plot parameter traces", "\n")
+  pagew <- 11 ; pageh <- 8
   png( paste(scenario, "/BC_parameter_traces.png", sep=""),
        width=pagew, height=pageh, units="in", type="windows", res=300)
   nrowsPlots <- ceiling( sqrt((np_BC+1)*pageh/pagew) )
@@ -128,6 +130,8 @@ if (TRUE){
   # gelmanDiagnostics(bt_out, plot=TRUE, 
   #                   start=1, 
   #                   end=nChain/(nInternal*nChains)) # Rhat for each parameter
+  cat(file=stderr(), "Plot Gelman_Rubin statistic", "\n")
+  pagew <- 11 ; pageh <- 8
   png( paste(scenario, "/BC_parameter_gelman.png", sep=""),
        width=pagew, height=pageh, units="in", type="windows", res=300)
   nrowsPlots <- ceiling( sqrt((np_BC+1)*pageh/pagew) )
@@ -500,6 +504,7 @@ if (TRUE){
   plot1 <- temp %>% 
     ggplot() +
     labs(title="Model-Data Plot", x="Model MAP +/- CI", y="Data +/- 1.96*Error", colour="Region") +
+    # geom_ribbon(mapping=aes(x=pred_map, ymin=pred_map-obs_errs*1.96, ymax=pred_map+obs_errs*1.96), fill="lightgrey") +
     geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max), colour="lightgrey") +
     geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=pred_map, y=obs_vals, colour=region)) +
@@ -509,7 +514,7 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot1)
-  png(paste(scenario, "/model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot1)
   dev.off()
   
@@ -517,7 +522,7 @@ if (TRUE){
   temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot2 <- temp %>% 
     ggplot() +
-    labs(title="MAP Residual Density", x="Scaled MAP Residual", y="Density", colour="Region") +
+    labs(title="Residual Density", x="Scaled MAP Residual", y="Density", colour="Region") +
     # geom_density(mapping=aes(x=(pred_map-obs_vals)/obs_errs, colour=region)) +
     stat_density(mapping=aes(x=-(pred_map-obs_vals)/obs_errs, colour=region), position="identity", fill=NA, adjust=1) +
     geom_vline(mapping=aes(xintercept=0), colour="black") +
@@ -533,7 +538,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
-    labs(title="Posterior Bias Plot", x="Year", y="Residual (Model - Data)", colour="Region") +
+    labs(title="Residual Bias", x="Year", y="Residual (Model - Data)", colour="Region") +
     # geom_errorbar(mapping=aes(x=times+xjitter, ymin=obs_min-pred_max, ymax=obs_max-pred_min), colour="lightgrey") +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
@@ -543,16 +548,17 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot3)
-  png(paste(scenario, "/residual_bias.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3)
   dev.off()
   
-  # model-data plot 2
+  # model-data plot 
   temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot4 <- temp %>% 
     ggplot() +
-    labs(title="Data-Posterior Plot", x="Data +/- 1.96*Error", y="Model MAP +/- CI", colour="Region") +
-    geom_errorbarh(mapping=aes(y=pred_map, xmin=obs_min, xmax=obs_max), colour="lightgrey") +
+    labs(title="Data-Model Plot", x="Data", y="Model MAP +/- CI", colour="Region") +
+    geom_ribbon(mapping=aes(x=obs_vals, ymin=obs_min, ymax=obs_max), fill="lightgrey") +
+    # geom_errorbarh(mapping=aes(y=pred_map, xmin=obs_min, xmax=obs_max), colour="lightgrey") +
     geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min, ymax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=obs_vals, y=pred_map, colour=region)) +
     geom_blank(mapping=aes(x=all_min, y=all_min)) +
@@ -561,7 +567,7 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=obs_vals, y=pred_map, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot4)
-  png(paste(scenario, "/prediction_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot4)
   dev.off()
   
@@ -570,3 +576,4 @@ if (TRUE){
 # memory management
 cat(file=stderr(), "Saving checkpoint after BASGRA results", "\n")
 save.image(file=paste(scenario, "/checkpoint_after_results.RData", sep=""))
+

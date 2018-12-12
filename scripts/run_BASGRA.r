@@ -25,6 +25,7 @@
     units="days")) + 1L
   
   # specify weather file
+  stop("NEED TO FIX DIRECTORIES")
   file_weather   <- 'model_inputs/weather_Scott.txt'
 
   # specify  parameter set

@@ -5,8 +5,8 @@
    # https://stats.stackexchange.com/questions/266749/mcmc-convergence
    # suggest nBurnin up to 50% of nChain
    nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(15000 * 8 * nChains) # need to check convergence
-   nSampling     <- as.integer(15000 * 2 * nChains)
+   nBurnin       <- as.integer(20000 * nChains * 3) 
+   nSampling     <- as.integer(10000 * nChains * 3)
    nChain        <- nBurnin + nSampling # total samples per chain
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
