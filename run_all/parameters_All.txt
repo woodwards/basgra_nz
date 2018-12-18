@@ -99,8 +99,8 @@ BD	1.0	1.25	1.25	BD	kg l-1	Bulk density of soil
 HARVFRD	0.2	0.2	0.2	HARVFRD	-	Harvest fraction of CLVD
 EBIOMAX	131	131	131	EBIOMAX	-	Earthworm biomass max
 KTIL	1000	1000	1000	KTIL	m-2	Tiller density at half basal area
-RDRWMAX	0.01	0.01	0.01	RDRWMAX	d-1	Maximum death rate due to water stress
+RDRWMAX	0.0	0.0	0.0	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1.0	1.0	1.0	BASALI	-	Grass basal area
 ABASAL	0.01	0.01	0.01	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
-TRANEX	1	1	1	TRANEX	-	Transpiration effect exponent
+RDRWEX	1	1	1	RDRWEX	-	Water stress exponent

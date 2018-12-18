@@ -21,6 +21,7 @@ suppressMessages({
 #### point to scenario directory ####
 scenarios <- c("run_scott", "run_lincoln", "run_northland", "run_all")
 scenarios <- c("run_all")
+scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
 #### 1. INITIALISE MCMC ####

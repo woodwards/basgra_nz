@@ -49,8 +49,10 @@ cat(file=stderr(), paste("MAP parameter values"), "\n")
 print(round(params_BC_MAP,4))
 
 # calibration summary ####
-invisible(capture.output(cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
-                         file=paste(scenario, "/BC_summary_BT.txt", sep=""))) # and export text summary
+invisible(capture.output(
+  cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
+  # cmatrix <- round(cor(pChain),3), # or do it this way 
+  file = paste(scenario, "/BC_summary_BT.txt", sep=""))) # and export text summary
 
 # correlation matrix ####
 if (TRUE){
@@ -62,7 +64,7 @@ if (TRUE){
             filter(row>col) %>%
             mutate(absval=abs(val)) %>%
             arrange(desc(absval))
-  top <- 20 # most correlated parameters, retaining order
+  top <- 15 # most correlated parameters, retaining order
   whichp <- c()
   whichx <- c()
   # whichx <- match(c("RUBISC", "SIMAX1T"), parname_BC) # additional params to check
@@ -126,11 +128,10 @@ if (FALSE){
 }
 
 # gelman convergence plots (multiple plots) ####
-if (TRUE){
-  # gelmanDiagnostics(bt_out, plot=TRUE, 
-  #                   start=1, 
-  #                   end=nChain/(nInternal*nChains)) # Rhat for each parameter
-  cat(file=stderr(), "Plot Gelman_Rubin statistic", "\n")
+# only works on sampling period, not burnin, so not very useful
+if (FALSE){
+  # gelmanDiagnostics(bt_out, plot=TRUE)
+  cat(file=stderr(), "Plot Gelman-Rubin statistic", "\n")
   pagew <- 11 ; pageh <- 8
   png( paste(scenario, "/BC_parameter_gelman.png", sep=""),
        width=pagew, height=pageh, units="in", type="windows", res=300)
@@ -142,7 +143,8 @@ if (TRUE){
   gelman.plot(getSample(bt_out, coda=TRUE), 
               ylim=c(1.0,2.0), 
               ask=FALSE, 
-              auto.layout=FALSE, 
+              autoburnin=FALSE, # TRUE=ignores first half of chain
+              auto.layout=FALSE, # FALSE=one plot at a time
               bin.width=50)
   plot(1,type='n', axes=FALSE, xlab="", ylab="")
   plot_colors <- c("black","red")
@@ -261,8 +263,10 @@ if (TRUE){
                                        numSamples=1000,
                                        quantiles=c(0.05, 0.5, 0.95),
                                        error=bt_error)
-        predicted <- pred$posteriorPredictivePredictionInterval[2,]
+        # error function gets sampled on top of parameter variation
         confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
+        predicted <- pred$posteriorPredictivePredictionInterval[2,]
         predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
         x <- pred$posteriorPredictiveSimulations[,bt_obs_rows]
         if (length(bt_obs_rows)>1){
@@ -313,27 +317,27 @@ if (TRUE){
         # plot all data
         keeps <- bt_obs_wts==0 | bt_obs_wts>0
         x_obs <- bt_obs_times[keeps]
-        suppressWarnings({
-          arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-                 x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-                 col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
-          arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-                 x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-                 col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
-        })
+        # suppressWarnings({
+        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+        #          x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+        #          col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
+        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+        #          x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+        #          col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        # })
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="grey", cex=1.5)
         # plot weighted data
         keeps <- bt_obs_wts>0
         x_obs <- bt_obs_times[keeps]
-        suppressWarnings({
-          arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-                 x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-                 col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
-          arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-                 x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-                 col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
-        })  
+        # suppressWarnings({
+        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
+        #          x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
+        #          col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
+        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
+        #          x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
+        #          col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        # })  
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="darkblue", cex=1.5)
         # collect residual_df
@@ -347,8 +351,11 @@ if (TRUE){
           obs_errs=data_sd[[s]][datap],
           obs_wts=data_weight[[s]][datap],
           pred_map=bt_pred_MAP[bt_obs_rows],
+          pred_med=predictedMedian[bt_obs_rows],
           pred_min=confidenceBand[1,bt_obs_rows],
           pred_max=confidenceBand[2,bt_obs_rows],
+          pred_min2=predictionBand[1,bt_obs_rows],
+          pred_max2=predictionBand[2,bt_obs_rows],
           pred_mean=bt_pred_mean,
           pred_sd=bt_pred_sd,
           resid_mean=pred_mean-obs_vals,
@@ -438,8 +445,9 @@ if (TRUE){
                                          numSamples=1000,
                                          quantiles=c(0.05, 0.5, 0.95),
                                          error=bt_error)
-          predicted <- pred$posteriorPredictivePredictionInterval[2,]
           confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+          predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
+          predicted <- pred$posteriorPredictivePredictionInterval[2,]
           predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
           plotTimeSeries(       predicted = predicted,
                                 confidenceBand = confidenceBand,
@@ -484,11 +492,23 @@ if (TRUE){
       var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Total Tillers", "Soil Moisture")),
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
-      ) %>% 
+    ) %>% 
     group_by(var_name) %>% 
     mutate(
-      all_min=min(obs_min, pred_min),
-      all_max=max(obs_max, pred_max)
+      all_min=min(obs_min, pred_min, pred_min2),
+      all_max=max(obs_max, pred_max, pred_max2),
+      score=case_when(
+        obs_vals==pred_med ~ 0,
+        obs_vals==pred_max ~ 1,
+        obs_vals==pred_min ~ -1,
+        obs_vals==pred_max2 ~ 2,
+        obs_vals==pred_min2 ~ -2,
+        obs_vals>pred_med & obs_vals<pred_max ~ (obs_vals-pred_med)/(pred_max-pred_med),
+        obs_vals<pred_med & obs_vals>pred_min ~ (obs_vals-pred_med)/(pred_med-pred_min),
+        obs_vals>pred_max & obs_vals<pred_max2 ~ (obs_vals-pred_max)/(pred_max2-pred_max)+1,
+        obs_vals<pred_min & obs_vals>pred_min2 ~ (obs_vals-pred_min)/(pred_min-pred_min2)-1,
+        obs_vals>pred_max2 ~ (obs_vals-pred_max2)/(obs_errs*1.96)+2,
+        obs_vals<pred_min2 ~ (obs_vals-pred_min2)/(obs_errs*1.96)-2)
     ) %>% 
     ungroup()
       
@@ -503,9 +523,10 @@ if (TRUE){
   temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot1 <- temp %>% 
     ggplot() +
-    labs(title="Model-Data Plot", x="Model MAP +/- CI", y="Data +/- 1.96*Error", colour="Region") +
+    labs(title="Model-Data Plot", x="Posterior", y="Data", colour="Region") +
     # geom_ribbon(mapping=aes(x=pred_map, ymin=pred_map-obs_errs*1.96, ymax=pred_map+obs_errs*1.96), fill="lightgrey") +
-    geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max), colour="lightgrey") +
+    # geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max), colour="lightgrey") +
+    geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min2, xmax=pred_max2), colour="lightgrey") +
     geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=pred_map, y=obs_vals, colour=region)) +
     geom_blank(mapping=aes(x=all_min, y=all_min)) +
@@ -534,13 +555,17 @@ if (TRUE){
   dev.off()
   
   # residuals bias and precision
-  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) %>%  # avoid Stem C data and model == 0
+  temp <- filter(residual_df, 
+                 # pred_map>0 | obs_vals>0,
+                 obs_wts==1) %>%  # avoid Stem C data and model == 0
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
     labs(title="Residual Bias", x="Year", y="Residual (Model - Data)", colour="Region") +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=obs_min-pred_max, ymax=obs_max-pred_min), colour="lightgrey") +
-    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), fill="lightgrey") +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
     geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
     # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=times+xjitter, y=pred_map-obs_vals, colour=region)) +
@@ -553,12 +578,15 @@ if (TRUE){
   dev.off()
   
   # model-data plot 
-  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
+  temp <- filter(residual_df, 
+                 pred_map>0 | obs_vals>0,
+                 obs_wts==1) # avoid Stem C data and model == 0
   plot4 <- temp %>% 
     ggplot() +
     labs(title="Data-Model Plot", x="Data", y="Model MAP +/- CI", colour="Region") +
-    geom_ribbon(mapping=aes(x=obs_vals, ymin=obs_min, ymax=obs_max), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=obs_vals, ymin=obs_vals+pred_min2-pred_min, ymax=obs_vals+pred_max2-pred_max), fill="lightgrey") +
     # geom_errorbarh(mapping=aes(y=pred_map, xmin=obs_min, xmax=obs_max), colour="lightgrey") +
+    # geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min2, ymax=pred_max2), colour="lightgrey") +
     geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min, ymax=pred_max, colour=region)) +
     geom_point(mapping=aes(x=obs_vals, y=pred_map, colour=region)) +
     geom_blank(mapping=aes(x=all_min, y=all_min)) +
@@ -569,6 +597,53 @@ if (TRUE){
   print(plot4)
   png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot4)
+  dev.off()
+
+  # residual score
+  temp <- filter(residual_df, 
+                 # pred_map>0 | obs_vals>0,
+                 obs_wts==1) %>%  # avoid Stem C data and model == 0
+    mutate(xjitter=runif(n())*0.1-0.05)
+  plot5 <- temp %>% 
+    ggplot() +
+    labs(title="Residual Score", x="Year", y="Residual Score", colour="Region") +
+    # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-2, ymax=2), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-1, ymax=1), fill="darkgrey") +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
+    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=times+xjitter, y=score, colour=region)) +
+    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free")
+  print(plot5)
+  png(paste(scenario, "/residual_score.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  print(plot5)
+  dev.off()
+
+  # residual score 2
+  temp <- filter(residual_df, 
+                 # pred_map>0 | obs_vals>0,
+                 obs_wts==1) 
+  plot6 <- temp %>% 
+    ggplot() +
+    labs(title="Residual Score", x="Prediction Median", y="Residual Score", colour="Region") +
+    # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=-2, ymax=2), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=-1, ymax=1), fill="darkgrey") +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
+    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=pred_med, y=score, colour=region)) +
+    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free")
+  print(plot6)
+  png(paste(scenario, "/residual_score2.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  print(plot6)
   dev.off()
   
 }

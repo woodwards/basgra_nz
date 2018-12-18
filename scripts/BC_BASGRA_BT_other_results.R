@@ -24,7 +24,7 @@ for (s in 1:nSites){
   # year_start     <- as.integer(2011)
   # doy_start      <- as.integer(244) # 1 September
   year_stop      <- as.integer(2017)
-  year_stop      <- as.integer(2014)
+  # year_stop      <- as.integer(2014)
   doy_stop       <- as.integer(151) # 31 May
   NDAYS_all <- NDAYS # will need to restore this for other functions
   NDAYS          <- as.integer(difftime(

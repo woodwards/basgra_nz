@@ -4,10 +4,11 @@
 ## MCMC chain length (total number of iterations across all chains)
    # https://stats.stackexchange.com/questions/266749/mcmc-convergence
    # suggest nBurnin up to 50% of nChain
-   nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(20000 * nChains * 3) 
-   nSampling     <- as.integer(10000 * nChains * 3)
-   nChain        <- nBurnin + nSampling # total samples per chain
+   nChains       <- 3 # independent chains for repeatability testing
+   nInternal     <- 3 # internal chains in DREAMzs
+   nBurnin       <- as.integer(20000 * nChains * nInternal) 
+   nSampling     <- as.integer(20000 * nChains * nInternal)
+   nChain        <- nBurnin + nSampling # total samples 
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
    # this file provides parameters for all the sites

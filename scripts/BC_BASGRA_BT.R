@@ -44,7 +44,7 @@ bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 # construct setup
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
-                                parallel=T,
+                                parallel=TRUE,
                                 parallelOptions=list(dlls=list(BASGRA_DLL)),
                                 names=bt_names)
 
@@ -54,7 +54,8 @@ nInternal   <- 3 # internal chains for DREAMzs
 bt_settings <- list(startValue=nInternal, 
                     iterations=nChain/nChains, 
                     nrChains=nChains, 
-                    burnin=nBurnin/nChains+nChains, # burnin gets discarded but this causes a crash
+                    # burnin=0, # because can't analyse convergence if we discard burnin
+                    burnin=nBurnin/nChains+nChains, # to give correct number of samples
                     parallel=TRUE,
                     message=TRUE) 
 
@@ -69,6 +70,7 @@ bt_pars <- length(bt_names)
 bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
 cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
 cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
 
 # rerun BT until target mpsrf achieved (provided run time remains reasonable)
 # DOESN'T REALLY SEEM TO CONVERGE, AND OFTEN CAUSES A CRASH, ALSO CAN'T HANDLE BURNIN

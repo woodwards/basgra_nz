@@ -118,7 +118,7 @@ RDRWMAX      = pa(101)
 BASALI       = pa(102)
 ABASAL       = pa(103)
 TVERNDMN     = pa(104)
-TRANEX       = pa(105)
+RDRWEX       = pa(105)
 
 return
 end
