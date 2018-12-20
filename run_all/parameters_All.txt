@@ -84,7 +84,7 @@ TVERND	21	21	21	TVERND	d	Days of cold after which vernalisation completed
 AGEH	932.8	932.8	932.8	AGEH	d	Age at which persistence is half
 KAGE	0.0458	0.0458	0.0458	KAGE	d-1	Curvature of persistence
 RDRROOT	0.0022	0.0022	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
-DAYLGEA	0.66	0.66	0.66	DAYLGEA	-	DAYL above which growth is prioritised over storage
+DAYLA	0.66	0.66	0.66	DAYLA	-	DAYL above which growth is prioritised over storage
 DAYLRV	0.55	0.55	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 FCOCRESMN	0.5	0.5	0.5	FCOCRESMN	-	Minimum concentration of reserves in aboveground biomass as fraction of COCRESMX
 KCRT	50	50	50	KCRT	gC m-2	Root mass at which ROOTD is 67% of ROOTDM
@@ -103,4 +103,4 @@ RDRWMAX	0.0	0.0	0.0	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1.0	1.0	1.0	BASALI	-	Grass basal area
 ABASAL	0.01	0.01	0.01	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
-RDRWEX	1	1	1	RDRWEX	-	Water stress exponent
+DAYLGEMN	0	0	0	DAYLGEMN	-	Minimum daylength growth effect

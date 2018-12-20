@@ -99,7 +99,7 @@ TVERND       = pa(82)
 AGEH         = pa(83)
 KAGE         = pa(84)
 RDRROOT      = pa(85)
-DAYLGEA      = pa(86)
+DAYLA        = pa(86)
 DAYLRV       = pa(87)
 FCOCRESMN    = pa(88)
 KCRT         = pa(89)
@@ -118,7 +118,7 @@ RDRWMAX      = pa(101)
 BASALI       = pa(102)
 ABASAL       = pa(103)
 TVERNDMN     = pa(104)
-RDRWEX       = pa(105)
+DAYLGEMN     = pa(105)
 
 return
 end

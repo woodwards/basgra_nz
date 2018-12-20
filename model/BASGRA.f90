@@ -171,7 +171,7 @@ do day = 1, NDAYS
                                                        DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS) ! calculate water movement etc DRAIN,FREEZEL,IRRIG,RUNOFF,THAWS
   call O2status       (O2,ROOTD)                                 ! calculate FO2
 
-  call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,VERN,VERND,DVERND) ! Simon calculate VERN,VERND,DVERND
+  call Vernalisation  (DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,Tsurf,VERN,VERND,DVERND) ! Simon calculate VERN,VERND,DVERND
   call Phenology      (DAYL,TILG2,PHEN,         DPHEN,GPHEN,HARVPH) ! calculate GPHEN, DPHEN, PHENRF, DAYLGE
   call Biomass        (AGE,CLV,CRES,CST,CSTUB)                   ! calculate RESNOR
   call CalcSLA                                                   ! calculate LERV,LERG,SLANEW
@@ -271,7 +271,7 @@ do day = 1, NDAYS
   ! Update state variables
   AGE     = AGE     + 1.0
   CLV     = CLV     + GLV   - DLV
-  CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material FIXME harvest CLVD
+  CLVD    = CLVD            + DLV             - DLVD       ! Simon included decomposition of dead material
   CRES    = CRES    + GRES  - RESMOB                       ! Simon modified harvest logic
   CRT     = CRT     + GRT   - DRT
   CST     = CST     + GST

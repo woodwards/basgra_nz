@@ -110,13 +110,20 @@ Subroutine Phenology(DAYL,TILG2,PHEN, DPHEN,GPHEN,HARVPH)
 !    DPHEN  = PHEN / DELT
 !  end if
   PHENRF = max(0.0, min(1.0, (1 - PHEN)/(1 - PHENCR) ))        ! Phenological stage decreases leaf number and appearance on elongating tillers
-  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length increases tillering, leaf appearance, leaf elongation (very crude)
+!  DAYLGE = max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Day length increases tillering, leaf appearance, leaf elongation (very crude)
+  if (DLMXGE /= DAYLB) then
+    DAYLGE = DAYLGEMN + (1-DAYLGEMN) * max(0.0, min(1.0, (DAYL - DAYLB)/(DLMXGE - DAYLB) ))! Simon added DAYLGEMN following STICS model
+  else if (DAYL >= DAYLB) then
+    DAYLGE = 1.0
+  else
+    DAYLGE = DAYLGEMN
+  end if
 end Subroutine Phenology
 
 ! Simon added vernalisation function, based on STICS model (Brisson et al 2009)
 ! Calculate vernalisation VERN, which allows RGRTVG1 = relative growth rate of generative tillers
-Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,VERN,VERND, DVERND)
-  real :: DAYL, PHEN, YDAYL, TMMN, TMMX, DAVTMP
+Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,Tsurf,VERN,VERND, DVERND)
+  real :: DAYL, PHEN, YDAYL, TMMN, TMMX, DAVTMP,Tsurf
 !  integer :: VERN
   real :: VERN
   real :: VERND, DVERND
@@ -144,12 +151,12 @@ Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,VERN,VERND, DVERND)
 !  end if
   ! reset vernalisation
 !  if ((VERN==1).and.(DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
-  if ((DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
-!	VERN = 0
+  if ((DAYL<YDAYL).and.(DAYL<=DAYLRV).and.(YDAYL>=DAYLRV)) then ! Reset vernalisation when daylength shortens after Solstice
+	VERN = 0
 	VERND  = 0.0
     DVERND = 0.0
   else
-    DVERND  = max(0.0, 1.0 - ((DAVTMP - TVERN) / 7.5)**2)  ! Simon, vernalisation rate, based on STICS and Streck models
+    DVERND  = max(0.0, 1.0 - ((Tsurf - TVERN) / 7.5)**2)  ! Simon, vernalisation rate, based on STICS and Streck models
   end if
 end Subroutine Vernalisation
 
@@ -231,7 +238,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
 !  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
-  RESMOB   = max(0.0, min(CRESMX,CRES)-CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
+  RESMOB   = max(0.0, min(CRESMX,CRES) - CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
@@ -260,7 +267,7 @@ end Subroutine Growth
      ! Sinks RESPHARDSI, GLVSI, GSTSI, GRESSI,
      GSHSI = GLVSI + GSTSI
 !     if (DAYLGE >= 0.1) then   ! Simon thinks maybe this value should be a parameter
-     if (DAYL >= DAYLGEA) then   ! Simon modified since DAYLGE could remain high
+     if (DAYL >= DAYLA) then   ! Simon modified since DAYLGE could remain high
      ! Situation 1: Growth has priority over storage (spring and growth period)
        ! Calculate amount of assimilates allocated to shoot
        ALLOSH = min( ALLOTOT, GSHSI )
