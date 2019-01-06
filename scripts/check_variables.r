@@ -3,8 +3,8 @@
 library(matrixStats)
 library(tidyverse)
 library(kableExtra)
-library(broom)
-library(flextable)
+# library(broom)
+# library(flextable)
 
 outfile <- "check_variables"
 
@@ -178,22 +178,57 @@ my_format <- function(x){
 }
 
 # format values by row
-all_formatted <- all %>%
-  `row.names<-`(.$PARAMETER) %>% # set row names for transpose
-  dplyr::select(-PARAMETER, -Units, -Description) %>% # only numeric columns
-  t() %>% # transpose
-  tidy() %>% # convert to tibble (creates .rownames column)
-  modify(my_format) %>% # apply format function to each column of values in place
-  `row.names<-`(.$.rownames) %>% # set row names for transpose
-  dplyr::select(-.rownames) %>% # drop rownames column
-  t() %>% # transpose
-  tidy() %>% # convert to tibble (creates .rownames column)
-  dplyr::select(-.rownames) %>% # drop rownames
-  add_column(PARAMETER=all$PARAMETER, .before=1) %>% # add back nonnumeric columns
-  add_column(UNITS=if_else(!is.na(all$Units), all$Units, ""),
-             DESCRIPTION=if_else(!is.na(all$Description), all$Description, ""))
+# all_formatted <- all %>%
+#   `row.names<-`(.$PARAMETER) %>% # set row names for transpose
+#   dplyr::select(-PARAMETER, -Units, -Description) %>% # only numeric columns
+#   t() %>% # transpose
+#   tidy() %>% # convert to tibble (creates .rownames column)
+#   modify(my_format) %>% # apply format function to each column of values in place
+#   `row.names<-`(.$.rownames) %>% # set row names for transpose
+#   dplyr::select(-.rownames) %>% # drop rownames column
+#   t() %>% # transpose
+#   tidy() %>% # convert to tibble (creates .rownames column)
+#   dplyr::select(-.rownames) %>% # drop rownames
+#   add_column(PARAMETER=all$PARAMETER, .before=1) %>% # add back nonnumeric columns
+#   add_column(UNITS=if_else(!is.na(all$Units), all$Units, ""),
+#              DESCRIPTION=if_else(!is.na(all$Description), all$Description, ""))
+all_formatted <- all %>% 
+  rename(UNITS=Units, 
+         DESCRIPTION=Description) %>% 
+  mutate(UNITS=if_else(!is.na(UNITS), UNITS, ""),
+         DESCRIPTION=if_else(!is.na(DESCRIPTION), DESCRIPTION, "")) %>% 
+  mutate_all(as.character) %>% 
+  mutate(ScottSHAPE=if_else(!is.na(ScottSHAPE), ScottSHAPE, ""))
+cols <- 2:(ncol(all)-3)
+row <- 1
+for (row in 1:nrow(all)){
+  all_formatted[row,cols] <- my_format(as.numeric(all[row,cols]))
+}
 
-this_dir <- getwd() # avoid bug in save_kable
+if (FALSE){
+  all_formatted <- tibble(
+    PARAMETER=c("1","2"), 
+    MIN1=c("1","2"), 
+    MAX1=c("1","2"), 
+    LOWER1=c("1","2"), 
+    MODE1=c("1","2"), 
+    UPPE1R=c("1","2"), 
+    MIN2=c("1","2"), 
+    MAX2=c("1","2"), 
+    LOWER2=c("1","2"), 
+    MODE2=c("1","2"), 
+    UPPER2=c("1","2"), 
+    VAL3=c("1","2"), 
+    LOWER3=c("1","2"), 
+    MODE3=c("1","2"), 
+    UPPER3=c("1","2"), 
+    SHAPE=c("1","2"), 
+    UNITS=c("1","2"), 
+    DESCRIPTION=c("1","2") 
+  )
+}
+
+this_dir <- getwd() # avoid path bug in save_kable
 all_formatted %>%
   kable(col.names=headings) %>%
   kable_styling(
