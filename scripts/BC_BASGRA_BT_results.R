@@ -489,7 +489,7 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Total Tillers", "Soil Moisture")),
+      var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Dead Leaf C", "Total Tillers", "Soil Moisture")),
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
     ) %>% 

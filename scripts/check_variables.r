@@ -9,7 +9,9 @@ library(kableExtra)
 outfile <- "check_variables"
 
 # my parameter files
-my_par <- arrange(read_tsv(paste(scenario, "/parameters_All.txt", sep="")), PARAMETER)
+my_par <- arrange(read_tsv(paste(scenario, "/parameters_All.txt", sep="")), PARAMETER) %>% 
+  mutate(NZMIN=pmin(Scott, Lincoln, Northland),
+         NZMAX=pmax(Scott, Lincoln, Northland))
 my_bc <- arrange(read_tsv(paste(scenario, "/parameters_BC.txt", sep=""), skip=1, col_names=FALSE), X1)
 names(my_bc) <- c("PARAMETER", "MIN", "MODE", "MAX", "SHAPE", "SITES")
 
@@ -31,7 +33,7 @@ for_out<- tibble(line=readLines("model/BASGRA.f90")) %>%
          rhs=str_sub(str_extract(line,"=\\s.+"),3,-1),
          var=str_extract(rhs,"[:alnum:]+")
   )
-stopifnot(all(out_var$varname==for_out$var)) # check my_par matches fortran
+stopifnot(all(out_var$varname==for_out$var)) # check out_var matches fortran
 
 # variables Simon renamed
 newnames <- c("K"="KLAI", "SHAPE"="LSHAPE", "gamma"="KTSNOW")
@@ -70,9 +72,9 @@ errors <- my_bc %>%
   filter(!((MIN<=MODE)&(MODE<=MAX)))
 print(errors)
 
-print("Consistency of my_par (Scott) and my_bc")
+print("Consistency of my_par and my_bc")
 errors <- left_join(my_bc, my_par) %>%
-  filter(!((MIN<=Scott)&(Scott<=MAX)))
+  filter(!((MIN<=NZMIN)&(NZMAX<=MAX)))
 print(errors)
 
 print("Consistency of orig_bc")
@@ -98,40 +100,40 @@ errors <- left_join(new_bc, new_par) %>%
 print(errors)
 
 # consistency between sets
-print("Consistency of my_par (Scott) and orig_bc")
+print("Consistency of my_par and orig_bc")
 errors <- left_join(orig_bc, my_par) %>%
-  filter(!((MIN<=Scott)&(Scott<=MAX)))
+  filter(!((MIN<=NZMIN)&(NZMAX<=MAX)))
 print(errors)
 
-print("Consistency of my_par (Scott) and new_bc")
+print("Consistency of my_par and new_bc")
 errors <- left_join(new_bc, my_par) %>%
-  filter(!((MIN<=Scott)&(Scott<=MAX)))
+  filter(!((MIN<=NZMIN)&(NZMAX<=MAX)))
 print(errors)
 
-print("Comparison of my_par (Scott) and orig_par")
+print("Comparison of my_par and orig_par")
 errors <- left_join(dplyr::select(orig_par, PARAMETER, MINSITE, MAXSITE), my_par) %>%
-  mutate(change=pmax(abs(Scott/MINSITE), 
-                     abs(MINSITE/Scott), 
-                     abs((MINSITE-Scott)/MINSITE), 
-                     abs((MINSITE-Scott)/Scott),
-                     abs(Scott/MAXSITE), 
-                     abs(MAXSITE/Scott), 
-                     abs((MAXSITE-Scott)/MAXSITE), 
-                     abs((MAXSITE-Scott)/Scott)
+  mutate(change=pmax(abs(NZMAX/MINSITE), 
+                     abs(MINSITE/NZMAX), 
+                     abs((MINSITE-NZMAX)/MINSITE), 
+                     abs((MINSITE-NZMAX)/NZMAX),
+                     abs(NZMIN/MAXSITE), 
+                     abs(MAXSITE/NZMIN), 
+                     abs((MAXSITE-NZMIN)/MAXSITE), 
+                     abs((MAXSITE-NZMIN)/NZMIN)
          )) %>%
   arrange(desc(change))
 print(errors, n=100)
 
-print("Comparison of my_par (Scott) and new_par")
+print("Comparison of my_par and new_par")
 errors <- left_join(dplyr::select(new_par, PARAMETER, MINSITE, MAXSITE), my_par) %>%
-  mutate(change=pmax(abs(Scott/MINSITE), 
-                     abs(MINSITE/Scott), 
-                     abs((MINSITE-Scott)/MINSITE), 
-                     abs((MINSITE-Scott)/Scott),
-                     abs(Scott/MAXSITE), 
-                     abs(MAXSITE/Scott), 
-                     abs((MAXSITE-Scott)/MAXSITE), 
-                     abs((MAXSITE-Scott)/Scott)
+  mutate(change=pmax(abs(NZMAX/MINSITE), 
+                     abs(MINSITE/NZMAX), 
+                     abs((MINSITE-NZMAX)/MINSITE), 
+                     abs((MINSITE-NZMAX)/NZMAX),
+                     abs(NZMIN/MAXSITE), 
+                     abs(MAXSITE/NZMIN), 
+                     abs((MAXSITE-NZMIN)/MAXSITE), 
+                     abs((MAXSITE-NZMIN)/NZMIN)
   )) %>%
   arrange(desc(change))
 print(errors, n=100)
@@ -160,14 +162,14 @@ all <- dplyr::select(arrange(orig_par, PARAMETER), PARAMETER, origMINSITE=MINSIT
   left_join(dplyr::select(orig_bc, PARAMETER, origMIN=MIN, origMODE=MODE, origMAX=MAX)) %>%
   full_join(dplyr::select(arrange(new_par, PARAMETER), PARAMETER, newMINSITE=MINSITE, newMAXSITE=MAXSITE)) %>%
   left_join(dplyr::select(new_bc, PARAMETER, newMIN=MIN, newMODE=MODE, newMAX=MAX)) %>%
-  full_join(dplyr::select(arrange(my_par, PARAMETER), PARAMETER, ScottSITE=Scott)) %>%
-  left_join(dplyr::select(my_bc, PARAMETER, ScottMIN=MIN, ScottMODE=MODE, ScottMAX=MAX, ScottSHAPE=SHAPE)) %>%
+  full_join(dplyr::select(arrange(my_par, PARAMETER), PARAMETER, NZMINSITE=NZMIN, NZMAXSITE=NZMAX)) %>%
+  left_join(dplyr::select(my_bc, PARAMETER, NZMIN=MIN, NZMODE=MODE, NZMAX=MAX, NZSHAPE=SHAPE)) %>%
   left_join(dplyr::select(my_par, PARAMETER, Units, Description)) 
 write_tsv(all, paste(scenario, "/check_variables.tsv", sep=""))  
 headings <- c("PARAMETER", 
                 "MIN", "MAX", "LOWER", "MODE", "UPPER",
                 "MIN", "MAX", "LOWER", "MODE", "UPPER",
-                "VAL", "LOWER", "MODE", "UPPER", "SHAPE",
+                "MIN", "MAX", "LOWER", "MODE", "UPPER", "SHAPE",
                 "UNITS", "DESCRIPTION")
                 
 # https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
@@ -198,7 +200,7 @@ all_formatted <- all %>%
   mutate(UNITS=if_else(!is.na(UNITS), UNITS, ""),
          DESCRIPTION=if_else(!is.na(DESCRIPTION), DESCRIPTION, "")) %>% 
   mutate_all(as.character) %>% 
-  mutate(ScottSHAPE=if_else(!is.na(ScottSHAPE), ScottSHAPE, ""))
+  mutate(NZSHAPE=if_else(!is.na(NZSHAPE), NZSHAPE, ""))
 cols <- 2:(ncol(all)-3)
 row <- 1
 for (row in 1:nrow(all)){
@@ -234,9 +236,9 @@ all_formatted %>%
   kable_styling(
     bootstrap_options = c("condensed", "striped", "hover"),
     full_width=FALSE, position="left", font_size=12) %>%
-  add_header_above(header=c("Parameter" = 1, "Original" = 5, "Nutritive" = 5, "Scott" = 5, "Details"=2), 
+  add_header_above(header=c("Parameter" = 1, "Original" = 5, "Nutritive" = 5, "NZ" = 6, "Details"=2), 
                    align="left", bold=TRUE) %>%
-  column_spec(18, width="20cm") %>%
+  column_spec(19, width="20cm") %>%
   save_kable(file=paste(this_dir, "/", scenario, "/", outfile, ".html", sep=""), 
              bs_theme="Cosmo", # https://bootswatch.com/
              self_contained=TRUE) # very slow

@@ -166,10 +166,14 @@ Subroutine CalcSLA
   real :: EFFTMP, SLAMIN
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
+  ! See also Hoglind et al 2001 - different eqn for LERG
+  ! See also Hogling et al 2016 - DAYLGE applied to both
 !  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
 !  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Why is DAYLGE applied here and not to LERV? Bug when DAYLGE is always small?
-  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Simon, for ryegrass, Peacock 1976)
-  LERG   =          max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Simon, for ryegrass, Peacock 1976)
+!  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Simon, for ryegrass, Peacock 1976)
+!  LERG   = DAYLGE * max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Simon, for ryegrass, Peacock 1976)
+  LERV   =          max(0., LERVB*(EFFTMP-LERVA)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Hjelkrem et al EM 2017)
+  LERG   = DAYLGE * max(0., LERGB*(EFFTMP-LERGA)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Hjelkrem et al EM 2017)
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
@@ -234,7 +238,7 @@ end Subroutine HardeningSink
 ! Calculate all the growth rates
 Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE
-  real :: GLV,GRES,GRT,GST,TV3
+  real :: GLV,GRES,GRT,GST
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
 !  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
@@ -243,8 +247,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
 !  GRESSI   = 0.5 * (RESMOB + max(0., CRESMX-CRES) / DELT)         ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB))
-  TV3       = max(0.0, min(1.0, FGRESSI + PERSRES * AGE / 365.0))  ! Simon added effect of persistence on sink strength
-  GRESSI   = TV3 * max(0., CRESMX-(CRES-RESMOB)) / DELT              ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB)), Simon parameterised
+  GRESSI   = FGRESSI * max(0., CRESMX-(CRES-RESMOB)) / DELT        ! gC m-2 d-1 Sink strength of reserve pool (a fraction of CRESMX-(CRES-RESMOB)), Simon parameterised
   if (TILG2 > 0.0) then
     CSTAV  = CST/TILG2                                             ! gC tiller-1 Average stem mass of elongating tillers
   else
@@ -338,7 +341,6 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
   DSTUB  = CSTUB  * RDRSTUB
   DTILV  = TILV   * TV2TIL
   DRT    = CRT    * RDRROOT
-  DRT    = DRT * max(0.0, min(2.0, 1 - PERSDRT * AGE / 365.0))              ! Simon added persistence effect
 
 end Subroutine Senescence
 

@@ -215,7 +215,7 @@ do day = 1, NDAYS
   y(day, 4) = DAVTMP
 
   y(day, 5) = CLV
-  y(day, 6) = CLVD
+  y(day, 6) = CLVD / BASAL ! Estimate dead for all species
   y(day, 7) = TRANRF
   y(day, 8) = CRES
   y(day, 9) = CRT
@@ -267,6 +267,8 @@ do day = 1, NDAYS
   y(day,51) = SLANEW
   y(day,52) = YIELD
   y(day,53) = BASAL
+  y(day,54) = GTILV
+  y(day,55) = DTILV
 
   ! Update state variables
   AGE     = AGE     + 1.0

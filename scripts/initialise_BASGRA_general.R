@@ -133,7 +133,7 @@ if (TRUE){
     "RES", "RESMOB", 
     "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
     "LERV", "LERG",
-    "RLEAF", "GRT", "RDRL", "RDLVD", "YIELD"
+    "RLEAF", "GRT", "RDRL", "RDLVD", "GTILV", "DTILV", "YIELD"
   )
 } else {
   chooseNames <- c(
