@@ -25,6 +25,8 @@ scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
 #### 1. INITIALISE MCMC ####
+
+  set.seed(1234)
   
   # initialise BC
   file_name <- paste(scenario, "/BC_BASGRA_MCMC_init.r", sep="")

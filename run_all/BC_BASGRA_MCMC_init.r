@@ -6,7 +6,7 @@
    # suggest nBurnin up to 50% of nChain
    nChains       <- 3 # independent chains for repeatability testing
    nInternal     <- 3 # internal chains in DREAMzs
-   nBurnin       <- as.integer(15000 * nChains * nInternal) 
+   nBurnin       <- as.integer(00000 * nChains * nInternal) 
    nSampling     <- as.integer(10000 * nChains * nInternal)
    nChain        <- nBurnin + nSampling # total samples 
 

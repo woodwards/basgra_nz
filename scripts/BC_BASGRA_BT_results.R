@@ -36,27 +36,22 @@ ML <- function(bayesianOutput, ...){
 }
 
 # store best par
-# all <- getSample(bt_out)
-scparMAP_BC  <- MAP(bt_out)$parametersMAP 
-scparMAP_BC_values  <- MAP(bt_out)$valuesMAP 
+# all <- getSample(bt_out, start=post_start, end=post_end)
+scparMAP_BC  <- MAP(bt_out, start=post_start, end=post_end)$parametersMAP 
+scparMAP_BC_values  <- MAP(bt_out, start=post_start, end=post_end)$valuesMAP 
 logMAP_final <- scparMAP_BC_values[[1]]
-scparMaxL_BC <- ML(bt_out)$parametersML 
-scparMaxL_BC_values  <- ML(bt_out)$valuesML 
+scparMaxL_BC <- ML(bt_out, start=post_start, end=post_end)$parametersML 
+scparMaxL_BC_values  <- ML(bt_out, start=post_start, end=post_end)$valuesML 
 logMaxL_final <- scparMaxL_BC_values[[1]]
 params_BC_MAP <- scparMAP_BC * sc
 names(params_BC_MAP) <- parname_BC
 cat(file=stderr(), paste("MAP parameter values"), "\n")
 print(round(params_BC_MAP,4))
 
-# calibration summary ####
-invisible(capture.output(
-  cmatrix <- summary(bt_out), # this gets correlation matrix into cmatrix
-  # cmatrix <- round(cor(pChain),3), # or do it this way 
-  file = paste(scenario, "/BC_summary_BT.txt", sep=""))) # and export text summary
-
 # correlation matrix ####
 if (TRUE){
   cat(file=stderr(), "Plot largest cells of posterior correlation grid", "\n")
+  cmatrix <- round(cor(pChain),3)
   nmatrix <- dim(cmatrix)[1]
   flat <- tibble(row=rep(1:nmatrix, times=nmatrix),
                      col=rep(1:nmatrix,  each=nmatrix),
@@ -74,7 +69,7 @@ if (TRUE){
   whichp <- unique(whichp, whichx)
   png( paste(scenario, "/BC_parameter_correlations_BT.png", sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
-  correlationPlot(bt_out, whichParameters=whichp) # parameter correlation plot, very slow and big!
+  correlationPlot(bt_out, start=post_start, end=post_end, whichParameters=whichp) # parameter correlation plot, very slow and big!
   dev.off()
 }
 
@@ -112,7 +107,7 @@ if (TRUE){
   oldpar <- par(no.readonly = TRUE) 
   par( mfrow = c(nrowsPlots,ncolsPlots) )
   par(mar=c(2, 2, 2, 1))
-  traceplot(getSample(bt_out, coda=TRUE)) 
+  traceplot(getSample(bt_out, start=post_start, end=post_end, coda=TRUE)) 
   dev.off()
   par(oldpar)
   
@@ -123,14 +118,14 @@ if (FALSE){
   cat(file=stderr(), "Plot prior/posterior histograms", "\n")
   png( paste(scenario, "/BC_parameter_histograms_BT.png", sep=""),
        width=11*3, height=8*3, units="in", type="windows", res=300)  
-  marginalPlot(bt_out) # prior and posterior histograms (scaled parameters)
+  marginalPlot(bt_out, start=post_start, end=post_end) # prior and posterior histograms (scaled parameters)
   dev.off()
 }
 
 # gelman convergence plots (multiple plots) ####
 # only works on sampling period, not burnin, so not very useful
 if (FALSE){
-  # gelmanDiagnostics(bt_out, plot=TRUE)
+  # gelmanDiagnostics(bt_out, start=post_start, end=post_end, plot=TRUE)
   cat(file=stderr(), "Plot Gelman-Rubin statistic", "\n")
   pagew <- 11 ; pageh <- 8
   png( paste(scenario, "/BC_parameter_gelman.png", sep=""),
@@ -140,7 +135,7 @@ if (FALSE){
   oldpar <- par(no.readonly = TRUE) 
   par( mfrow = c(nrowsPlots,ncolsPlots) )
   par(mar=c(2, 2, 2, 1))
-  gelman.plot(getSample(bt_out, coda=TRUE), 
+  gelman.plot(getSample(bt_out, start=post_start, end=post_end, coda=TRUE), 
               ylim=c(1.0,2.0), 
               ask=FALSE, 
               autoburnin=FALSE, # TRUE=ignores first half of chain
@@ -556,8 +551,8 @@ if (TRUE){
   
   # residuals bias and precision
   temp <- filter(residual_df, 
-                 # pred_map>0 | obs_vals>0,
-                 obs_wts==1) %>%  # avoid Stem C data and model == 0
+                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
+                 obs_wts==1) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
@@ -579,8 +574,8 @@ if (TRUE){
   
   # model-data plot 
   temp <- filter(residual_df, 
-                 pred_map>0 | obs_vals>0,
-                 obs_wts==1) # avoid Stem C data and model == 0
+                 pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
+                 obs_wts==1) 
   plot4 <- temp %>% 
     ggplot() +
     labs(title="Data-Model Plot", x="Data", y="Model MAP +/- CI", colour="Region") +
@@ -601,8 +596,8 @@ if (TRUE){
 
   # residual score
   temp <- filter(residual_df, 
-                 # pred_map>0 | obs_vals>0,
-                 obs_wts==1) %>%  # avoid Stem C data and model == 0
+                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
+                 obs_wts==1) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot5 <- temp %>% 
     ggplot() +
@@ -619,7 +614,7 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot5)
-  png(paste(scenario, "/residual_score.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_score_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot5)
   dev.off()
 
@@ -642,7 +637,7 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   print(plot6)
-  png(paste(scenario, "/residual_score2.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_score_pred.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot6)
   dev.off()
   

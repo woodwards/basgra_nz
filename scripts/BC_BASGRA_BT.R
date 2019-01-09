@@ -60,42 +60,61 @@ bt_settings <- list(startValue=nInternal,
                     message=TRUE) 
 
 # run BT
-bt_out <- runMCMC(bayesianSetup = bt_setup, 
-                  sampler = "DREAMzs", 
-                  settings = bt_settings)
-cat(file=stderr(), " ", "\n")
+target_conv <- 2.0
+max_minutes <- 60
 bt_chains <- nInternal * nChains 
-bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
 bt_pars <- length(bt_names)
-bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
-cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
-cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
-cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+bt_conv <- NA
+repeat{
+  
+  # run Bayesian Tools
+  if (is.na(bt_conv)){ 
+    # first run
+    bt_out <- runMCMC(bayesianSetup = bt_setup, 
+                      sampler = "DREAMzs", 
+                      settings = bt_settings)
+    cat(file=stderr(), " ", "\n")
+  } else {
+    # continuation
+    if (nBurnin==0){
+      cat(file=stderr(), paste("Greater than", target_conv, "so continuing..."), "\n")
+    } else {
+      cat(file=stderr(), "Restart doesn't work with nBurnin>0 so stopping...\n")
+      # stop()
+    }
+    bt_out <- runMCMC(bayesianSetup = bt_out)
+    cat(file=stderr(), " ", "\n")
+  }
+  
+  # assess convergence  
+  bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
+  cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
+  cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+  # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
+  # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+  bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
+  cat(file=stderr(), paste("Convergence (max(psf)) =", round(bt_conv,3)), "\n")
+  
+  # keep going?
+  if ((bt_conv <= target_conv) || (bt_out[[1]]$settings$runtime[3] >= max_minutes*60)){
+    break
+  }
+}
 
-# rerun BT until target mpsrf achieved (provided run time remains reasonable)
-# DOESN'T REALLY SEEM TO CONVERGE, AND OFTEN CAUSES A CRASH, ALSO CAN'T HANDLE BURNIN
-# target_mpsrf <- 2.0
-# max_minutes <- 60
-# if (FALSE){ 
-#   while ((gelmanDiagnostics(bt_out)$mpsrf > target_mpsrf)&
-#          (bt_out[[1]]$settings$runtime[3] < max_minutes*60)){
-#     # restart
-#   	if (nBurnin==0){
-#   	  cat(file=stderr(), paste("Greater than", target_mpsrf, "so continuing..."), "\n")
-#   	} else {
-#   		stop("restart doesn't work with nBurnin>0 due to a bug")
-#   	}
-#     bt_out <- runMCMC(bayesianSetup = bt_out) 
-#     cat(file=stderr(), " ", "\n")
-#     # bt_chains <- nInternal * nChains
-#     bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
-#     # bt_pars <- length(bt_names)
-#     bt_conv <- gelmanDiagnostics(bt_out)$mpsrf
-#     # cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
-#     cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
-#     cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
-#   }
-# }
+# run BT
+# bt_out <- runMCMC(bayesianSetup = bt_setup, 
+#                   sampler = "DREAMzs", 
+#                   settings = bt_settings)
+# cat(file=stderr(), " ", "\n")
+# bt_chains <- nInternal * nChains 
+# bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
+# bt_pars <- length(bt_names)
+# cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
+# cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+# # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
+# # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+# bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
+# cat(file=stderr(), paste("Overall convergence (max(psf)) =", round(bt_conv,3)), "\n")
 
 # stop parallel
 stopParallel(bayesianSetup=bt_setup)

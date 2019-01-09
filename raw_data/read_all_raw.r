@@ -20,6 +20,7 @@ print(site)
 acultivar <- "Alto" # only Alto and Halo have light interception data
 aseed_rate <- "18kg"
 calib_start <- ymd("20120401") # period for data weight = 1
+calib_start <- ymd("20110401") # period for data weight = 1
 calib_end <- ymd("20171231") # period for data weight = 1
 
 # seed rates in order
