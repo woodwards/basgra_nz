@@ -80,7 +80,10 @@ for (scenario in scenarios){
 } # next scenario
 
 cat(file=stderr(), "Finished BC_BASGRA.r", "\n")
-# dyn.unload(BASGRA_DLL) 
-# installr::kill_all_Rscript_s() # kills processes left from BT parallel
-# closeAllConnections()
-# graphics.off()
+if (FALSE){
+  dyn.unload(BASGRA_DLL)
+  installr::kill_all_Rscript_s() # kills processes left from BT parallel
+  closeAllConnections()
+  graphics.off()
+}
+

@@ -69,6 +69,12 @@ TMMXI  = MATRIX_WEATHER(:,5)
   WNI   = MATRIX_WEATHER(:,8)
 #endif
 
+! Initialise harvest array index
+HARVI   = 1
+do while ( (DAYS_HARVEST(HARVI,1)<YEARI(1)) .or. ((DAYS_HARVEST(HARVI,1)==YEARI(1)).and.(DAYS_HARVEST(HARVI,2)<DOYI(1))) )
+  HARVI = HARVI + 1
+end do
+
 ! Extract parameters
 call set_params(PARAMS)
 
@@ -129,15 +135,18 @@ do day = 1, NDAYS
   ! Calculate intermediate and rate variables (many variable and parameters are passed implicitly)
   !    SUBROUTINE      INPUTS                          OUTPUTS
 
+  call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day, including DTR, PAR, which depend on DRYSTOR
+
   call Harvest        (CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,TILG1,TILV, &
                                                        GSTUB,HARVLA,HARVLV,HARVLVD,HARVPH,HARVRE,HARVST, &
                                                        HARVTILG2,HARVFR,HARVFRIN,HARV,RDRHARV)
   LAI     = LAI     - HARVLA * (1 + RDRHARV)
   CLV     = CLV     - HARVLV * (1 + RDRHARV)
-  CLVD    = CLVD    - HARVLVD     + (HARVLV + HARVRE) * RDRHARV
+  CLVD    = CLVD    - HARVLVD     + (HARVLV + HARVRE) * RDRHARV  + (CST - HARVST) ! Simon move left over CST to CLVD
   CRES    = CRES    - HARVRE * (1 + RDRHARV)
-  CST     = CST     - HARVST   - GSTUB
-  CSTUB   = CSTUB              + GSTUB
+!  CST     = CST     - HARVST   - GSTUB
+  CST     = 0
+!  CSTUB   = CSTUB              + GSTUB ! Simon calculate GSTUB differently
   TILV    = TILV    - TILV * RDRHARV
   TILG1   = TILG1   - TILG1 * RDRHARV
   TILG2   = TILG2   - HARVTILG2
@@ -151,7 +160,6 @@ do day = 1, NDAYS
   end if
   YIELD     = YIELD + ((HARVLV + HARVLVD + HARVST) / 0.45 + HARVRE / 0.40) * 10.0 / 1000.0 ! tDM ha-1 Simon cumulative harvest
 
-  call set_weather_day(day,DRYSTOR,                    year,doy) ! set weather for the day, including DTR, PAR, which depend on DRYSTOR
   call SoilWaterContent(Fdepth,ROOTD,WAL,WALS)                   ! calculate WCL
   call Physics        (DAVTMP,Fdepth,ROOTD,Sdepth,WAS, Frate)    ! calculate Tsurf, Frate
   call MicroClimate   (doy,DRYSTOR,Fdepth,Frate,LAI,BASAL,Sdepth,Tsurf,WAPL,WAPS,WETSTOR, &

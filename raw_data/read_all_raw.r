@@ -29,17 +29,19 @@ seed_rate_levels <- c("6kg", "12kg", "18kg", "24kg", "30kg")
 #### read and normalise data ####
 if (site=="Scott"){
   
-  raw_file_name <- "raw_data/FD1004 Data For Modelling.xlsx"
-  data_rpm <- read_xlsx(raw_file_name, sheet="Waikato RPM Height data") %>% autosnake() 
-  data_cut1 <- read_xlsx(raw_file_name, sheet="Cut Yield Data Year1 2011to12") %>% autosnake() %>% 
-    mutate(mean_dm=NA_real_)
-  data_cut2 <- read_xlsx(raw_file_name, sheet="Cut Yield Data Year2 onwards") %>% autosnake() %>% 
-    mutate(yield_kg_dm_ha=if_else(yield_kg_dm_ha>0, yield_kg_dm_ha, NA_real_))
-  data_till <- read_xlsx(raw_file_name, sheet="Tiller density data Waikato") %>% autosnake() 
-  data_bot <- read_xlsx(raw_file_name, sheet="Botanical Composition data ", skip=1) %>% autosnake() 
-  data_li <- read_xlsx(raw_file_name, sheet="Waikato LightInterception") %>% autosnake() 
-  data_sm <- read_xlsx(raw_file_name, sheet="Soil moisture data") %>% autosnake() 
-
+  suppressMessages({ # suppress .name_repair messages
+    raw_file_name <- "raw_data/FD1004 Data For Modelling.xlsx"
+    data_rpm <- read_xlsx(raw_file_name, sheet="Waikato RPM Height data") %>% autosnake() 
+    data_cut1 <- read_xlsx(raw_file_name, sheet="Cut Yield Data Year1 2011to12") %>% autosnake() %>% 
+      mutate(mean_dm=NA_real_)
+    data_cut2 <- read_xlsx(raw_file_name, sheet="Cut Yield Data Year2 onwards") %>% autosnake() %>% 
+      mutate(yield_kg_dm_ha=if_else(yield_kg_dm_ha>0, yield_kg_dm_ha, NA_real_))
+    data_till <- read_xlsx(raw_file_name, sheet="Tiller density data Waikato") %>% autosnake() 
+    data_bot <- read_xlsx(raw_file_name, sheet="Botanical Composition data ", skip=1) %>% autosnake() 
+    data_li <- read_xlsx(raw_file_name, sheet="Waikato LightInterception") %>% autosnake() 
+    data_sm <- read_xlsx(raw_file_name, sheet="Soil moisture data") %>% autosnake() 
+  })
+  
 } else if (site=="Lincoln"){
   
   raw_file_name <- "raw_data/FD1004_C Data For Modelling.xlsx"
@@ -201,15 +203,15 @@ data_bc <- data_rpm %>%
   # drop_na() %>%
   mutate(
     mass_cut = mass_pre, # + growth_rate_pre * delay * 0,
-    below = mass_cut - yield
+    yield_below = mass_cut - yield
     )
-unique(data_bc$delay) # check delay between cut and rpm
+print(unique(data_bc$delay)) # check delay between cut and rpm
 
-# copy below back into data_cut
+# copy yield_below back into data_cut
 temp <- data_cut %>%
   left_join(data_bc, by=c("block", "seed_rate", "cultivar", "grazing")) %>%
   select(date_cut.x, block, seed_rate, cultivar, yield.x, dm_pc, grazing,
-         date_pre, mass_pre, delay, below) %>%
+         date_pre, mass_pre, delay, yield_below) %>%
   rename(date_cut = date_cut.x,
          yield = yield.x)
 data_cut <- temp
@@ -257,13 +259,16 @@ data_bot <- data_bot %>%
     rgfrac = 100 * (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
     month = month(dmy(paste("01", month, "2011"))),
     # estimate botanicals composition below cutting height
-    # based on Tozer data from Ruakura only
-    # seems dangerous to apply these assumptioins to all sites!
+    # Tozer data - from Ruakura only - tiller dissection only not sward
+    # seems dangerous to apply these assumptions to all sites!
     # be careful to ensure it gives reasonable estimates
     # weighted average seems safe?
-    leaf_below = 0*leaf / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + weed + 3.30*dead) * 100,
-    stem_below = 0*stem / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + weed + 3.30*dead) * 100,
-    dead_below = 0*dead / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + weed + 3.30*dead) * 100,
+    # leaf_below = 0.79*leaf / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + 0.50*weed + 3.30*dead) * 100,
+    # stem_below = 0.56*stem / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + 0.50*weed + 3.30*dead) * 100,
+    # dead_below = 3.30*dead / (0.79*leaf + 0.56*stem + 0.79*ann + 0.50*wc + 0.79*og + 0.50*weed + 3.30*dead) * 100,
+    leaf_below = leaf, # simplest assumption
+    stem_below = stem,
+    dead_below = dead,
     total_below = leaf_below + stem_below + dead_below
   ) %>%
   select(leaf, stem, ann, wc, og, weed, dead, date_bot, total, block, seed_rate, cultivar, rgfrac, leaf_below, stem_below, dead_below, total_below) 
@@ -328,9 +333,9 @@ data_bm <- data_bot %>%
   left_join(data_cut, by=c("grazing", "date_cut", "block", "seed_rate", "cultivar")) %>%
   select(date_bot, block, seed_rate, cultivar, 
          leaf, stem, ann, wc, og, weed, dead, leaf_below, stem_below, dead_below,
-         date_cut, grazing, yield, below) %>%
+         date_cut, grazing, yield, yield_below) %>%
   rename(yield_cut = yield) %>%
-  mutate(yield_bot = yield_cut #+ below * 0 + growth_rate_pre * delay * 0 # assumed on date_bot, not including below mass
+  mutate(yield_bot = yield_cut #+ yield_below * 0 + growth_rate_pre * delay * 0 # assumed on date_bot, not including yield_below mass
     )
 
 #### gather data_bm into data_bm2 ####
@@ -355,24 +360,24 @@ data_sm <- data_sm %>%
 #### make model input files ####
 
 # move post harvest measurements if on grazing day since model does harvest at start of day
-data_rpm$date_post2 <- as.Date(with(data_rpm,
-                            ifelse(date_post > date_grazed, 
-                                   as.Date(date_post), 
-                                   as.Date(date_post) + 1)
-                            ), origin="1970-01-01")
+# data_rpm$date_post2 <- as.Date(with(data_rpm,
+#                             ifelse(date_post > date_grazed, 
+#                                    as.Date(date_post), 
+#                                    as.Date(date_post) + 1)
+#                             ), origin="1970-01-01")
 
 # some calculations
-data_rpm <- data_rpm %>%
-  mutate(
-    year_pre = year(date_pre),
-    doy_pre = yday(date_pre),
-    year_post = year(date_post2),
-    doy_post = yday(date_post2),
-    year_grazed = year(date_grazed),
-    doy_grazed = yday(date_grazed), 
-    days_pre = difftime(date_grazed, date_pre),
-    days_post = difftime(date_post2, date_grazed)
-    )
+# data_rpm <- data_rpm %>%
+#   mutate(
+#     year_pre = year(date_pre),
+#     doy_pre = yday(date_pre),
+#     year_post = year(date_post2),
+#     doy_post = yday(date_post2),
+#     year_grazed = year(date_grazed),
+#     doy_grazed = yday(date_grazed), 
+#     days_pre = difftime(date_grazed, date_pre),
+#     days_post = difftime(date_post2, date_grazed)
+#     )
 
 ablock <- 3 # for testing
 for (ablock in c(1,2,3,4,5)) { # loop through blocks
@@ -380,11 +385,12 @@ for (ablock in c(1,2,3,4,5)) { # loop through blocks
   # write harvest dates and harvest % for selected series
   harv_file_name <- paste("raw_data/harvest_", site, "_", ablock, ".txt", sep="")
   data_h <- data_rpm %>%
-    select(block, seed_rate, cultivar, year_grazed, doy_grazed, harv) %>%
+    select(block, seed_rate, cultivar, date_grazed, harv) %>%
     filter(block == ablock & seed_rate==aseed_rate & cultivar==acultivar) %>%
     drop_na()
+  grazing_dates <- data_h$date_grazed
   days_harvest <- matrix(as.integer(-1), nrow=100, ncol=3) # up to 100 harvests
-  days_harvest[1:nrow(data_h),] <- c(data_h$year_grazed, data_h$doy_grazed, data_h$harv)
+  days_harvest[1:nrow(data_h),] <- c(year(data_h$date_grazed), yday(data_h$date_grazed), data_h$harv)
   write.table(days_harvest, file=harv_file_name, row.names=FALSE, col.names=FALSE, sep="\t")
   
   # write calibration data
@@ -392,7 +398,7 @@ for (ablock in c(1,2,3,4,5)) { # loop through blocks
   
   # collect the data in this list
   data_c <- vector("list", 10) 
-  err_c <- c(TILTOT=1000, CLV=25, CST=2.5, CLVD=40, WCLM=5, BASAL=10)
+  err_c <- c(TILTOT=2000, CLV=60, CST=20, CLVD=40, WCLM=10, BASAL=10)
   
   # pre and post mass (but this includes other species!)
   # temp <- data_rpm %>%
@@ -407,31 +413,36 @@ for (ablock in c(1,2,3,4,5)) { # loop through blocks
   # ryegrass tillers
   temp <- data_till_sum %>%
     select(block, seed_rate, cultivar, tillers, date_till) %>%
-    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-  data_c[[3]] <- with(temp, tibble(var="TILTOT", year=year(date_till), doy=yday(date_till), 
+    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) %>% 
+    mutate(
+      date_till2=if_else(date_till %in% grazing_dates, date_till-days(1), date_till), # avoid grazing dates
+      incalib=((date_till2>=calib_start)&(date_till2<=calib_end)),
+      weight=as.numeric(incalib)
+    )
+  # stopifnot(all(temp$date_till2==temp$date_till))
+  data_c[[3]] <- with(temp, tibble(var="TILTOT", year=year(date_till2), doy=yday(date_till2), 
                                    data=tillers, sd=err_c["TILTOT"], type="sd",
-                                   weight=ifelse(((date_till>=calib_start)&
-                                                    (date_till<=calib_end)), 1, 0))
-                      %>% drop_na())
+                                   weight=weight) %>% drop_na())
   
   # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
   temp <- data_bm %>%
-    # rename(date = date_cut) %>%
-    select(block, seed_rate, cultivar, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_bot, below, date_bot) %>%
-    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-  data_c[[4]] <- with(temp, tibble(var="CLV", year=year(date_bot), 
-                                   doy=yday(date_bot), data=leaf/100*yield_bot/10*0.45+leaf_below/100*below/10*0.45, 
+    select(block, seed_rate, cultivar, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_bot, yield_below, date_bot) %>%
+    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) %>% 
+    mutate(
+      date_bot2=if_else(date_bot %in% grazing_dates, date_bot-days(1), date_bot), # avoid grazing dates
+      incalib=((date_bot2>=calib_start)&(date_bot2<=calib_end)),
+      weight=as.numeric(incalib)
+    ) 
+  # stopifnot(all(temp$date_bot2==temp$date_bot))
+  data_c[[4]] <- with(temp, tibble(var="CLV", year=year(date_bot2), doy=yday(date_bot2), 
+                                   data=leaf/100*yield_bot/10*0.45+leaf_below/100*yield_below/10*0.45, 
                                    sd=err_c["CLV"], type="sd",
-                                   weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
-  data_c[[5]] <- with(temp, tibble(var="CST", year=year(date_bot), 
-                                   doy=yday(date_bot), data=stem/100*yield_bot/10*0.45+stem_below/100*below/10*0.45, 
+                                   weight=weight) %>% drop_na())
+  data_c[[5]] <- with(temp, tibble(var="CST", year=year(date_bot2), doy=yday(date_bot2), 
+                                   data=stem/100*yield_bot/10*0.45+stem_below/100*yield_below/10*0.45, 
                                    sd=err_c["CST"], type="sd",
-                                   weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
-  # data_c[[6]] <- with(temp, tibble(var="CLVD", year=year(date_bot), 
-  #                                  doy=yday(date_bot), data=dead/100*yield_bot/10*0.45+dead_below/100*below/10*0.45, 
-  #                                  sd=err_c["CLVD"], type="sd",
-  #                                  weight=ifelse(((date_bot>=calib_start)&(date_bot<=calib_end)), 1, 0)) %>% drop_na())
-  
+                                   weight=weight) %>% drop_na())
+
   # light interception (but this includes all species!)
   # temp <- data_li %>%
   #   select(block, seed_rate, cultivar, li, date) %>%
@@ -442,10 +453,15 @@ for (ablock in c(1,2,3,4,5)) { # loop through blocks
   # soil moisture
   temp <- data_sm %>%
     select(block, seed_rate, cultivar, mean_sm, date_sm) %>%
-    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) 
-  data_c[[8]] <- with(temp, tibble(var="WCLM", year=year(date_sm), 
-                                   doy=yday(date_sm), data=mean_sm, sd=err_c["WCLM"], type="sd",
-                                   weight=ifelse(((date_sm>=calib_start)&(date_sm<=calib_end)), 1, 0)) %>% drop_na())
+    filter(block==ablock & seed_rate==aseed_rate & cultivar==acultivar) %>% 
+    mutate(
+      # soil moisture is not affected by grazing so no need to adjust date
+      incalib=((date_sm>=calib_start)&(date_sm<=calib_end)),
+      weight=as.numeric(incalib)
+    ) 
+  data_c[[8]] <- with(temp, tibble(var="WCLM", year=year(date_sm), doy=yday(date_sm), 
+                                   data=mean_sm, sd=err_c["WCLM"], type="sd",
+                                   weight=weight) %>% drop_na())
   
   # basal area
   # temp <- data_till_sum %>%

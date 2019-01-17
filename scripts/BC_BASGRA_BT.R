@@ -60,8 +60,6 @@ bt_settings <- list(startValue=nInternal,
                     message=TRUE) 
 
 # run BT
-target_conv <- 2.0
-max_minutes <- 60
 bt_chains <- nInternal * nChains 
 bt_pars <- length(bt_names)
 bt_conv <- NA
@@ -92,11 +90,15 @@ repeat{
   cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
   # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
   # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
+  bt_time <- bt_out[[1]]$settings$runtime[3]/60
+  cat(file=stderr(), paste("Elapsed time =", round(bt_time,2), "minutes"), "\n")
   bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
-  cat(file=stderr(), paste("Convergence (max(psf)) =", round(bt_conv,3)), "\n")
+  cat(file=stderr(), paste("Convergence max(psf) =", round(bt_conv,3)), "\n")
   
-  # keep going?
-  if ((bt_conv <= target_conv) || (bt_out[[1]]$settings$runtime[3] >= max_minutes*60)){
+  # read stopping criterion from file (allows us to change it on the fly)
+  target_conv <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE)[1,1]
+  max_minutes <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE)[2,1]
+  if ((bt_conv <= target_conv) || (bt_time >= max_minutes)){
     break
   }
 }

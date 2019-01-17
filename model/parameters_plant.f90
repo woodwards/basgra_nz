@@ -27,7 +27,7 @@ implicit none
   real            :: Dparam, Hparam, KRDRANAER, KRESPHARD, KRSR3H
   real            :: LDT50A, LDT50B, LT50MN, LT50MX, RATEDMX
 !  real, parameter :: RDRROOT      =  0.005 ! relative death rate of root CRT. Root currently doesn't do anything in the model. FIXME
-  real, parameter :: RDRSTUB      =  0.2   ! relative death rate of stubble CSTUB. Stubble currently doesn't do anything in the model. FIXME
+!  real, parameter :: RDRSTUB      =  0.2   ! relative death rate of stubble CSTUB. Stubble currently doesn't do anything in the model. FIXME
   real            :: reHardRedDay
   real, parameter :: reHardRedEnd = 91.    ! end date of rehardening reduction period for Northern hemisphere. Adjusted for hemisphere in HardeningSink().
   real            :: THARDMX, TsurfDiff

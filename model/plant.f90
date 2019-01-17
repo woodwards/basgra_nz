@@ -7,7 +7,7 @@ use environment
 implicit none
 
 ! Plant variables
-integer :: NOHARV
+integer :: NOHARV,HARVI
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RESMOB
 real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
 real :: RDRFROST,RDRT,RDRL,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
@@ -28,23 +28,26 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   real    :: GSTUB, HARVLV, HARVLVD, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
   real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV
   integer :: HARV
-  integer :: i
+!  integer :: i
 
   HARV   = 0
   NOHARV = 1
   HARVFR = 0.0
-  do i=1,100 ! FIXME this is inefficient
-    if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
+!  do i=1,100 ! FIXME this is inefficient
+!    if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
+    if ( (year==DAYS_HARVEST(HARVI,1)) .and. (doy==DAYS_HARVEST(HARVI,2)) ) then
       HARV   = 1
       NOHARV = 0
-      HARVFRIN = DAYS_HARVEST(i,3) / 100.0  ! Simon read in fraction havested (however this is defined)
+      HARVFRIN = DAYS_HARVEST(HARVI,3) / 100.0  ! Simon read in fraction of mass harvested
+      ! Logic to calculate proportion of CLV harvested
       ! HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)=HARVRF*CLV+HAGERE*CST+0*CSTUB+HARVFRD*CLVD+CRES/0.40*0.45*(HARVRF*CLV+HAGERE*CST+0*CSTUB)/(CLV+CST+CSTUB)
       ! HARVFR*(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))=HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)
       HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
               /(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))
       HARVFR=max(0.0,min(0.8,HARVFR)) ! Set an upper bound
+      HARVI = HARVI + 1 ! advance harvest array index to next event
 	end if
-  end do
+!  end do
 
   FRACTV = (TILV + TILG1)/(TILG2 + TILG1 + TILV) ! Fraction of non-elongating tillers (Simon included TILG1)
   ! (1-FRACTV) * CLAI = LAI on elongating tillers, assumed to all be harvested
@@ -167,13 +170,13 @@ Subroutine CalcSLA
   EFFTMP = max(TBASE, DAVTMP)
   ! Linear relationship based on Peacock 1976 (who did not include daylength effect)
   ! See also Hoglind et al 2001 - different eqn for LERG
-  ! See also Hogling et al 2016 - DAYLGE applied to both
+  ! See also Hogling et al 2016 - DAYLGE applied to LERG (paper has typo)
 !  LERV   =          max(0., (-0.76 + 0.52*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (for timothy, Peacock 1976)
 !  LERG   = DAYLGE * max(0., (-5.46 + 2.80*EFFTMP)/1000. ) ! Why is DAYLGE applied here and not to LERV? Bug when DAYLGE is always small?
 !  LERV   =          max(0., (-1.13 + 0.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Simon, for ryegrass, Peacock 1976)
 !  LERG   = DAYLGE * max(0., (-8.21 + 1.75*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Simon, for ryegrass, Peacock 1976)
-  LERV   =          max(0., LERVB*(EFFTMP-LERVA)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Hjelkrem et al EM 2017)
-  LERG   = DAYLGE * max(0., LERGB*(EFFTMP-LERGA)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Hjelkrem et al EM 2017)
+  LERV   =          max(0., (LERVA + LERVB*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on vegetative tillers (Hjelkrem et al EM 2017)
+  LERG   =  max(0., (LERGA + LERGB*EFFTMP)/1000. ) ! m d-1 leaf elongation rate on generative tillers (Hjelkrem et al EM 2017)
   SLAMIN = SLAMAX * FSLAMIN
   SLANEW = SLAMAX - RESNOR * ( SLAMAX - SLAMIN )          ! m2 leaf gC-1 SLA of new leaves (depends on CRES) note unusual units!
 end Subroutine CalcSLA
@@ -255,8 +258,8 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
   end if
   SINK1T   = max(0., 1 - (CSTAV/CSTAVM)) * SIMAX1T                 ! gC tiller-1 d-1 Sink strength of individual elongating tillers
   NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller.
-  GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*(LFWIDV+LFWIDG))) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1, redefined LFWIDG)
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
+  GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
 !  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
 !  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
   GLVSI    = max(0.0, (GLAISI / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass, Simon removed NOHARV

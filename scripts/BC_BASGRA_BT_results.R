@@ -515,7 +515,7 @@ if (TRUE){
   cat(file=stderr(), "Plot residuals using ggplot", "\n")
   
   # model-data plot
-  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
+  temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot1 <- temp %>% 
     ggplot() +
     labs(title="Model-Data Plot", x="Posterior", y="Data", colour="Region") +
@@ -535,7 +535,7 @@ if (TRUE){
   dev.off()
   
   # residuals (data - model)/error
-  temp <- filter(residual_df, obs_wts==1, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
+  temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot2 <- temp %>% 
     ggplot() +
     labs(title="Residual Density", x="Scaled MAP Residual", y="Density", colour="Region") +
@@ -552,18 +552,19 @@ if (TRUE){
   # residuals bias and precision
   temp <- filter(residual_df, 
                  # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts==1) %>%  
+                 obs_wts>0) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Year", y="Residual (Model - Data)", colour="Region") +
+    labs(title="Residual Bias", x="Year", y="Residual (Data/Model - Median)", colour="Region") +
     # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
+    geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
     # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
     # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
-    geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
+    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
     # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=times+xjitter, y=pred_map-obs_vals, colour=region)) +
+    geom_point(mapping=aes(x=times+xjitter, y=obs_vals-pred_med, colour=region)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
@@ -572,10 +573,34 @@ if (TRUE){
   print(plot3)
   dev.off()
   
+  # residuals bias and precision
+  temp <- filter(residual_df, 
+                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
+                 obs_wts>0) %>%  
+    mutate(xjitter=runif(n())*0.1-0.05)
+  plot3b <- temp %>% 
+    ggplot() +
+    labs(title="Residual Bias", x="Pediction Median", y="Residual (Data/Model - Median)", colour="Region") +
+    # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
+    # geom_errorbarh(mapping=aes(y=pred_med, xmin=pred_min, xmax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=pred_med, y=obs_vals-pred_med, colour=region)) +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
+    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free")
+  print(plot3b)
+  png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  print(plot3b)
+  dev.off()
+  
   # model-data plot 
   temp <- filter(residual_df, 
                  pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts==1) 
+                 obs_wts>0) 
   plot4 <- temp %>% 
     ggplot() +
     labs(title="Data-Model Plot", x="Data", y="Model MAP +/- CI", colour="Region") +
@@ -597,7 +622,7 @@ if (TRUE){
   # residual score
   temp <- filter(residual_df, 
                  # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts==1) %>%  
+                 obs_wts>0) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot5 <- temp %>% 
     ggplot() +
@@ -621,7 +646,7 @@ if (TRUE){
   # residual score 2
   temp <- filter(residual_df, 
                  # pred_map>0 | obs_vals>0,
-                 obs_wts==1) 
+                 obs_wts>0) 
   plot6 <- temp %>% 
     ggplot() +
     labs(title="Residual Score", x="Prediction Median", y="Residual Score", colour="Region") +

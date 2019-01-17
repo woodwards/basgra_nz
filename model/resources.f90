@@ -38,9 +38,9 @@ Subroutine EVAPTRTRF(Fdepth,PEVAP,PTRAN,CRT,ROOTD,WAL,WCLM,WCL, EVAP,TRAN)
 !    WCL = 0
 !  end if                                                       ! (m3 m-3)
   EVAP = PEVAP * max(0., min(1., (WCLM-WCAD)/(WCFC-WCAD) ))     ! = mm d-1 Reduction in evaporation due to soil water content
-!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
+  WCCR = WCWP + (WCFC - WCWP) * max(0.0, PTRAN/(PTRAN+TRANCO))  ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
  ! https://hrsl.ba.ars.usda.gov/SPAW/SPAW%20Reference%20Manual/PlantTranspiration.htm
-  WCCR = WCWP + (WCFC - WCWP) * max(0.0, min(1.0, PTRAN/TRANCO)) ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
+!  WCCR = WCWP + (WCFC - WCWP) * max(0.0, min(1.0, PTRAN/TRANCO)) ! = m3 m-3 Critical water content below which transpiration is reduced (Eqn 1)
   if (WCL > WCCR) then                                          ! Transpiraiton reduction factor (Fig 4)
     FR = max(0., min(1., (WCST-WCL)/(WCST-WCWET) ))             ! Transpiration reduction in wet conditions
   else if (WCCR > WCWP) then                                    ! Gradual reduction due to dryness

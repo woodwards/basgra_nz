@@ -21,7 +21,7 @@ KLAI	0.607	0.607	0.607	K	m2 m-2 leaf	PAR extinction coefficient
 LAICR	3.8	3.8	3.8	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
 LAIEFT	0.183	0.183	0.183	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
 LAITIL	0.867	0.867	0.867	LAITIL	-	Maximum ratio of tiller and leaf apearance at low leaf area index
-LFWIDG	0.0128	0.0128	0.0128	LFWIDG	m	Additional leaf width on elongating tillers
+LFWIDG	0.0128	0.0128	0.0128	LFWIDG	m	Leaf width on elongating tillers
 LFWIDV	0.0044	0.0044	0.0044	LFWIDV	m	Leaf width on non-elongating tillers
 NELLVM	1.3	1.3	1.3	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
 PHENCR	0.6144	0.6144	0.6144	PHENCR	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
@@ -47,7 +47,7 @@ FWCAD	0.05	0.05	0.05	WCAD	m3 m-3	Relative saturation at air dryness
 FWCWP	0.1294	0.1294	0.1294	WCWP	m3 m-3	Relative saturation at wilting point
 FWCFC	0.8353	0.8353	0.8353	WCFC	m3 m-3	Relative saturation at field capacity
 FWCWET	0.95	0.95	0.95	WCWET	m3 m-3	Relative saturation above which transpiration is reduced
-WCST	0.80	0.55	0.55	WCST	m3 m-3	Volumetric water content at saturation
+WCST	0.55	0.55	0.55	WCST	m3 m-3	Volumetric water content at saturation
 WpoolMax	50	50	50	WpoolMax	mm	Maximum pool water (liquid plus ice)
 Dparam	0.0031796	0.0031796	0.0031796	Dparam	°C-1 d-1	Constant in the calculation of dehardening rate
 FGAS	0.4	0.4	0.4	FGAS	-	Fraction of soil volume that is gaseous
@@ -81,7 +81,7 @@ RGRTG1G2	0.5973	0.5973	0.5973	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.0014	0.0014	0.0014	RDRTMIN	d-1	Minimum relative death rate of foliage
 TVERN	6	6	6	TVERN	°C	Temperature below which vernalisation advances
 TVERND	21	21	21	TVERND	d	Days of cold after which vernalisation completed
-AGEH	932.8	932.8	932.8	AGEH	d	Age at which persistence is half
+RDRSTUB	0.2	0.2	0.2	RDRSTUB	d-1	Relative death rate of stubble/pseudostem
 LERGB	1.75	1.75	1.75	LERGB	mm d-1 °C-1	Leaf elongation slope generative
 RDRROOT	0.0022	0.0022	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
 DAYLA	0.66	0.66	0.66	DAYLA	-	DAYL above which growth is prioritised over storage
@@ -89,9 +89,9 @@ DAYLRV	0.55	0.55	0.55	DAYLRV	-	DAYL at which vernalisation is reset
 FCOCRESMN	0.5	0.5	0.5	FCOCRESMN	-	Minimum concentration of reserves in aboveground biomass as fraction of COCRESMX
 KCRT	50	50	50	KCRT	gC m-2	Root mass at which ROOTD is 67% of ROOTDM
 VERNDI	0	0	0	VERNDI	d	Initial value of cumulative vernalisation days
-LERVA	1.5	1.5	1.5	LERVA	°C	Leaf elongation intercept vegetative
+LERVA	-1.13	-1.13	-1.13	LERVA	°C	Leaf elongation intercept vegetative
 LERVB	0.75	0.75	0.75	LERVB	mm d-1 °C-1	Leaf elongation slope vegetative
-LERGA	4.7	4.7	4.7	LERGA	°C	Leaf elongation intercept generative
+LERGA	-8.21	-8.21	-8.21	LERGA	°C	Leaf elongation intercept generative
 RDRTILMIN	0.00074	0.00074	0.00074	RDRTILMIN	d-1	Background relative rate of tiller death
 RDRHARVMAX	0.00057	0.00057	0.00057	RDRHARVMAX	d-1	Maximum relative death rate due to harvest
 FGRESSI	0.5	0.5	0.5	FGRESSI	-	CRES sink strength factor
@@ -103,4 +103,4 @@ RDRWMAX	0.0	0.0	0.0	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1.0	1.0	1.0	BASALI	-	Grass basal area
 ABASAL	0.01	0.01	0.01	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
-DAYLGEMN	0	0	0	DAYLGEMN	-	Minimum daylength growth effect
+DAYLGEMN	1	1	1	DAYLGEMN	-	Minimum daylength growth effect

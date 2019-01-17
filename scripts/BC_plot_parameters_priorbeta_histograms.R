@@ -1,6 +1,8 @@
 ## Preparing for plotting ##
  # Read the parameter names
-   titles     <- parname_BC
+  titles <- ifelse(parsites_BC=="1:nSites", 
+                   as.character(parname_BC), 
+                   paste(parname_BC, "(", parsites_BC, ")", sep=""))
 
  # We will write the plots to a pdf file:
    pagew <- 11 ; pageh <- 8
@@ -19,7 +21,7 @@
    keeps <- seq(1, nSampling, length.out=min(nSampling,100000)) # avoid overflow error from large samples
    for (i in seq(1,np_BC)){
         hist( pChain[keeps,i] * sc[i],
-              xlab="", ylab="", main=paste(titles[i],parsites_BC[i]), cex.main=1,
+              xlab="", ylab="", main=titles[i], cex.main=1,
               breaks=nbreaks, freq=FALSE, xlim=c(parmin_BC[i],parmax_BC[i]) )
         parseq_BC <- seq(parmin_BC[i],parmax_BC[i],(parmax_BC[i]-parmin_BC[i])/100)
         points( parseq_BC, dbeta( (parseq_BC-parmin_BC[i])/(parmax_BC[i]-parmin_BC[i]), aa[i], bb[i] ) /
