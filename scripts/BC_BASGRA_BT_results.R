@@ -312,27 +312,27 @@ if (TRUE){
         # plot all data
         keeps <- bt_obs_wts==0 | bt_obs_wts>0
         x_obs <- bt_obs_times[keeps]
-        # suppressWarnings({
-        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-        #          x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-        #          col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
-        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-        #          x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-        #          col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
-        # })
+        suppressWarnings({
+          # arrows(x0=x_obs, y0=bt_obs_vals[keeps],
+          #        x1=x_obs, y1=bt_pred_MAP_obs[keeps],
+          #        col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
+          # arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96,
+          #        x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96,
+          #        col="grey", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        })
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="grey", cex=1.5)
         # plot weighted data
         keeps <- bt_obs_wts>0
         x_obs <- bt_obs_times[keeps]
-        # suppressWarnings({
-        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps], 
-        #          x1=x_obs, y1=bt_pred_MAP_obs[keeps], 
-        #          col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
-        #   arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96, 
-        #          x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96, 
-        #          col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
-        # })  
+        suppressWarnings({
+          arrows(x0=x_obs, y0=bt_obs_vals[keeps],
+                 x1=x_obs, y1=bt_pred_MAP_obs[keeps],
+                 col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
+          # arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96,
+          #        x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96,
+          #        col="darkblue", lwd=1.5, angle=90, code=3, length=0.05) # error bars
+        })
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="darkblue", cex=1.5)
         # collect residual_df
@@ -580,7 +580,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3b <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Pediction Median", y="Residual (Data/Model - Median)", colour="Region") +
+    labs(title="Residual Bias", x="Prediction Median", y="Residual (Data/Model - Median)", colour="Region") +
     # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
