@@ -21,7 +21,7 @@ implicit none
   real :: TBASE   , TCRES   , TOPTGE, TRANCO  , YG
   real :: RDRTMIN , TVERN   , TVERND, TVERNDMN, AGEH    , RDRROOT, DAYLA, DAYLRV
   real :: FCOCRESMN, KCRT   , RDRTILMIN, RDRHARVMAX, FGRESSI, EBIOMAX, HARVFRD, KTIL, RDRWMAX, DAYLGEMN, BASALI, ABASAL
-  real :: LERVA   , LERVB   , LERGA , LERGB
+  real :: LERVA   , LERVB   , LERGA , LERGB, RGRSTUB, RDRSTUB
 
 ! Process parameters, continued
   real            :: Dparam, Hparam, KRDRANAER, KRESPHARD, KRSR3H

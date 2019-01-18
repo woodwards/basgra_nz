@@ -81,7 +81,7 @@ RGRTG1G2	0.5973	0.5973	0.5973	RGRTG1G2	d-1	Relative rate of TILG1 becoming TILG2
 RDRTMIN	0.0014	0.0014	0.0014	RDRTMIN	d-1	Minimum relative death rate of foliage
 TVERN	6	6	6	TVERN	°C	Temperature below which vernalisation advances
 TVERND	21	21	21	TVERND	d	Days of cold after which vernalisation completed
-RDRSTUB	0.2	0.2	0.2	RDRSTUB	d-1	Relative death rate of stubble/pseudostem
+RDRSTUB	0.2	0.2	0.2	RDRSTUB	-	Relative death rate of stubble/pseudostem
 LERGB	1.75	1.75	1.75	LERGB	mm d-1 °C-1	Leaf elongation slope generative
 RDRROOT	0.0022	0.0022	0.0022	RDRROOT	d-1	Relatuive death rate of root mass CRT
 DAYLA	0.66	0.66	0.66	DAYLA	-	DAYL above which growth is prioritised over storage
@@ -104,3 +104,4 @@ BASALI	1.0	1.0	1.0	BASALI	-	Grass basal area
 ABASAL	0.01	0.01	0.01	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
 DAYLGEMN	1	1	1	DAYLGEMN	-	Minimum daylength growth effect
+RGRSTUB	0.2	0.2	0.2	RGRSTUB	-	Relative growth rate of stubble/pseudostem
