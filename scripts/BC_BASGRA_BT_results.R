@@ -261,6 +261,7 @@ if (TRUE){
         # error function gets sampled on top of parameter variation
         confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
         predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
+        predictedMedian_obs <- predictedMedian[bt_obs_rows]
         predicted <- pred$posteriorPredictivePredictionInterval[2,]
         predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
         x <- pred$posteriorPredictiveSimulations[,bt_obs_rows]
@@ -327,7 +328,7 @@ if (TRUE){
         x_obs <- bt_obs_times[keeps]
         suppressWarnings({
           arrows(x0=x_obs, y0=bt_obs_vals[keeps],
-                 x1=x_obs, y1=bt_pred_MAP_obs[keeps],
+                 x1=x_obs, y1=predictedMedian_obs[keeps],
                  col="black", lwd=1.5, angle=45, length=0.05) # residual arrow
           # arrows(x0=x_obs, y0=bt_obs_vals[keeps]-bt_obs_errs[keeps]*1.96,
           #        x1=x_obs, y1=bt_obs_vals[keeps]+bt_obs_errs[keeps]*1.96,

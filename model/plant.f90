@@ -245,7 +245,7 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
 !  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
-  RESMOB   = max(0.0, min(CRESMX,CRES) - CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
+  RESMOB   = max(0.0, CRES - CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
