@@ -59,7 +59,7 @@ bt_settings <- list(startValue=nInternal,
                     parallel=TRUE,
                     message=TRUE) 
 
-# run BT
+# run BT until stopping conditions met (these can be changed in the file BC_BASGRA_BT_stop.csv)
 bt_chains <- nInternal * nChains 
 bt_pars <- length(bt_names)
 bt_conv <- NA

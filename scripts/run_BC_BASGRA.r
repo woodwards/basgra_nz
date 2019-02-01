@@ -19,8 +19,8 @@ suppressMessages({
 # options(warn=2) # trap warnings
 
 #### point to scenario directory ####
-scenarios <- c("run_scott", "run_lincoln", "run_northland", "run_all")
-scenarios <- c("run_all")
+# scenarios <- c("run_scott", "run_lincoln", "run_northland", "run_all", "run_mean")
+scenarios <- c("run_mean")
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
   

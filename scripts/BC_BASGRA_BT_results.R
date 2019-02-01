@@ -11,7 +11,8 @@ suppressMessages({
   library(BayesianTools)
   library(coda)
 })
-dyn.load(BASGRA_DLL) 
+dyn.load(BASGRA_DLL)
+graphics.off()
 
 # memory management        
 library(pryr)
@@ -302,14 +303,16 @@ if (TRUE){
                               predictionBand = predictionBand,
                               x=bt_pred_times,
                               # xlim=c(2012,2015), # show only a subset of time line (else = NULL)
-                              main=paste(easyNames[data_col], outputUnits[data_col], 
-                                         "RSME_MAP =", signif(rmse,3), "/", signif(rmse2,3),
-                                         "RSQ_MAP =", signif(rsq,3), "/", signif(rsq2,3))
+                              # main=paste(easyNames[data_col], outputUnits[data_col], 
+                              #            "RSME_MAP =", signif(rmse,3), "/", signif(rmse2,3),
+                              #            "RSQ_MAP =", signif(rsq,3), "/", signif(rsq2,3))
+                              main=paste(easyNames[data_col], outputUnits[data_col])
         )
         # plot key prediction lines
         lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
         lines(x=bt_pred_times, y=bt_pred_ML, col="lightblue")
         lines(x=bt_pred_times, y=bt_pred_MAP, col="blue")
+        abline(h=0, col="darkgrey")
         # plot all data
         keeps <- bt_obs_wts==0 | bt_obs_wts>0
         x_obs <- bt_obs_times[keeps]
@@ -456,6 +459,7 @@ if (TRUE){
           lines(x=bt_pred_times, y=bt_pred_Mode, col=NA)
           lines(x=bt_pred_times, y=bt_pred_ML, col="lightblue")
           lines(x=bt_pred_times, y=bt_pred_MAP, col="blue")
+          abline(h=0, col="darkgrey")
         }
         
       } # next data_col
@@ -485,7 +489,7 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Dead Leaf C", "Total Tillers", "Soil Moisture")),
+      var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Dead Leaf C", "Root C", "Total Tillers", "Soil Moisture")),
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
     ) %>% 
@@ -530,7 +534,7 @@ if (TRUE){
     geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
-  print(plot1)
+  # print(plot1)
   png(paste(scenario, "/residual_model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot1)
   dev.off()
@@ -557,7 +561,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Year", y="Residual (Data/Model - Median)", colour="Region") +
+    labs(title="Residual Bias", x="Year", y="Data or Model - Model Median", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -568,7 +572,8 @@ if (TRUE){
     geom_point(mapping=aes(x=times+xjitter, y=obs_vals-pred_med, colour=region)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
+    facet_wrap(~var_name, scale="free") +
+    guides(fill=FALSE)
   print(plot3)
   png(paste(scenario, "/residual_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3)
@@ -581,7 +586,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3b <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Prediction Median", y="Residual (Data/Model - Median)", colour="Region") +
+    labs(title="Residual Bias", x="Model Median", y="Data or Model - Model Median", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -592,7 +597,8 @@ if (TRUE){
     geom_point(mapping=aes(x=pred_med, y=obs_vals-pred_med, colour=region)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
+    facet_wrap(~var_name, scale="free") +
+    guides(fill=FALSE)
   print(plot3b)
   png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3b)
@@ -615,7 +621,7 @@ if (TRUE){
     geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=obs_vals, y=pred_map, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
-  print(plot4)
+  # print(plot4)
   png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot4)
   dev.off()
@@ -639,7 +645,7 @@ if (TRUE){
     geom_point(mapping=aes(x=times+xjitter, y=score, colour=region)) +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
-  print(plot5)
+  # print(plot5)
   png(paste(scenario, "/residual_score_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot5)
   dev.off()
@@ -662,7 +668,7 @@ if (TRUE){
     geom_point(mapping=aes(x=pred_med, y=score, colour=region)) +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
-  print(plot6)
+  # print(plot6)
   png(paste(scenario, "/residual_score_pred.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot6)
   dev.off()

@@ -42,10 +42,11 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
       ! Logic to calculate proportion of CLV harvested
       ! HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)=HARVRF*CLV+HAGERE*CST+0*CSTUB+HARVFRD*CLVD+CRES/0.40*0.45*(HARVRF*CLV+HAGERE*CST+0*CSTUB)/(CLV+CST+CSTUB)
       ! HARVFR*(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))=HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)
-      HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
-              /(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))
-      HARVFR=max(0.0,min(0.8,HARVFR)) ! Set an upper bound
-      HARVI = HARVI + 1 ! advance harvest array index to next event
+!      HARVFR=(HARVFRIN*(CLV+CST+CSTUB+CLVD+CRES/0.40*0.45)-HAGERE*CST-HARVFRD*CLVD-CRES/0.40*0.45*HAGERE*CST/(CLV+CST+CSTUB)) &
+!              /(CLV+CRES/0.40*0.45*CLV/(CLV+CST+CSTUB))
+!      HARVFR=max(0.0,min(0.8,HARVFR)) ! Set an upper bound
+      HARVFR = HARVFRIN  ! Simon just use entered fraction for leaf. Otherwise dead can have too much effect.
+      HARVI  = HARVI + 1 ! advance harvest array index to next event
 	end if
 !  end do
 

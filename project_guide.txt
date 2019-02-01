@@ -7,7 +7,7 @@ NZ = New Zealand
 outstandings_issues.txt List of known issues with the data and model
 /docs/		miscellaneous background documents, including original BASGRA user guide
 /model/		BASGRA Fortran code and executable, also miscellaneous notes on model logic, model.cbp is a CodeBlocks Fortran Project
-  output_names.tsv	list of model outputs, must match code in BASGRA.f90
+/model/output_names.tsv	list of model outputs, must match code in BASGRA.f90
 /scripts/		R scripts for running and calibrating BASGRA (independent of scenario)
 
 /raw_data/		NZ trial data and weather files, R scripts for processing these, weather and calibration data files for BASGRA

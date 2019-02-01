@@ -4,10 +4,11 @@
 ## MCMC chain length (total number of iterations across all chains)
    # https://stats.stackexchange.com/questions/266749/mcmc-convergence
    # suggest nBurnin up to 50% of nChain
-   nChains       <- 3 # chains for repeatability testing
-   nBurnin       <- as.integer(12000 * 4 * nChains) # need to check convergence
-   nSampling     <- as.integer(12000 * 4 * nChains)
-   nChain        <- nBurnin + nSampling # total samples per chain
+   nChains       <- 3 # independent chains for repeatability testing
+   nInternal     <- 3 # internal chains in DREAMzs
+   nBurnin       <- as.integer(00000 * nChains * nInternal) 
+   nSampling     <- as.integer(10000 * nChains * nInternal)
+   nChain        <- nBurnin + nSampling # total samples 
 
 ## FILE FOR PRIOR PARAMETER DISTRIBUTION
    # this file provides parameters for all the sites
@@ -36,22 +37,22 @@
    file_prior    <- paste(scenario, "/parameters_BC.txt", sep="")
 
    # sitesettings_filenames <- c(sitesettings_filenames,
-   #                             "scripts/initialise_BASGRA_Northland_2.r",
-   #                             "scripts/initialise_BASGRA_Northland_3.r",
-   #                             "scripts/initialise_BASGRA_Northland_4.r")
+   #                             paste(scenario, "/initialise_BASGRA_Northland_2.r", sep=""),
+   #                             paste(scenario, "/initialise_BASGRA_Northland_3.r", sep=""),
+   #                             paste(scenario, "/initialise_BASGRA_Northland_4.r", sep=""))
    # sitedata_filenames     <- c(sitedata_filenames,
-   #                             "model_inputs/data_calibration_Northland_2.txt",
-   #                             "model_inputs/data_calibration_Northland_3.txt",
-   #                             "model_inputs/data_calibration_Northland_4.txt")
-
+   #                             paste(scenario, "/data_calibration_Northland_2.txt", sep=""),
+   #                             paste(scenario, "/data_calibration_Northland_3.txt", sep=""),
+   #                             paste(scenario, "/data_calibration_Northland_4.txt", sep=""))
+   # 
    # sitesettings_filenames <- c(sitesettings_filenames,
-   #                             "scripts/initialise_BASGRA_Scott_2.r",
-   #                             "scripts/initialise_BASGRA_Scott_3.r",
-   #                             "scripts/initialise_BASGRA_Scott_4.r")
+   #                             paste(scenario, "/initialise_BASGRA_Scott_2.r", sep=""),
+   #                             paste(scenario, "/initialise_BASGRA_Scott_3.r", sep=""),
+   #                             paste(scenario, "/initialise_BASGRA_Scott_4.r", sep=""))
    # sitedata_filenames     <- c(sitedata_filenames,
-   #                             "model_inputs/data_calibration_Scott_2.txt",
-   #                             "model_inputs/data_calibration_Scott_3.txt",
-   #                             "model_inputs/data_calibration_Scott_4.txt")
+   #                             paste(scenario, "/data_calibration_Scott_2.txt", sep=""),
+   #                             paste(scenario, "/data_calibration_Scott_3.txt", sep=""),
+   #                             paste(scenario, "/data_calibration_Scott_4.txt", sep=""))
    
    sitesettings_filenames <- c(sitesettings_filenames,
                                paste(scenario, "/initialise_BASGRA_Lincoln_2.r", sep=""),
@@ -66,7 +67,7 @@
    sitelist               <- list() ; length(sitelist) <- nSites
    
    # additional outputs to plot
-   extraOutputs <- c("CRT", "LAI", "DM", "RES")
+   extraOutputs <- c("LAI", "TSIZE", "CLVD", "CRT", "DM", "RES", "TRANRF")
    
    # Specify data uncertainties (the max of: cv for relative uncertainty, sd for absolute)   
    # These are used in BC_BASGRA_MCMC_init_general.r to set the data uncertainites

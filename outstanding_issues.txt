@@ -5,13 +5,14 @@ Issues
 - 64-bit R won't run the DLL properly so need to use 32-bit R
 - memory error with output object from long chains
 - burnin>0 causes BayesianTools::runMCMC() to fail on restart
-- fix bar plot width vanishing in data docx reports
+- bar plot width vanishing in some data docx reports
 - Northland soil moisture data is from different site than trial
-- Scott tiller not always collected on a single date. May be other date issues
-- daylength effects too severe in model
-- LERG LERV hardcoded with no calibration (but leaf width is calibrated)
-- root depth poorly identified, root mass often crashes
-- CRES is unstable, poorly determined, often crashes
+- botanical composition under sampling height is a very crude assumption
 - ROOTD and BASAL area dynamics are rather crude
 - generative tillers are immune to environmental death rates
+- pseudostem not modelled
+- vernalisation happens too early in the year?
+- dead and root mass may be excessive if no data to constrain them
+- 
+
 
