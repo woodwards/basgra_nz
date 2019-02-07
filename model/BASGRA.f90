@@ -22,7 +22,7 @@ implicit none
 ! Define model inputs
 integer               :: NDAYS, NOUT
 integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (= percent harvested)
-integer, parameter    :: NPAR     = 106        ! Note: NPAR is also hardwired in set_params.f90
+integer, parameter    :: NPAR     = 108        ! Note: NPAR is also hardwired in set_params.f90
 ! BASGRA handles two types of weather files with different data columns
 #ifdef weathergen
   integer, parameter  :: NWEATHER =  7
@@ -101,7 +101,7 @@ CSTUB   = CSTUBI                                 ! Currently constant 0
 DAYL    = 0.5                                    ! Simon used to initialise YDAYL
 DRYSTOR = DRYSTORI
 Fdepth  = FdepthI
-LAI     = SLAMAX * CLV                           ! Simon set at max, LAI is defined over entire area
+LAI     = SLAMAX * CLV                           ! Simon set at max, LAI is defined over entire area000000
 LT50    = LT50I
 O2      = FGAS * ROOTDM * FO2MX * 1000./22.4
 PHEN    = PHENI
@@ -120,7 +120,7 @@ ROOTD   = ROOTDM * CRT/BASAL / (CRT/BASAL + KCRT)! Simon tied ROOTD to CRT like 
 !    DVERND = 0.0
 !  end if
 VERND   = VERNDI
-VERN    = max(0.0, min(1.0, (VERND-TVERNDMN)/(TVERND-TVERNDMN)))
+VERN    = max(0.0, min(1.0, (VERND-TVERNDMN)/(TVERND-TVERNDMN))) ! FIXME does not include effect of new summer tillers
 YIELD   = YIELDI
 WAL     = 1000. * (ROOTDM - Fdepth) * WCFC        ! Simon set to WCFC
 WALS    = min(WAL, 25.0)                          ! Simon added WALS rapid surface layer (see manual section 4.3)
@@ -184,7 +184,7 @@ do day = 1, NDAYS
   call CalcSLA                                                   ! calculate LERV,LERG,SLANEW
   call LUECO2TM       (PARAV,BASAL)                              ! calculate LUEMXQ
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)                  ! calculate RESPHARDSI
-  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,GST) ! calculate assimilate partitioning
+  call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI, GLV,GRES,GRT,GST) ! calculate assimilate partitioning
   call PlantRespiration(FO2,RESPHARD)                            ! calculate RplantAer
   call Senescence     (CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
                                                        DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
@@ -254,7 +254,7 @@ do day = 1, NDAYS
   y(day,33) = SLA
   y(day,34) = TILTOT
   y(day,35) = RGRTV
-  y(day,36) = RDRHARV
+  y(day,36) = RDRTIL
   y(day,37) = GRT
   y(day,38) = RDRL                               ! = d-1 Relative leaf death rate
   y(day,39) = VERN                               ! = Vernalisation degree
@@ -276,6 +276,7 @@ do day = 1, NDAYS
   y(day,53) = BASAL
   y(day,54) = GTILV
   y(day,55) = DTILV
+  y(day,56) = FS
 
   ! Update state variables
   AGE     = AGE     + 1.0
@@ -293,16 +294,23 @@ do day = 1, NDAYS
   PHEN    = PHEN    + GPHEN - DPHEN
   Sdepth  = Sdepth  + Psnow/RHOnewSnow - PackMelt
   TANAER  = TANAER  + dTANAER
+  TILV    = TILV    + GTILV - TILVG1           - DTILV
   TILG1   = TILG1           + TILVG1 - TILG1G2
   TILG2   = TILG2                    + TILG1G2
-  TILV    = TILV    + GTILV - TILVG1           - DTILV
   TILTOT  = TILG1 + TILG2 + TILV                           ! "TILTOT"  = Total tiller number in # m-2
   BASAL   = BASAL * (1 - ABASAL) + min(1.0, TILTOT / KTIL) * ABASAL   ! Simon model grass basal area
 !  ROOTD   = ROOTD   + RROOTD                              ! Simon tied ROOTD to CRT
   ROOTD   = ROOTDM * CRT/BASAL / (CRT/BASAL + KCRT)                    ! Simon tied ROOTD to CRT like this
   VERND   = VERND   + DVERND
 !  VERN    = VERN
-  VERN    = max(0.0, min(1.0, (VERND-TVERNDMN)/(TVERND-TVERNDMN)))
+  ! Simon treat VERN as a dynamic variable to capture effect of new summer tillers
+  if (TILV>0) then
+	VERN    = min(1.0, VERN + max(0.0, (VERND       -TVERNDMN)/(TVERND-TVERNDMN)) &
+							- max(0.0, (VERND-DVERND-TVERNDMN)/(TVERND-TVERNDMN)) &
+	                        - VERN * GTILV / TILV)
+  else
+	VERN    = 0.
+  end if
   WAL     = WAL  + THAWS  - FREEZEL  + poolDrain + INFIL + EXPLOR + IRRIG - DRAIN - RUNOFF - EVAP - TRAN
   WALS    = max(0.0, min(25.0, WALS + THAWS - FREEZEL  + poolDrain + INFIL + IRRIG - DRAIN - RUNOFF - EVAP - TRAN)) ! Simon added WALS rapid surface pool
   WAPL    = WAPL + THAWPS - FREEZEPL + poolInfil - poolDrain

@@ -16,7 +16,7 @@ DAYLP	0.4348	0.4348	0.4348	DAYLP	d d-1	Day length below which phenological devel
 DLMXGE	0.6091	0.6091	0.6091	DLMXGE	d d-1	Day length below which DAYLGE becomes less than 1 (should be < maximum DAYL?)
 FSLAMIN	0.8	0.8	0.8	FSLAMIN	-	Minimum SLA of new leaves as a fraction of maximum possible SLA (must be < 1)
 FSMAX	0.693	0.693	0.693	FSMAX	-	Maximum ratio of tiller and leaf appearance based on sward geometry (must be < 1)
-HAGERE	0.8406	0.8406	0.8406	HAGERE	-	Fraction of reserves in elongating tillers that is harvested (must be < 1)
+HAGERE	0.8406	0.8406	0.8406	HAGERE	-	Parameter for proportion of stem harvested
 KLAI	0.607	0.607	0.607	K	m2 m-2 leaf	PAR extinction coefficient
 LAICR	3.8	3.8	3.8	LAICR	m2 leaf m-2	LAI above which shading induces leaf senescence
 LAIEFT	0.183	0.183	0.183	LAIEFT	m2 m-2 leaf	Decrease in tillering with leaf area index
@@ -96,7 +96,7 @@ RDRTILMIN	0.00074	0.00074	0.00074	RDRTILMIN	d-1	Background relative rate of till
 RDRHARVMAX	0.00057	0.00057	0.00057	RDRHARVMAX	d-1	Maximum relative death rate due to harvest
 FGRESSI	0.5	0.5	0.5	FGRESSI	-	CRES sink strength factor
 BD	1.0	1.25	1.25	BD	kg l-1	Bulk density of soil
-HARVFRD	0.2	0.2	0.2	HARVFRD	-	Harvest fraction of CLVD
+HARVFRD	0.2	0.2	0.2	HARVFRD	-	Relative harvest fraction of CLVD
 EBIOMAX	131	131	131	EBIOMAX	-	Earthworm biomass max
 KTIL	1000	1000	1000	KTIL	m-2	Tiller density at half basal area
 RDRWMAX	0.0	0.0	0.0	RDRWMAX	d-1	Maximum death rate due to water stress
@@ -105,3 +105,5 @@ ABASAL	0.0	0.0	0.0	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
 DAYLGEMN	1	1	1	DAYLGEMN	-	Minimum daylength growth effect
 RGRSTUB	0.2	0.2	0.2	RGRSTUB	-	Relative growth rate of stubble/pseudostem
+DELE	0.0005	0.0005	0.0005	DELE	-	Litter disappearance due to earthworms
+DELD	0.0148	0.0148	0.0148	DELD	-	Litter disappearance due to decomposition

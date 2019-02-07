@@ -11,9 +11,9 @@ integer :: NOHARV,HARVI
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RESMOB
 real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
 real :: RDRFROST,RDRT,RDRL,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
-real :: RATEH,reHardPeriod,TV2TIL
+real :: RATEH,reHardPeriod,RDRTIL ! Simon renamed TV2TIL to RDRTIL
 real :: CRESMN,DAYLGEMX
-real :: ALLOSH, ALLORT, ALLOLV, ALLOST
+real :: ALLOSH, ALLORT, ALLOLV, ALLOST, FS
 
 contains
 
@@ -26,7 +26,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, CSTUB, CLVD, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLVD, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
-  real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV
+  real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV, HARVFRST
   integer :: HARV
 !  integer :: i
 
@@ -66,7 +66,8 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
 
   ! HAGERE = proportion of CST harvested
   ! RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)               ! CRES is in CLV, CST and CSTUB
-  TV1       = (HARVFR * CLV + HAGERE * CST + 0 * CSTUB)/(CLV + CST + CSTUB)    ! Simon proportion of CRES harvested
+  HARVFRST  = HARVFR ** (1-HAGERE)                                             ! Simon proportion of CST harvested
+  TV1       = (HARVFR * CLV + HARVFRST * CST + 0 * CSTUB)/(CLV + CST + CSTUB)  ! Simon proportion of CRES harvested
   HARVFR    = HARVFR * HARV                                                    ! Simon only return HARVFR on HARV days
   RDRHARV   = RDRHARVMAX * HARVFR                                              ! Simon relative death rate due to harvest
 
@@ -77,10 +78,10 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
 
   HARVLA    = (HARV   * LAI * HARVFR) / DELT
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
-  HARVLVD   = (HARV   * CLVD * HARVFRD) / DELT
+  HARVLVD   = (HARV   * CLVD * HARVFR * HARVFRD) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
-  HARVST    = (HARV   * CST * HAGERE) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
-  GSTUB     = (HARV   * CST * (1-HAGERE) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
+  HARVST    = (HARV   * CST * HARVFRST) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
+  GSTUB     = (HARV   * CST * (1-HARVFRST) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
 !  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
 !  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
@@ -93,8 +94,8 @@ Subroutine Biomass(AGE,CLV,CRES,CST,CSTUB)
 !  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMX = COCRESMX * (CLV + CST)            ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMN = FCOCRESMN * CRESMX                ! Minimum reserves in aboveground biomass (not stubble) in terms of C (not DM)
-  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
-!  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
+!  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
+  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
 end Subroutine Biomass
 
 ! Calculate phenological changes
@@ -153,14 +154,15 @@ Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,Tsurf,VERN,VERND, DVER
 ! 	VERND = 0.0
 !    DVERND = 0.0
 !  end if
-  ! reset vernalisation
-!  if ((VERN==1).and.(DAYL<YDAYL).and.(DAYL<DAYLRV).and.(DAYL>DAYLRV-0.01)) then ! Reset vernalisation when daylength shortens after Solstice
-  if ((DAYL<YDAYL).and.(DAYL<=DAYLRV).and.(YDAYL>=DAYLRV)) then ! Reset vernalisation when daylength shortens after Solstice
-	VERN = 0
+  if ((DAYL<YDAYL).and.(DAYL<=DAYLRV).and.(DAYLRV<=YDAYL)) then ! Reset vernalisation when daylength shortens after Solstice
+	VERN = 0.0
 	VERND  = 0.0
     DVERND = 0.0
+  end if
+  if (DAYL<=DAYLRV) then ! Vernalisation rate based on STICS and Streck models
+    DVERND  = max(0.0, 1.0 - ((Tsurf - TVERN) / 7.5)**2)
   else
-    DVERND  = max(0.0, 1.0 - ((Tsurf - TVERN) / 7.5)**2)  ! Simon, vernalisation rate, based on STICS and Streck models
+    DVERND  = 0.0
   end if
 end Subroutine Vernalisation
 
@@ -240,8 +242,8 @@ Subroutine HardeningSink(CLV,DAYL,doy,LT50,Tsurf)
 end Subroutine HardeningSink
 
 ! Calculate all the growth rates
-Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE, GLV,GRES,GRT,GST)
-  real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE
+Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI, GLV,GRES,GRT,GST)
+  real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI
   real :: GLV,GRES,GRT,GST
 !  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
   PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
@@ -322,28 +324,28 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
     TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
   end if
   RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
-!  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
-  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures, Simon modified
+  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
+!  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures, Simon modified
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
-!  TV2TIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
+!  RDRTIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
 ! Simon try different ways to combine death rates to make parameters more responsive
 ! Maximum stress
   TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
-  TV2TIL = max(RDRS,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
 ! Euclidean combination
 !  TV2    = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRT*RDRT)           ! d-1 Relative leaf death rate
-!  TV2TIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+!  RDRTIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
 ! Joint survival probability
 !  TV2    = 1 - (1-RDRS)*(1-RDRW)*(1-RDRFROST)*(1-RDRTOX)*(1-RDRT)           ! d-1 Relative leaf death rate
-!  TV2TIL = 1 - (1-RDRS)*(1-RDRW)*(1-RDRFROST)*(1-RDRTOX)*(1-RDRTILMIN)      ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+!  RDRTIL = 1 - (1-RDRS)*(1-RDRW)*(1-RDRFROST)*(1-RDRTOX)*(1-RDRTILMIN)      ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
 ! Additive stress
 !  TV2    = RDRS+RDRW+RDRFROST+RDRTOX+RDRT      ! d-1 Relative leaf death rate
-!  TV2TIL = RDRS+RDRW+RDRFROST+RDRTOX+RDRTILMIN ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+!  RDRTIL = RDRS+RDRW+RDRFROST+RDRTOX+RDRTILMIN ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
   RDRL   = TV2
   DLAI   = LAI    * TV2
   DLV    = CLV    * TV2
   DSTUB  = CSTUB  * RDRSTUB
-  DTILV  = TILV   * TV2TIL
+  DTILV  = TILV   * RDRTIL
   DRT    = CRT    * RDRROOT
 
 end Subroutine Senescence
@@ -389,15 +391,15 @@ end Subroutine Senescence
 Subroutine Decomposition(CLVD,DAVTMP,WCLM, DLVD,RDLVD)
   real :: CLVD,DAVTMP,WCLM
   real :: DLVD
-  real :: PSIA,PSIB,SWCS,PSIS,DELD,DELE
+  real :: PSIA,PSIB,SWCS,PSIS!,DELD,DELE
   real :: EBIOMASS,CT,CP,WORMS
   real :: DTEMP,DWATER,DECOMP,RDLVD
 !  EBIOMASSMAX = 131.0              ! g m-2
 !  PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
 !  PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
 !  BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
-  DELD    = 0.0148
-  DELE    = 0.0005
+!  DELD    = 0.0148                 ! Decomposition disappearance
+!  DELE    = 0.0005                 ! Earthworm disappearance
   SWCS    = WCLM                    ! Volumetric soil water content near surface (WCL = in non-frozen root zone)
   ! PSIFC = -1500 kPa = -PSIA * (WCFC ** (-PSIB))
   ! PSIWP =   -20 kPa = -PSIA * (WCWP ** (-PSIB))
@@ -428,7 +430,7 @@ Subroutine Decomposition(CLVD,DAVTMP,WCLM, DLVD,RDLVD)
   DWATER  = max(0.0, min(1.0, log(-7580.0 / PSIS) / log(-7580.0 / (-10.0))))
   if (RAIN > 0.0) DWATER = 1.0       ! decomp on rain days even if dry soil, McCall 1984
   DECOMP  = DELD * DTEMP * DWATER  ! total relative decomposition rate
-  ! Total relative dead matter disappearence rate
+  ! Total relative dead matter disappearance rate
   RDLVD   = DECOMP + WORMS
   DLVD    = CLVD    * RDLVD
 end Subroutine Decomposition
@@ -445,23 +447,25 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
   if (Tsurf < TBASE) then
     TV1   = 0.
   else
-    TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearence rate
+    TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearance rate
   end if
   RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
-  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearence and leaf apearance rates
-  RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearence
+!  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
+  TV2     = max( 0.0, min(FSMAX, LAITIL*exp( - LAIEFT*LAI/BASAL ) ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
+  FS      = TV2                                                               ! Simon record site filling fraction
+  RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearance
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
   TGE     = max( 0.0       , 1.0 - (abs(DAVTMP - TOPTGE))/(TOPTGE-TBASE))     ! Temperature effect on initiation of elongation in tillers
   RGRTVG1 = DAYLGE * TGE * RGENMX * VERN                                      ! d-1 Relative rate of vegetative tiller conversion to generative, Simon removed NOHARV
   TILVG1  = TILV  * RGRTVG1
-  if (DAYL > DAYLG1G2) then                                                   ! Generative tiller conversion controlled by DAYL
-    TILG1G2 = TILG1 * RGRTG1G2                                                ! d-1 Rate of generative tiller conversion to elongating
+  if (DAYL > DAYLG1G2) then                                                   ! Generative tiller elongation controlled by DAYL
+    TILG1G2 = TILG1 * RGRTG1G2
   else if (YDAYL < DAYL) then
     TILG1G2 = 0.                                                              ! no conversion yet
   else
-    TILG1G2 = 0.                                                              ! Simon remaining vernalised tillers remain vernalised
-!    TILG1G2 = TILG1                                                           ! Simon remaining tillers elongate
-!    TILVG1  = TILVG1 - TILG1                                                  ! Simon remaining vernalised tillers revert to vegetative
+    TILG1G2 = 0.                                                              ! Simon remaining generative tillers remain generative
+!    TILG1G2 = TILG1                                                           ! Simon remaining generative tillers elongate
+    TILVG1  = TILVG1 - TILG1                                                  ! Simon remaining generative tillers revert to vegetative
   end if
 end Subroutine Tillering
 

@@ -19,7 +19,6 @@ suppressMessages({
 # options(warn=2) # trap warnings
 
 #### point to scenario directory ####
-# scenarios <- c("run_scott", "run_lincoln", "run_northland", "run_all", "run_mean")
 scenarios <- c("run_mean")
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
@@ -86,4 +85,7 @@ if (FALSE){
   closeAllConnections()
   graphics.off()
 }
+
+# open silly browser window to tell me it's finished :)
+browseURL('https://www.youtube.com/watch?v=QH2-TGUlwu4')
 

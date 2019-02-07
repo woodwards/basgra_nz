@@ -60,7 +60,7 @@ if (TRUE){
             filter(row>col) %>%
             mutate(absval=abs(val)) %>%
             arrange(desc(absval))
-  top <- 15 # most correlated parameters, retaining order
+  top <- 10 # most correlated parameters, retaining order
   whichp <- c()
   whichx <- c()
   # whichx <- match(c("RUBISC", "SIMAX1T"), parname_BC) # additional params to check

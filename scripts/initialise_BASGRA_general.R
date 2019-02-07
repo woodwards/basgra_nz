@@ -126,14 +126,14 @@ if (TRUE){
     "RAIN", "EVAP", "TRAN", "DRAIN",   
     "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
     "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-    "RGRTV", "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
+    "FS", "GTILV", "DTILV", 
+    "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
     "PHEN", "PHENRF", "VERND", "VERN", 
     "HARVFRIN", "HARVFR",
-    "RDRHARV",  
     "RES", "RESMOB", 
     "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
     "LERV", "LERG",
-    "RLEAF", "GRT", "RDRL", "RDLVD", "GTILV", "DTILV", "YIELD"
+    "RLEAF", "GRT", "RDRL", "RDLVD", "YIELD"
   )
 } else {
   chooseNames <- c(

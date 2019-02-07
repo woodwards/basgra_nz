@@ -13,12 +13,15 @@ source("raw_data/utility_functions.r")
 
 # choose site
 sites <- c("Northland", "Scott", "Lincoln")
+# sites <- sites[3]
 for (site in sites){
 print(site)
   
 # choose output data
-acultivar <- c("Alto", "Commando") # only Alto and Halo have light interception data
-aseed_rate <- c("18kg")
+acultivar <- c("Alto", "Commando", "Halo", "Nui") 
+acultivar <- acultivar[1]
+aseed_rate <- c("6kg", "12kg", "18kg", "24kg", "30kg")
+aseed_rate <- aseed_rate[3] 
 # calib_start <- ymd("20110401") # period for data weight = 1
 calib_start <- ymd("20120401") # period for data weight = 1
 calib_end <- ymd("20171231") # period for data weight = 1
@@ -192,12 +195,12 @@ data_till <- data_till %>%
     tillers = ryegrass_tiller_density_tillers_m2
   ) %>% 
   mutate(
-    sampling_month = floor_date(date_till, "months")
+    sampling = paste(season, year)
     )
 
 # create separate summary df
 data_till_sum <- data_till %>%
-  group_by(block, cultivar, seed_rate, sampling_month) %>%
+  group_by(block, cultivar, seed_rate, sampling) %>%
   summarise(
     samples = n(),
     mean_tillers = mean(tillers),
@@ -413,7 +416,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
   
   # collect the data in this list
   data_c <- vector("list", 10) 
-  err_c <- c(TILTOT=2000, CLV=30, CST=10, CLVD=20, CRT=30, WCLM=10, BASAL=10)
+  err_c <- c(TILTOT=2000, CLV=30, CST=10, CLVD=20, CRT=60, WCLM=10, BASAL=10)
   
   # pre and post mass (but this includes other species!)
   # temp <- data_rpm %>%
@@ -428,13 +431,12 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
   # ryegrass tillers
   if (ablock==0){
     temp <- data_till_sum %>%
-      select(block, seed_rate, cultivar, tillers, date_till) %>%
+      select(block, seed_rate, cultivar, sampling, date_till, tillers) %>%
       filter(seed_rate %in% aseed_rate & cultivar %in% acultivar) %>% 
       mutate(
         date_till2=if_else(date_till %in% grazing_dates, date_till-days(1), date_till), # avoid grazing dates
         incalib=((date_till2>=calib_start)&(date_till2<=calib_end)),
-        weight=as.numeric(incalib),
-        sampling=make_date(year=year(date_till2), month=month(date_till2))
+        weight=as.numeric(incalib)
       ) %>% 
       group_by(sampling) %>% 
       summarise(
@@ -445,13 +447,12 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
       )
   } else {
     temp <- data_till_sum %>%
-      select(block, seed_rate, cultivar, tillers, date_till) %>%
+      select(block, seed_rate, cultivar, sampling, date_till, tillers) %>%
       filter(block==ablock & seed_rate %in% aseed_rate & cultivar %in% acultivar) %>% 
       mutate(
         date_till2=if_else(date_till %in% grazing_dates, date_till-days(1), date_till), # avoid grazing dates
         incalib=((date_till2>=calib_start)&(date_till2<=calib_end)),
-        weight=as.numeric(incalib),
-        sampling=make_date(year=year(date_till2), month=month(date_till2))
+        weight=as.numeric(incalib)
       ) %>% 
       group_by(sampling) %>% 
       summarise(
@@ -527,10 +528,10 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
                                    data=dead/100*yield_above/10*0.45+dead_below/100*yield_below/10*0.45, 
                                    sd=err_c["CLVD"], type="sd",
                                    weight=weight) %>% drop_na())
-  # data_c[[7]] <- with(temp, tibble(var="CRT", year=year(date_bot2), doy=yday(date_bot2), 
-  #                                  data=leaf/100*yield_above/10*0.45+leaf_below/100*yield_below/10*0.45, 
-  #                                  sd=err_c["CRT"], type="sd",
-  #                                  weight=weight) %>% drop_na())
+  data_c[[7]] <- with(temp, tibble(var="CRT", year=year(date_bot2), doy=yday(date_bot2),
+                                   data=leaf/100*yield_above/10*0.45+leaf_below/100*yield_below/10*0.45,
+                                   sd=err_c["CRT"], type="sd",
+                                   weight=weight) %>% drop_na())
   
   # light interception (but this includes all species!)
   # temp <- data_li %>%
