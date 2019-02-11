@@ -2,7 +2,6 @@ parname	parmin	parmode	parmax	parshape	parsites
 VERNDI	0	20	100	4	1:nSites
 LOG10CLVI	1	1.5	2	4	1:nSites
 TILTOTI	3000	5000	8000	4	1:nSites
-BASALI	0.0	0.8	1.0	4	1:nSites
 ABASAL	0.0	0.001	0.004	4	1:nSites
 BD	0.9	1.2	1.4	4	1:nSites
 COCRESMX	0.05	0.275	0.35	4	1:nSites

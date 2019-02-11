@@ -1,6 +1,4 @@
 ---
-title: `r paste(site, "Data")`
-author: `r paste("Simon Woodward, DairyNZ,", time_stamp)`
 output: word_document
 ---
 
@@ -27,6 +25,11 @@ library(lubridate)
 
 ```
 
+---
+title: "`r paste(site, "Data")`"
+author: "`r paste("Simon Woodward, DairyNZ,", time_stamp)`"
+---
+
 ## Rising Plate Meter
 
 Average pre-graze mass = `r round(mean(data_rpm$mass_pre, na.rm=TRUE))`
@@ -48,7 +51,7 @@ data_rpm %>%
         geom_point(mapping=aes(x=date_pre, y=mass_pre), colour='red') +
         geom_point(mapping=aes(x=date_post, y=mass_post), colour='blue') +
         facet_grid(cultivar ~ seed_rate) +
-        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
         scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
       )
 ```
@@ -74,32 +77,7 @@ data_rpm %>%
         geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
         geom_point(mapping=aes(x=date_grazed, y=growth_rate_pre), colour='magenta') +
         facet_grid(cultivar ~ seed_rate) +
-        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
-        scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
-      )
-```
-
-## Rising Plate Meter Harvest %
-
-Assume no pasture growth between pre and post RPM
-
-Average harvest % = `r round(mean(data_rpm$harv, na.rm=TRUE))`
-
-```{r echo=FALSE, message=FALSE, results="hide"}
-# plot harvest %
-ybreaks <- seq(0, round_any(max(data_rpm$harv, na.rm=TRUE), 20, ceiling), 20)
-xbreaks <- seq(floor_date(min(data_rpm$date_pre, na.rm=TRUE), "years"), 
-               ceiling_date(max(data_rpm$date_post, na.rm=TRUE), "years"), by="1 year")
-data_rpm %>%
-  split(.$block) %>%
-  map(~ggplot(.) +
-        labs(x='Date', y='Harvest %', 
-             title=paste('Harvest %, Block', unique(.$block))) +
-        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
-        geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
-        geom_point(mapping=aes(x=date_grazed, y=harv), colour='purple') +
-        facet_grid(cultivar ~ seed_rate) +
-        scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
         scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
       )
 ```
@@ -122,31 +100,7 @@ data_cut %>%
     geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
     geom_point(mapping=aes(x=date_cut, y=yield_cut), colour='red') +
     facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
-    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
-  )
-```
-
-## Estimate Mass Below Cutting Height
-
-Total mass at cutting assumed to be equal to pregraze RPM
-
-Average mass below cutting estimate = `r round(mean(data_bm$yield_below, na.rm=TRUE))`
-
-```{r echo=FALSE, message=FALSE, results="hide"}
-# plot below cutting mass
-ybreaks <- seq(0, round_any(max(data_bm$yield_below, na.rm=TRUE), 1000, ceiling), 1000)
-xbreaks <- seq(floor_date(min(data_bm$date_cut, na.rm=TRUE), "years"), 
-               ceiling_date(max(data_bm$date_cut, na.rm=TRUE), "years"), by="1 year")
-data_bm %>%
-  split(.$block) %>%
-  map(~ggplot(.) +
-    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
-         title=paste('Mass Below Cut (below 4cm), Block', unique(.$block))) +
-    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
-    geom_point(mapping=aes(x=date_cut, y=yield_below), colour='brown') +
-    facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
     scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
   )
 ```
@@ -155,7 +109,7 @@ data_bm %>%
 
 Average cut dry matter % = `r round(mean(data_cut$dm_cut, na.rm=TRUE))`
 
-```{r echo=FALSE, message=FALSE, results="hide"}
+```{r echo=FALSE, message=FALSE, results="hide", eval=FALSE}
 # plot DM% data
 ybreaks <- seq(0, round_any(max(data_cut$dm_cut, na.rm=TRUE), 10, ceiling), 10)
 xbreaks <- seq(floor_date(min(data_cut$date_cut, na.rm=TRUE), "years"), 
@@ -169,7 +123,7 @@ data_cut %>%
   geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
   geom_point(mapping=aes(x=date_cut, y=dm_cut), colour='purple') +
   facet_grid(cultivar ~ seed_rate ) +
-  scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+  scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
   scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
   )
 ```
@@ -192,7 +146,7 @@ data_till %>%
     geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
     geom_point(mapping=aes(x=date_till, y=tillers), colour='darkgreen') +
     facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
     scale_y_continuous(breaks=ybreaks, 
                        limits=c(ybreaks[1], round_any(max(data_till$tillers, na.rm=TRUE), 1000, ceiling)))
   )
@@ -202,6 +156,8 @@ data_till %>%
 
 ```{r echo=FALSE, message=FALSE, results="hide"}
 # plot botanical data
+data_bot2 <- data_bot2 %>% 
+  mutate(date_bot = make_date(year(date_bot), month(date_bot), 1))
 ybreaks <- seq(0, 100, 20)
 xbreaks <- seq(floor_date(min(data_bot2$date_bot, na.rm=TRUE), "years"), 
                ceiling_date(max(data_bot2$date_bot, na.rm=TRUE), "years"), by="1 year")
@@ -214,12 +170,12 @@ data_bot2 %>%
     geom_bar(mapping=aes(x=date_bot, y=fraction, fill=species), stat='identity') +
     scale_fill_brewer(palette='Paired') +
     facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) + # FIXME drops data?
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) + # FIXME drops data?
     scale_y_continuous(breaks=ybreaks, limits=c(0, 120))
   )
 ```
 
-## Ryegrass Fraction
+## Ryegrass Fraction 
 
 Ryegrass fraction calculated on green mass only
 
@@ -236,37 +192,8 @@ data_bot %>%
     theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
     geom_point(mapping=aes(x=date_bot, y=rgfrac), colour="darkgreen") +
     facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
     scale_y_continuous(breaks=ybreaks, limits=c(0, 120))
-  )
-```
-
-## Estimate Botancial Mass
-
-Total mass at botanical date assumed to be equal to pregraze RPM
-
-Cut mass at botanical date assumed to be equal to cut yield
-
-Botanical composition below cutting height estimated from Tozer data
-
-```{r echo=FALSE, message=FALSE, results="hide"}
-# plot botanical data
-ybreaks <- seq(0, round_any(max(data_bm2$yield_below, na.rm=TRUE), 1000, ceiling), 1000)
-ybreaks2 <- seq(0, round_any(max(data_bm2$yield_below, na.rm=TRUE), 100, ceiling), 100)
-xbreaks <- seq(floor_date(min(data_bm2$date_bot, na.rm=TRUE), "years"), 
-               ceiling_date(max(data_bm2$date_bot, na.rm=TRUE), "years"), by="1 year")
-data_bm2 %>%
-  split(.$block) %>%
-  map(~ggplot(.) +
-    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
-         title=paste('Herbage Mass Fractions, Block', unique(.$block))) +
-    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
-    geom_point(mapping=aes(x=date_bot, y=yield_below), colour='grey', size=2, shape=1) +
-    geom_bar(mapping=aes(x=date_bot, y=species_mass, fill=species), stat='identity') +
-    scale_fill_brewer(palette='Paired') +
-    facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
-    scale_y_continuous(breaks=ybreaks, limits=range(ybreaks2))
   )
 ```
 
@@ -288,8 +215,84 @@ data_sm %>%
     geom_vline(data=data_rpm, mapping=aes(xintercept=date_grazed), colour='grey') +
     geom_point(mapping=aes(x=date_sm, y=mean_sm), colour='blue') +
     facet_grid(cultivar ~ seed_rate ) +
-    scale_x_datetime(breaks=xbreaks, labels=format(xbreaks, "%b-%Y"), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_x_date(breaks=xbreaks, labels=format(xbreaks, "%b-%Y"), limits=c(xbreaks[1], tail(xbreaks, 1))) +
     scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+```
+
+## Mass Below Cutting Height
+
+Estimated using linear regression of Cut Mass on RPM 
+
+Average mass below cutting estimate = `r round(mean(data_bm$yield_below, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot below cutting mass
+ybreaks <- seq(0, round_any(max(data_bm$yield_below, na.rm=TRUE), 1000, ceiling), 1000)
+xbreaks <- seq(floor_date(min(data_bm$date_cut, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_bm$date_cut, na.rm=TRUE), "years"), by="1 year")
+data_bm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
+         title=paste('Mass Below Cut (below 4cm), Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date_cut, y=yield_below), colour='brown') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+    scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+  )
+```
+
+## Harvest %
+
+Estimated using linear regression of Tozer data on RPM
+
+Average harvest % = `r round(mean(data_rpm$harv, na.rm=TRUE))`
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot harvest %
+ybreaks <- seq(0, round_any(max(data_rpm$harv, na.rm=TRUE), 20, ceiling), 20)
+xbreaks <- seq(floor_date(min(data_rpm$date_pre, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_rpm$date_post, na.rm=TRUE), "years"), by="1 year")
+data_rpm %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+        labs(x='Date', y='Harvest %', 
+             title=paste('Harvest %, Block', unique(.$block))) +
+        theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+        geom_vline(mapping=aes(xintercept=date_grazed), colour='grey') +
+        geom_point(mapping=aes(x=date_grazed, y=harv), colour='purple') +
+        facet_grid(cultivar ~ seed_rate) +
+        scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=c(xbreaks[1], tail(xbreaks, 1))) +
+        scale_y_continuous(breaks=ybreaks, limits=c(ybreaks[1], tail(ybreaks, 1)))
+      )
+```
+
+## Botanical Mass
+
+Estimated using Tozer data
+
+```{r echo=FALSE, message=FALSE, results="hide"}
+# plot botanical data
+data_bm2 <- data_bm2 %>% 
+  mutate(date_bot = make_date(year(date_bot), month(date_bot), 1))
+ybreaks <- seq(0, round_any(max(data_bm2$yield_below, na.rm=TRUE), 1000, ceiling), 1000)
+ybreaks2 <- seq(0, round_any(max(data_bm2$yield_below, na.rm=TRUE), 100, ceiling), 100)
+xbreaks <- seq(floor_date(min(data_bm2$date_bot, na.rm=TRUE), "years"), 
+               ceiling_date(max(data_bm2$date_bot, na.rm=TRUE), "years"), by="1 year")
+data_bm2 %>%
+  split(.$block) %>%
+  map(~ggplot(.) +
+    labs(x='Date', y='Dry weight (kgDM/ha)', fill='Species',
+         title=paste('Herbage Mass Fractions, Block', unique(.$block))) +
+    theme(axis.text.x=element_text(angle=90, vjust=0.5, hjust=1)) +
+    geom_point(mapping=aes(x=date_bot, y=yield_above), colour='grey', size=2, shape=1) +
+    geom_bar(mapping=aes(x=date_bot, y=species_mass, fill=species), stat='identity') +
+    scale_fill_brewer(palette='Paired') +
+    facet_grid(cultivar ~ seed_rate ) +
+    scale_x_date(breaks=xbreaks, labels=year(xbreaks), limits=range(xbreaks)) +
+    scale_y_continuous(breaks=ybreaks, limits=range(ybreaks2))
   )
 ```
 

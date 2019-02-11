@@ -75,7 +75,7 @@ repeat{
   } else {
     # continuation
     if (nBurnin==0){
-      cat(file=stderr(), paste("Greater than", target_conv, "so continuing..."), "\n")
+      cat(file=stderr(), paste("Greater than", conv_target, "so continuing..."), "\n")
     } else {
       cat(file=stderr(), "Restart doesn't work with nBurnin>0 so stopping...\n")
       # stop()
@@ -96,9 +96,10 @@ repeat{
   cat(file=stderr(), paste("Convergence max(psf) =", round(bt_conv,3)), "\n")
   
   # read stopping criterion from file (allows us to change it on the fly)
-  target_conv <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE)[1,1]
-  max_minutes <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE)[2,1]
-  if ((bt_conv <= target_conv) || (bt_time >= max_minutes)){
+  conv_criteria <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE) 
+  conv_target <- conv_criteria[1,1]
+  conv_minutes <- conv_criteria[2,1]
+  if ((bt_conv <= conv_target) || (bt_time >= conv_minutes)){
     break
   }
 }

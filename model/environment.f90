@@ -238,7 +238,7 @@ end Subroutine DDAYL
 ! Calculate PEVAP and PTRAN = potential evaporation and transpiration rates
 #ifdef weathergen
   Subroutine PEVAPINPUT(LAI,BASAL)
-    real :: LAI,BASAL
+    real :: LAI,BASAL ! use BASAL to estimate whole sward
     PEVAP  =     exp(-0.5*LAI/BASAL)  * PET                      ! mm d-1 = Partitioning of PET into PEVAP (http://www.fao.org/docrep/x0490e/x0490e04.htm)
     PTRAN  = (1.-exp(-0.5*LAI/BASAL)) * PET                      ! mm d-1 = Partitioning of PET into PTRAN
     PTRAN  = max( 0., PTRAN-0.5*RNINTC )                   ! mm d-1 = Reduction in PTRAN due to wet leaves?
@@ -252,7 +252,7 @@ end Subroutine DDAYL
   ! Outputs: PEVAP & PTRAN (mm d-1)
   ! Author - Marcel van Oijen (CEH-Edinburgh)
   !=============================================================================
-    real :: LAI,BASAL
+    real :: LAI,BASAL ! use BASAL to estimate whole sward
     real :: BBRAD, BOLTZM, DTRJM2, LHVAP, NRADC, NRADS
     real :: PENMD, PENMRC, PENMRS, PSYCH, RLWN, SLOPE, SVP, WDF
     DTRJM2 = DTR * 1.E6                                    ! (J GR m-2 d-1)

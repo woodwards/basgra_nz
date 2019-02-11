@@ -37,13 +37,9 @@
    file_prior    <- paste(scenario, "/parameters_BC.txt", sep="")
 
    sitesettings_filenames <- c(sitesettings_filenames,
-                               paste(scenario, "/initialise_BASGRA_Northland_2.r", sep=""),
-                               paste(scenario, "/initialise_BASGRA_Northland_3.r", sep=""),
-                               paste(scenario, "/initialise_BASGRA_Northland_4.r", sep=""))
+                               paste(scenario, "/initialise_BASGRA_Northland_0.r", sep=""))
    sitedata_filenames     <- c(sitedata_filenames,
-                               paste(scenario, "/data_calibration_Northland_2.txt", sep=""),
-                               paste(scenario, "/data_calibration_Northland_3.txt", sep=""),
-                               paste(scenario, "/data_calibration_Northland_4.txt", sep=""))
+                               paste(scenario, "/data_calibration_Northland_0.txt", sep=""))
    # 
    # sitesettings_filenames <- c(sitesettings_filenames,
    #                             paste(scenario, "/initialise_BASGRA_Scott_2.r", sep=""),

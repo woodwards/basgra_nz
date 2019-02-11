@@ -1,4 +1,6 @@
 # read in data set
+options(error=NULL)
+options(error = function(){.rs.recordTraceback(TRUE)})
 
 # load libraries
 library(tidyverse)
@@ -9,11 +11,11 @@ library(lubridate)
 # load useful functions
 source("raw_data/utility_functions.r")
 
-#### set options ####
+#### set up and loop ####
 
-# choose site
+# sites to loop through
 sites <- c("Northland", "Scott", "Lincoln")
-# sites <- sites[3]
+# sites <- sites[2]
 for (site in sites){
 print(site)
   
@@ -30,6 +32,7 @@ calib_end <- ymd("20171231") # period for data weight = 1
 seed_rate_levels <- c("6kg", "12kg", "18kg", "24kg", "30kg")
 
 #### read and normalise data ####
+
 if (site=="Scott"){
   
   suppressMessages({ # suppress .name_repair messages
@@ -74,8 +77,8 @@ if (site=="Scott"){
     select(date_measured_d, dom, soil_moisture) %>% 
     filter(dom==1) %>%  # only take one point per month
     mutate(
-      cultivar = NA_character_,
-      seed_rate = NA_character_,
+      cultivar = acultivar,
+      seed_rate = aseed_rate,
       block = rep_len(c(2,3,5), n()) # split soil moisture data across blocks 2,3,5
     )
 
@@ -101,14 +104,15 @@ if (site=="Scott"){
     ungroup() %>% 
     filter(dom==1) %>%  # %>%  only take one point per month
     mutate(
-      cultivar = NA_character_,
-      seed_rate = NA_character_,
+      cultivar = acultivar,
+      seed_rate = aseed_rate,
       block = rep_len(c(2,3,4), n()) # split soil moisture data across blocks 2,3,4
     )  
   
 }
 
 #### Rising Plate Meter Data ####
+
 # deal with a few missing values (there are others but they don't affect us at this stage)
 data_rpm <- data_rpm %>% 
   arrange(grazing, plot)
@@ -129,18 +133,23 @@ data_rpm <- data_rpm %>%
        date_grazed = date_grazed_d
        ) %>%
   select(date_grazed, block, cultivar, seed_rate, grazing, date_pre, mass_pre, date_post, mass_post) %>%
+  group_by(grazing) %>% 
+  mutate( 
+    date_pre = as_date(mean(date_pre)),
+    date_post = as_date(mean(date_post)),
+    date_grazed = as_date(mean(date_grazed))
+  ) %>% 
+  ungroup() %>% 
   group_by(block, cultivar, seed_rate, grazing) %>% 
-  summarise( 
+  mutate( 
     samples = n(),
-    date_pre = mean(date_pre),
-    mass_pre = mean(mass_pre),
-    date_post = mean(date_post),
-    mass_post = mean(mass_post),
-    date_grazed = mean(date_grazed)
-    ) %>% 
+    mass_pre = mean(mass_pre, na.rm=TRUE),
+    mass_post = mean(mass_post, na.rm=TRUE)
+  ) %>% 
   ungroup()
 
 #### Pasture Cut Data ####
+
 data_cut1 <- data_cut1 %>%
   mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
   rename(
@@ -177,7 +186,12 @@ data_cut2 <- data_cut2 %>%
   ) %>% 
   ungroup()
 
-data_cut <- suppressMessages(full_join(data_cut1, data_cut2))
+data_cut <- suppressMessages(
+  full_join(data_cut1, data_cut2) %>% 
+    group_by(grazing) %>% 
+    mutate(date_cut = as_date(mean(date_cut, na.rm=TRUE))) %>% 
+    ungroup()
+  )
 
 # add grazing date from data_rpm
 data_cut <- data_cut %>% 
@@ -186,7 +200,8 @@ data_cut <- data_cut %>%
     by = c("block", "cultivar", "seed_rate", "grazing")
   )
 
-## Tiller Density Data ####
+#### Tiller Density Data ####
+
 # tiller sampling is not associated with a grazing event
 data_till <- data_till %>%
   mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
@@ -195,6 +210,7 @@ data_till <- data_till %>%
     tillers = ryegrass_tiller_density_tillers_m2
   ) %>% 
   mutate(
+    date_till = as_date(date_till),
     sampling = paste(season, year)
     )
 
@@ -205,12 +221,18 @@ data_till_sum <- data_till %>%
     samples = n(),
     mean_tillers = mean(tillers),
     sd_tillers = sd(tillers),
-    date_till = mean(date_till),
+    date_till = mean(date_till, na.rm=TRUE),
     tillers = mean_tillers
     ) %>%
+  ungroup() %>% 
+  group_by(sampling) %>% 
+  mutate(
+    date_till = as_date(mean(date_till, na.rm=TRUE))
+    ) %>% 
   ungroup()
 
 #### Botanical Composition Data ####
+
 # associated with pregrazing cuts
 data_bot <- data_bot %>%
   mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
@@ -227,8 +249,9 @@ data_bot <- data_bot %>%
     dead = dead
     ) %>%
   mutate(
-    total = leaf + stem + ann + wc + og + weed + dead, # should always be 100
-    rgfrac =  (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
+    date_bot = as_date(date_bot),
+    total = round(leaf + stem + ann + wc + og + weed + dead), # should always be 100
+    rgfrac =  100 * (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
     month = month(dmy(paste("01", month, "2011"))),
     # estimate botanicals composition below cutting height
     # Tozer data - from Ruakura only - tiller dissection only not sward
@@ -238,18 +261,11 @@ data_bot <- data_bot %>%
     y = -51.56*x^5 + 119.17*x^4 - 93.30*x^3 + 26.71*x^2 - 1.53*x + 1.07,
     leaf_below = leaf / 1.09, # based on Tozer data (March/April difference ignored)
     stem_below = stem / 5.38, # based on Tozer data
-    dead_below = (100 - leaf_below - stem_below) * rgfrac # FIXME Tozer data is for removed tiller not whole sward
+    dead_below = (100 - leaf_below - stem_below) * rgfrac / 100 # FIXME Tozer data is for removed tiller not whole sward
   ) %>%
-  select(leaf, stem, ann, wc, og, weed, dead, date_bot, total, block, seed_rate, cultivar, rgfrac, leaf_below, stem_below, dead_below) 
-  
-# check n samples
-temp <- data_bot %>% 
-  group_by(block, cultivar, seed_rate, date_bot) %>% 
-  summarise(
-    samples = n()
-  ) %>% 
-  ungroup()
-stopifnot(all(temp$samples==1))
+  select(leaf, stem, ann, wc, og, weed, dead, date_bot, total, block, seed_rate, cultivar, rgfrac, leaf_below, stem_below, dead_below) %>% 
+  filter(!is.na(total)) 
+stopifnot(all(data_bot$total==100))
 
 # add cut info to data_bot 
 closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
@@ -259,7 +275,10 @@ closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
   if (nrow(temp)>0){ # there are some cut dates for this block-cultivar-seed_rate
     for (i in 1:length(date_bot)){
       delay <- as.double(difftime(date_bot[i], temp$date_cut, units="days")) # vector of delays
-      ans[i] <- temp$date_cut[which(abs(delay)==min(abs(delay)))[[1]]]
+      min_delay <- min(abs(delay))
+      if (min_delay<7){ # only cuts within 7 days of botanical
+        ans[i] <- temp$date_cut[which(abs(delay)==min_delay)[[1]]]
+      }
     }
   }
   return(ans)
@@ -268,21 +287,42 @@ closest_cut <- function(block_bot, cultivar_bot, seed_rate_bot, date_bot){
 data_bot <- data_bot %>% 
   group_by(block, cultivar, seed_rate, date_bot) %>%
   mutate(
-    date_cut = closest_cut(block, cultivar, seed_rate, date_bot)
+    date_cut = as_date(closest_cut(block, cultivar, seed_rate, date_bot))
     ) %>% 
+  filter(!is.na(date_cut)) %>% 
   ungroup %>% 
   left_join(
     select(data_cut, block, cultivar, seed_rate, grazing, date_grazed, date_cut, yield_cut),
     by = c("block", "cultivar", "seed_rate", "date_cut")
-    ) 
+    ) %>% 
+  filter(!is.na(date_grazed)) %>% 
+  group_by(grazing) %>%
+  mutate(
+    date_cut_min = min(date_cut),
+    date_cut_max = max(date_cut),
+    date_cut_diff = interval(date_cut_max, date_cut_min) %/% days(1),
+    date_bot_min = min(date_bot),
+    date_bot_max = max(date_bot),
+    date_bot_diff = interval(date_bot_max, date_bot_min) %/% days(1)
+  ) %>% 
+  ungroup
+i <- data_bot$date_cut>data_bot$date_grazed
+if (length(i)>0){
+  print("Warning: Shifted Cut Date After Grazing Date")
+  data_bot$date_cut[i] <- data_bot$date_grazed[i]
+}
 
-data_bot <- data_bot %>% 
-  filter(date_bot <= date_grazed &
-           date_cut <= date_grazed &
-           date_cut > date_bot - days(7) &
-           date_cut < date_bot + days(7) )
+# check n samples
+temp <- data_bot %>% 
+  group_by(block, cultivar, seed_rate, grazing) %>% 
+  summarise(
+    samples = n()
+  ) %>% 
+  ungroup()
+stopifnot(all(temp$samples==1))
 
 #### harvest model ####
+
 # add cut yield into data_rpm
 data_rpm <- data_rpm %>% 
   left_join(
@@ -290,13 +330,13 @@ data_rpm <- data_rpm %>%
     by = c("block", "seed_rate", "cultivar", "grazing")
   ) %>% 
   mutate(
-    yield_below = mass_post, # simple assumption, quite stable
+    yield_below = mass_post, # simple assumption, quite stable, not actually calibrated though
     yield_total = yield_cut + yield_below, # yield_cut is not available at every grazing, so use this to create a model
-    harv = 100 * yield_cut * 1.09 / (yield_cut * 1.09 + yield_below) # initial estimate, quite unstable
+    harv0 = 100 * yield_cut * 1.09 / (yield_cut * 1.09 + yield_below) # use this to create a model also
   )
 
 # fill in harv values using lm
-harv_lm <- lm(harv ~ mass_pre + mass_post, data_rpm)
+harv_lm <- lm(harv0 ~ mass_pre + mass_post, data_rpm)
 harv_predict = predict(harv_lm, data_rpm)
 
 # fill in yield values using lm
@@ -313,17 +353,19 @@ data_rpm <- data_rpm %>%
 
 print(
 ggplot(data_rpm) +
-  labs(title=site) +
+  labs(title=paste("Estimated Yield and Harvest for", site)) +
   geom_jitter(aes(x=grazing, y=mass_post), colour="blue") +
   geom_jitter(aes(x=grazing, y=mass_pre), colour="lightblue") +
   geom_jitter(aes(x=grazing, y=yield_total), colour="red", shape=1) +
   geom_jitter(aes(x=grazing, y=yield_model), colour="black", shape=1) +
+  geom_jitter(aes(x=grazing, y=harv0*10), colour="lightgreen", shape=1) +
   geom_jitter(aes(x=grazing, y=harv*10), colour="darkgreen", shape=1) +
   geom_abline(slope=0, intercept=0, colour="orange") +
-  geom_abline(slope=0, intercept=1000, colour="orange") 
+  geom_abline(slope=0, intercept=1000, colour="orange")
 )
 
 #### gather data_bot into data_bot2 ####
+
 data_bot2 <- data_bot %>%
   select(leaf, stem, ann, wc, og, weed, dead, block, cultivar, seed_rate, date_bot) %>% 
   gather(leaf, stem, ann, wc, og, weed, dead, key="species", value="fraction") %>%
@@ -331,30 +373,33 @@ data_bot2 <- data_bot %>%
                           levels=c("leaf", "stem", "ann", "og", "wc", "weed", "dead")))
 
 #### calculate botanical mass ####
+
 # join cut and botanical data by grazing
-# data_cut$date_cut <- data_cut$date
 data_bm <- data_bot %>%
-  mutate(yield_bot = yield_cut) %>% 
   left_join(
     select(data_rpm, block, seed_rate, cultivar, grazing, yield_above, yield_below),
     by = c("block", "seed_rate", "cultivar", "grazing")
   )
 
 #### gather data_bm into data_bm2 ####
+
 data_bm2 <- data_bm %>%
   gather(leaf, stem, ann, wc, og, weed, dead, key="species", value="fraction") %>%
   mutate(
     species = factor(species, levels=c("leaf", "stem", "ann", "og", "wc", "weed", "dead")),
-    species_mass = fraction / 100 * yield_bot # include mass below cutting?
+    species_mass = fraction / 100 * yield_above
     ) 
 
 #### Soil Moisture Data ####
+
 data_sm <- data_sm %>%
   mutate(seed_rate = factor(seed_rate, levels=seed_rate_levels)) %>%
   rename(
     date_sm = date_measured_d,
     sm = soil_moisture
   ) %>%
+  ungroup() %>% 
+  mutate(date_sm = as_date(date_sm)) %>% 
   group_by(block, cultivar, seed_rate, date_sm) %>%
   summarise(mean_sm = mean(sm)) %>% 
   ungroup()
@@ -381,8 +426,9 @@ data_sm <- data_sm %>%
 #     days_post = difftime(date_post2, date_grazed)
 #     )
 
+print("Preparing model input files...")
 ablock <- 3 # for testing
-for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
+for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
 
   # write harvest dates and harvest % for selected series
   harv_file_name <- paste("raw_data/harvest_", site, "_", ablock, ".txt", sep="")
@@ -582,5 +628,13 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks
 # save data
 rdata_file_name <- paste("raw_data/", site, ".RData", sep="")
 save.image(file=rdata_file_name)
+
+# produce report if desired
+print("Preparing report... (please ensure output file is not open in Word)")
+time_stamp <- today()
+rmarkdown::render(input = "raw_data/report_any.rmd",
+                  # output_format = "word_document",
+                  output_file = paste("report_", str_to_lower(site), ".docx", sep=""),
+                  output_dir = "raw_data")
 
 } # next site
