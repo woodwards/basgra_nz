@@ -103,7 +103,7 @@ RDRWMAX	0.0	0.0	0.0	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1.0	1.0	1.0	BASALI	-	Grass basal area
 ABASAL	0.0	0.0	0.0	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
-DAYLGEMN	1	1	1	DAYLGEMN	-	Minimum daylength growth effect
+DAYLGEMN	0	0	0	DAYLGEMN	-	Minimum daylength growth effect
 RGRSTUB	0.2	0.2	0.2	RGRSTUB	-	Relative growth rate of stubble/pseudostem
 DELE	0.0005	0.0005	0.0005	DELE	-	Litter disappearance due to earthworms
 DELD	0.0148	0.0148	0.0148	DELD	-	Litter disappearance due to decomposition

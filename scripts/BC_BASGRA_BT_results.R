@@ -8,6 +8,7 @@ cat(file=stderr(), "Reading checkpoint after BASGRA calibration", "\n")
 load(file=paste(scenario, "/checkpoint_after_calibration.RData", sep=""))
 suppressMessages({
   library(tidyverse)
+  library(ggthemes)
   library(BayesianTools)
   library(coda)
 })
@@ -213,6 +214,7 @@ if (TRUE){
   # plot predictive results for each site (and collect residuals into a dataframe) ####
   residual_df <- vector("list", nSites * nBCvar)
   sitenames <- gsub( "\\.R", "", sub(".*BASGRA_","",sitesettings_filenames), ignore.case=TRUE )
+  sitenames <- c("Northland", "Waikato", "Canterbury")
   s <- 1
   for (s in 1:nSites){ 
 
@@ -340,7 +342,7 @@ if (TRUE){
         points( x=x_obs, y=bt_obs_vals[keeps], 
                 pch=16, col="darkblue", cex=1.5)
         # collect residual_df
-        temp <- data_frame(
+        temp <- tibble(
           site_num=s,
           site_name=sitenames[s],
           var_name=easyNames[data_col],
@@ -535,9 +537,9 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   # print(plot1)
-  png(paste(scenario, "/residual_model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  print(plot1)
-  dev.off()
+  # png(paste(scenario, "/residual_model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  # print(plot1)
+  # dev.off()
   
   # residuals (data - model)/error
   temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
@@ -548,6 +550,7 @@ if (TRUE){
     stat_density(mapping=aes(x=-(pred_map-obs_vals)/obs_errs, colour=region), position="identity", fill=NA, adjust=1) +
     geom_vline(mapping=aes(xintercept=0), colour="black") +
     scale_x_continuous(limits=c(-5, 5)) +
+    theme_few() +
     facet_wrap(~var_name, scale="free")
   print(plot2)
   png(paste(scenario, "/residual_density.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
@@ -561,7 +564,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Year", y="Data or Model - Model Median", colour="Region", fill="Region") +
+    labs(title="Residual Bias", x="Year", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -573,7 +576,7 @@ if (TRUE){
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free") +
-    guides(fill=FALSE)
+    theme_few()
   print(plot3)
   png(paste(scenario, "/residual_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3)
@@ -586,7 +589,7 @@ if (TRUE){
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3b <- temp %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Model Median", y="Data or Model - Model Median", colour="Region", fill="Region") +
+    labs(title="Residual Bias", x="Model Median", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -598,7 +601,7 @@ if (TRUE){
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free") +
-    guides(fill=FALSE)
+    theme_few() 
   print(plot3b)
   png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3b)
@@ -622,9 +625,9 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=obs_vals, y=pred_map, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   # print(plot4)
-  png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  print(plot4)
-  dev.off()
+  # png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  # print(plot4)
+  # dev.off()
 
   # residual score
   temp <- filter(residual_df, 
@@ -646,9 +649,9 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   # print(plot5)
-  png(paste(scenario, "/residual_score_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  print(plot5)
-  dev.off()
+  # png(paste(scenario, "/residual_score_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  # print(plot5)
+  # dev.off()
 
   # residual score 2
   temp <- filter(residual_df, 
@@ -669,9 +672,9 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free")
   # print(plot6)
-  png(paste(scenario, "/residual_score_pred.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  print(plot6)
-  dev.off()
+  # png(paste(scenario, "/residual_score_pred.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  # print(plot6)
+  # dev.off()
   
 }
 

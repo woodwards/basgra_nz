@@ -28,7 +28,10 @@
    #      actually ends up in new biomass, with the remainder being lost to growth respiration. 
    
 ## LIKELIHOOD FUNCTION ##
+   # source("scripts/fLogL_Gauss.R")
    source("scripts/fLogL_Sivia.R")
+   # source("scripts/fLogL_Cauchy.R")
+   # source("scripts/fLogL_Students.R")
    source("scripts/fLogL_mm_Beta.R")
    
 ## SETTINGS FOR THE DIFFERENT CALIBRATION SITES (at least one site)
@@ -55,7 +58,7 @@
    sitelist               <- list() ; length(sitelist) <- nSites
    
    # additional outputs to plot
-   extraOutputs <- c("LAI", "TSIZE", "CLVD", "CRT", "DM", "RES", "TRANRF", "BASAL")
+   extraOutputs <- c("LAI", "TSIZE", "BASAL", "TRANRF", "RES", "YIELD")
    
    # Specify data uncertainties (the max of: cv for relative uncertainty, sd for absolute)   
    # These are used in BC_BASGRA_MCMC_init_general.r to set the data uncertainites

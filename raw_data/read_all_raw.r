@@ -1,6 +1,4 @@
 # read in data set
-options(error=NULL)
-options(error = function(){.rs.recordTraceback(TRUE)})
 
 # load libraries
 library(tidyverse)
@@ -15,7 +13,7 @@ source("raw_data/utility_functions.r")
 
 # sites to loop through
 sites <- c("Northland", "Scott", "Lincoln")
-# sites <- sites[2]
+# sites <- sites[3]
 for (site in sites){
 print(site)
   
@@ -536,7 +534,8 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
         yield_above = mean(yield_above, na.rm=TRUE),
         yield_below = mean(yield_below, na.rm=TRUE),
         weight = mean(weight, na.rm=TRUE)
-      )
+      ) %>% 
+      mutate(i = 1:n())
   } else {
     temp <- data_bm %>%
       select(block, seed_rate, cultivar, grazing, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_above, yield_below, date_bot, date_grazed) %>%
@@ -559,7 +558,8 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
         yield_above = mean(yield_above, na.rm=TRUE),
         yield_below = mean(yield_below, na.rm=TRUE),
         weight = mean(weight, na.rm=TRUE)
-      )
+      ) %>% 
+      mutate(i = 1:n())
   }
   # stopifnot(all(temp$date_bot2==temp$date_bot))
   data_c[[4]] <- with(temp, tibble(var="CLV", year=year(date_bot2), doy=yday(date_bot2), 
@@ -575,7 +575,8 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
                                    sd=err_c["CLVD"], type="sd",
                                    weight=weight) %>% drop_na())
   data_c[[7]] <- with(temp, tibble(var="CRT", year=year(date_bot2), doy=yday(date_bot2),
-                                   data=leaf/100*yield_above/10*0.45+leaf_below/100*yield_below/10*0.45,
+                                   # McNalley et al 180-270, about 1.8*Leaf
+                                   data=1.8*(leaf/100*yield_above/10*0.45+leaf_below/100*yield_below/10*0.45),
                                    sd=err_c["CRT"], type="sd",
                                    weight=weight) %>% drop_na())
   
@@ -630,11 +631,15 @@ rdata_file_name <- paste("raw_data/", site, ".RData", sep="")
 save.image(file=rdata_file_name)
 
 # produce report if desired
-print("Preparing report... (please ensure output file is not open in Word)")
-time_stamp <- today()
-rmarkdown::render(input = "raw_data/report_any.rmd",
-                  # output_format = "word_document",
-                  output_file = paste("report_", str_to_lower(site), ".docx", sep=""),
-                  output_dir = "raw_data")
+if (FALSE){
+  print("Preparing report... (please ensure output file is not open in Word)")
+  time_stamp <- today()
+  rmarkdown::render(input = "raw_data/report_any.rmd",
+                    # output_format = "word_document",
+                    output_file = paste("report_", str_to_lower(site), ".docx", sep=""),
+                    output_dir = "raw_data")
+} else {
+  print("Preparing report... disabled")
+}
 
 } # next site

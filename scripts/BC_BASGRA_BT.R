@@ -91,7 +91,7 @@ repeat{
   # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
   # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
   bt_time <- sum(sapply(bt_out, function(x) x$settings$runtime[3]/60, simplify=TRUE))
-  cat(file=stderr(), paste("Elapsed time =", round(bt_time,2), "minutes"), "\n")
+  cat(file=stderr(), paste("Total time =", round(bt_time,2), "minutes"), "\n")
   bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
   cat(file=stderr(), paste("Convergence max(psf) =", round(bt_conv,3)), "\n")
   

@@ -449,9 +449,12 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
   else
     TV1   = Tsurf/PHY                                                         ! d-1 Potential leaf appearance rate
   end if
-  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate.
+!  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate
+  RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate. Simon removed DAYLGE effect (Pararajasingham and Hunt 1995)
 !  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
-  TV2     = max( 0.0, min(FSMAX, LAITIL*exp( - LAIEFT*LAI/BASAL ) ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
+!  TV2     = max( 0.0, min(FSMAX, FSMAX - LAIEFT*(LAI/BASAL-LAITIL) ))         ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modified
+!  TV2     = min(FSMAX, LAITIL * exp( -LAIEFT * LAI/BASAL ) )                  ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
+  TV2     = min(FSMAX, FSMAX * exp( -LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
   FS      = TV2                                                               ! Simon record site filling fraction
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearance
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
