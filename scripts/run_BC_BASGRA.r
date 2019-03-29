@@ -9,7 +9,9 @@ if (FALSE){ # detach all packages
     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
   })
 }
-# rm(list=ls()) # kills breakpoints! frees memory.
+if (.Machine$sizeof.pointer==8){ # check R version
+  stop("BASGRA DLL only works with 32-bit R")
+}
 graphics.off() # closes all graphics
 
 # load packages
@@ -20,7 +22,7 @@ suppressMessages({
 
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
-scenarios <- c("run_mean")
+scenarios <- c("run_scott")
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
@@ -87,6 +89,6 @@ if (FALSE){
   graphics.off()
 }
 
-# open silly browser window to tell me it's finished :)
+# open amusing browser window to tell me it's finished :)
 browseURL('https://www.youtube.com/watch?v=QH2-TGUlwu4')
 

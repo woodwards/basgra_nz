@@ -75,7 +75,7 @@ repeat{
   } else {
     # continuation
     if (nBurnin==0){
-      cat(file=stderr(), paste("Greater than", conv_target, "so continuing..."), "\n")
+      cat(file=stderr(), paste("Greater than", conv_target, "and less than", conv_minutes, "so continuing..."), "\n")
     } else {
       cat(file=stderr(), "Restart doesn't work with nBurnin>0 so stopping...\n")
       # stop()
@@ -90,10 +90,10 @@ repeat{
   cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
   # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
   # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
-  bt_time <- sum(sapply(bt_out, function(x) x$settings$runtime[3]/60, simplify=TRUE))
-  cat(file=stderr(), paste("Total time =", round(bt_time,2), "minutes"), "\n")
   bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
   cat(file=stderr(), paste("Convergence max(psf) =", round(bt_conv,3)), "\n")
+  bt_time <- sum(sapply(bt_out, function(x) x$settings$runtime[3]/60, simplify=TRUE))
+  cat(file=stderr(), paste("Total time =", round(bt_time,2), "minutes"), "\n")
   
   # read stopping criterion from file (allows us to change it on the fly)
   conv_criteria <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE) 

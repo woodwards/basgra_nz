@@ -63,8 +63,8 @@
    sitelist               <- list() ; length(sitelist) <- nSites
    
    # additional outputs to plot
-   extraOutputs <- c("LAI", "TSIZE", "CLVD", "CRT", "DM", "RES", "TRANRF")
-   
+    extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
+	
    # Specify data uncertainties (the max of: cv for relative uncertainty, sd for absolute)   
    # These are used in BC_BASGRA_MCMC_init_general.r to set the data uncertainites
    # Data uncertainties are now specified in the data file

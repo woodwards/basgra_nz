@@ -26,7 +26,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   integer, dimension(100,3) :: DAYS_HARVEST     ! Simon added third column (percent leaf removed)
   real    :: CLV, CRES, CST, CSTUB, CLVD, LAI, PHEN, TILG2, TILG1, TILV
   real    :: GSTUB, HARVLV, HARVLVD, HARVLA, HARVRE, HARVTILG2, HARVST, HARVPH
-  real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV, HARVFRST
+  real    :: CLAI, HARVFR, TV1, HARVFRIN, RDRHARV, HARVFRST, DIESFRST
   integer :: HARV
 !  integer :: i
 
@@ -67,6 +67,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   ! HAGERE = proportion of CST harvested
   ! RES       = (CRES/0.40) / ((CLV+CST+CSTUB)/0.45 + CRES/0.40)               ! CRES is in CLV, CST and CSTUB
   HARVFRST  = HARVFR ** (1-HAGERE)                                             ! Simon proportion of CST harvested
+  DIESFRST  = 1.0 - HARVFRST                                                   ! Simon proportion of CST that dies
   TV1       = (HARVFR * CLV + HARVFRST * CST + 0 * CSTUB)/(CLV + CST + CSTUB)  ! Simon proportion of CRES harvested
   HARVFR    = HARVFR * HARV                                                    ! Simon only return HARVFR on HARV days
   RDRHARV   = RDRHARVMAX * HARVFR                                              ! Simon relative death rate due to harvest
@@ -80,8 +81,9 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   HARVLV    = (HARV   * CLV * HARVFR) / DELT
   HARVLVD   = (HARV   * CLVD * HARVFR * HARVFRD) / DELT
   HARVPH    = (HARV   * PHEN        ) / DELT           ! PHEN zeroed after each harvest
-  HARVST    = (HARV   * CST * HARVFRST) / DELT           ! CST zeroed after each harvest. Simon separated out GSTUB from HARVST
-  GSTUB     = (HARV   * CST * (1-HARVFRST) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
+  HARVST    = (HARV   * CST * HARVFRST) / DELT         ! Simon separated out GSTUB from HARVST
+!  GSTUB     = (HARV   * CST * (1-HARVFRST) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
+  GSTUB     = (HARV   * CST * DIESFRST) / DELT         ! Simon allowed stem survival when HARVFRST + DIESFRST < 1
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
 !  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
 !  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
@@ -94,8 +96,8 @@ Subroutine Biomass(AGE,CLV,CRES,CST,CSTUB)
 !  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMX = COCRESMX * (CLV + CST)            ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMN = FCOCRESMN * CRESMX                ! Minimum reserves in aboveground biomass (not stubble) in terms of C (not DM)
-!  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
-  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
+  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
+!  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
 end Subroutine Biomass
 
 ! Calculate phenological changes
@@ -318,20 +320,23 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
   real :: RDRS, TV1, TV2, RDRW
   call AnaerobicDamage(LT50,PERMgas,TANAER, dTANAER)
   call Hardening(CLV,LT50,Tsurf, DeHardRate,HardRate)
-  if (LAI/BASAL < LAICR) then
-    TV1 = 0.0
-  else
-    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
-  end if
-  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
-  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
-!  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures, Simon modified
+!  if (LAI/BASAL < LAICR) then
+!    TV1 = 0.0
+!  else
+!    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
+!  end if
+!  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading, see Gastal & Lemaire 2015
+!  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten
+  RDRS   = max(0.0, RDRSMX * (1.0 - exp( -RDRSCO*(LAI/BASAL-LAICR)))) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified
+  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Leaf turnover temperature dependent
+!  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)      ! d-1 Relative leaf death rate due to high temperatures, Simon modified
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
 !  RDRTIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
 ! Simon try different ways to combine death rates to make parameters more responsive
 ! Maximum stress
-  TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
-  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+  RDRW   = RDRTILMIN*(1-TRANRF)                     ! d-1 Simon Relative death rate due to water stress
+  TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT,RDRW)      ! d-1 Relative leaf death rate
+  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRW)           ! d-1 Relative death rate of non-elongating tillers
 ! Euclidean combination
 !  TV2    = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRT*RDRT)           ! d-1 Relative leaf death rate
 !  RDRTIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
@@ -452,9 +457,8 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
 !  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate
   RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate. Simon removed DAYLGE effect (Pararajasingham and Hunt 1995)
 !  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
-!  TV2     = max( 0.0, min(FSMAX, FSMAX - LAIEFT*(LAI/BASAL-LAITIL) ))         ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modified
-!  TV2     = min(FSMAX, LAITIL * exp( -LAIEFT * LAI/BASAL ) )                  ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
-  TV2     = min(FSMAX, FSMAX * exp( -LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
+!  TV2     = max( 0.0, min(FSMAX, FSMAX - LAIEFT*(LAI/BASAL-LAITIL) ))         ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modified, Gastal & Lemaire 2015
+  TV2     = min(FSMAX, FSMAX * exp( - LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
   FS      = TV2                                                               ! Simon record site filling fraction
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearance
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
@@ -463,6 +467,7 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
   TILVG1  = TILV  * RGRTVG1
   if (DAYL > DAYLG1G2) then                                                   ! Generative tiller elongation controlled by DAYL
     TILG1G2 = TILG1 * RGRTG1G2
+!    TILG1G2 = TILG1 * RGRTG1G2 * TGE                                          ! Simon added temperature response
   else if (YDAYL < DAYL) then
     TILG1G2 = 0.                                                              ! no conversion yet
   else

@@ -11,9 +11,10 @@ dyn.load(BASGRA_DLL)
    # Scott weather data is 2010-1 to 2017-318 (14 Nov)
    year_start     <- as.integer(2011)
    doy_start      <- as.integer(244) # 1 Sept
+	doy_start      <- as.integer(121) # 1 May
    year_stop      <- as.integer(2017)
    doy_stop       <- as.integer(151) # 31 May
-
+	doy_stop       <- as.integer(120) # 30 April
    # calculate sim length --- WARNING this needs to fit within weather data!
    # NDAYS          <- as.integer(1460) 
    NDAYS          <- as.integer(difftime(

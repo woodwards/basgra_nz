@@ -122,18 +122,19 @@ outputMax <- rep( as.double(NA), length(outputNames))
 if (TRUE){
   chooseNames <- c(
     "DAYL", "DAYLGE", 
-    "DAVTMP", "LT50",
+    "DAVTMP", # "LT50",
     "RAIN", "EVAP", "TRAN", "DRAIN",   
-    "WAL", "WCLM", "ROOTD", "WCL", "TRANRF",
-    "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM",
-    "FS", "GTILV", "DTILV", 
-    "BASAL", "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
-    "PHEN", "PHENRF", "VERND", "VERN", 
+    # "WAL", 
+    "WCLM", "ROOTD", "WCL", "TRANRF",
+    "CLV", "CLVD", "CRES", "CRT", "CST", "CSTUB", "DM", 
+    "BASAL", 
+    "FS", "RGRTV", "RDRTIL", 
+    "TILTOT", "TILV", "TILG1", "TILG2", "TSIZE", 
+    "VERND", "VERN", "PHEN", "PHENRF", 
     "HARVFRIN", "HARVFR",
-    "RES", "RESMOB", 
-    "SLANEW", "SLA", "LAI", "LINT", "PHOT", 
+    "SLANEW", "SLA", "LAI", "LINT", "PHOT", "RES", "RESMOB", 
     "LERV", "LERG",
-    "RLEAF", "GRT", "RDRL", "RDLVD", "YIELD"
+    "RLEAF", "RDRL", "RDLVD", "YIELD"
   )
 } else {
   chooseNames <- c(

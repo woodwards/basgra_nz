@@ -10,10 +10,7 @@ temp.RData
 *.xlsx
 *.xlsm
 *.RData
-run_all_20181217
-run_all_20181220
-run_all_20190109
-run_all_20190121
-run_mean_20190214
-run_mean_20190221
+run_all_*
 Tiller Persistence - Shortcut.lnk
+run_mean_*
+run_lincoln_*

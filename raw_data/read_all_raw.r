@@ -22,8 +22,8 @@ acultivar <- c("Alto", "Commando", "Halo", "Nui")
 acultivar <- acultivar[1]
 aseed_rate <- c("6kg", "12kg", "18kg", "24kg", "30kg")
 aseed_rate <- aseed_rate[3] 
-# calib_start <- ymd("20110401") # period for data weight = 1
-calib_start <- ymd("20120401") # period for data weight = 1
+calib_start <- ymd("20110401") # period for data weight = 1
+# calib_start <- ymd("20120401") # period for data weight = 1
 calib_end <- ymd("20171231") # period for data weight = 1
 
 # seed rates in order
@@ -460,7 +460,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
   
   # collect the data in this list
   data_c <- vector("list", 10) 
-  err_c <- c(TILTOT=2000, CLV=30, CST=10, CLVD=20, CRT=60, WCLM=10, BASAL=10)
+  err_c <- c(TILTOT=2000, CLV=30, CST=10, CLVD=20, CRT=60, WCLM=10, BASAL=20)
   
   # pre and post mass (but this includes other species!)
   # temp <- data_rpm %>%
@@ -514,7 +514,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
   # ryegrass mass (total or above cutting height? depending on definition of yield_bot)
   if (ablock==0){
     temp <- data_bm %>%
-      select(block, seed_rate, cultivar, grazing, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_above, yield_below, date_bot, date_grazed) %>%
+      select(block, seed_rate, cultivar, grazing, rgfrac, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_above, yield_below, date_bot, date_grazed) %>%
       filter(seed_rate %in% aseed_rate & cultivar %in% acultivar) %>% 
       mutate(
         date_bot2=if_else(date_bot >= date_grazed, date_grazed-days(1), date_bot), # avoid grazing dates
@@ -525,6 +525,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
       summarise(
         date_range = max(date_bot2, na.rm=TRUE)-min(date_bot2, na.rm=TRUE),
         date_bot2 = mean(date_bot2, na.rm=TRUE),
+        rgfrac = mean(rgfrac, na.rm=TRUE),
         leaf = mean(leaf, na.rm=TRUE),
         leaf_below = mean(leaf_below, na.rm=TRUE),
         stem = mean(stem, na.rm=TRUE),
@@ -538,7 +539,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
       mutate(i = 1:n())
   } else {
     temp <- data_bm %>%
-      select(block, seed_rate, cultivar, grazing, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_above, yield_below, date_bot, date_grazed) %>%
+      select(block, seed_rate, cultivar, grazing, rgfrac, leaf, stem, dead, leaf_below, stem_below, dead_below, yield_above, yield_below, date_bot, date_grazed) %>%
       filter(block==ablock & seed_rate %in% aseed_rate & cultivar %in% acultivar) %>% 
       mutate(
         date_bot2=if_else(date_bot >= date_grazed, date_grazed-days(1), date_bot), # avoid grazing dates
@@ -549,6 +550,7 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
       summarise(
         date_range = max(date_bot2, na.rm=TRUE)-min(date_bot2, na.rm=TRUE),
         date_bot2 = mean(date_bot2, na.rm=TRUE),
+        rgfrac = mean(rgfrac, na.rm=TRUE),
         leaf = mean(leaf, na.rm=TRUE),
         leaf_below = mean(leaf_below, na.rm=TRUE),
         stem = mean(stem, na.rm=TRUE),
@@ -579,6 +581,10 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
                                    data=1.8*(leaf/100*yield_above/10*0.45+leaf_below/100*yield_below/10*0.45),
                                    sd=err_c["CRT"], type="sd",
                                    weight=weight) %>% drop_na())
+  data_c[[8]] <- with(temp, tibble(var="BASAL", year=year(date_bot2), doy=yday(date_bot2),
+                                   data=rgfrac,
+                                   sd=err_c["BASAL"], type="sd",
+                                   weight=weight) %>% drop_na())
   
   # light interception (but this includes all species!)
   # temp <- data_li %>%
@@ -607,18 +613,10 @@ for (ablock in c(0, 1,2,3,4,5)) { # loop through blocks (0 = mean)
         weight=as.numeric(incalib)
       ) 
   }
-  data_c[[8]] <- with(temp, tibble(var="WCLM", year=year(date_sm), doy=yday(date_sm), 
+  data_c[[9]] <- with(temp, tibble(var="WCLM", year=year(date_sm), doy=yday(date_sm), 
                                    data=mean_sm, sd=err_c["WCLM"], type="sd",
                                    weight=weight) %>% drop_na())
   
-  # basal area
-  # temp <- data_till_sum %>%
-  #   select(block, seed_rate, cultivar, p2000, date_till) %>%
-  #   filter(block==ablock & seed_rate %in% aseed_rate & cultivar %in% acultivar)
-  # data_c[[7]] <- with(temp, tibble(var="BASAL", year=year(date_till),
-  #                                  doy=yday(date_till), data=p2000*100, sd=err_c["BASAL"], type="sd",
-  #                                  weight=ifelse(((date_till>=calib_start)&(date_till<=calib_end)), 1, 0)) %>% drop_na())
-
   # bind list and write file
   data_calib <- bind_rows(data_c)
   data_calib <- arrange(data_calib, var, year, doy)

@@ -318,20 +318,22 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
   real :: RDRS, TV1, TV2, RDRW
   call AnaerobicDamage(LT50,PERMgas,TANAER, dTANAER)
   call Hardening(CLV,LT50,Tsurf, DeHardRate,HardRate)
-  if (LAI/BASAL < LAICR) then
-    TV1 = 0.0
-  else
-    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
-  end if
-  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
-  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures
-!  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)             ! d-1 Relative leaf death rate due to high temperatures, Simon modified
+!  if (LAI/BASAL < LAICR) then
+!    TV1 = 0.0
+!  else
+!    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
+!  end if
+!  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading
+  RDRS   = RDRSMX * max(0.0, 1.0 - exp( -RDRSCO*(LAI/BASAL-LAICR)/LAICR)) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified
+  RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Leaf turnover temperature dependent
+!  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)      ! d-1 Relative leaf death rate due to high temperatures, Simon modified
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
 !  RDRTIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
 ! Simon try different ways to combine death rates to make parameters more responsive
 ! Maximum stress
-  TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT)      ! d-1 Relative leaf death rate
-  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
+  RDRW   = RDRTILMIN*(1-TRANRF)                     ! d-1 Simon Relative death rate due to water stress
+  TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT,RDRW)      ! d-1 Relative leaf death rate
+  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRW)           ! d-1 Relative death rate of non-elongating tillers
 ! Euclidean combination
 !  TV2    = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRT*RDRT)           ! d-1 Relative leaf death rate
 !  RDRTIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate
@@ -453,8 +455,8 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
   RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate. Simon removed DAYLGE effect (Pararajasingham and Hunt 1995)
 !  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
 !  TV2     = max( 0.0, min(FSMAX, FSMAX - LAIEFT*(LAI/BASAL-LAITIL) ))         ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modified
-  TV2     = min(FSMAX, LAITIL * exp( -LAIEFT * LAI/BASAL ) )                  ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
-!  TV2     = min(FSMAX, FSMAX * exp( -LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
+!  TV2     = min(FSMAX, LAITIL * exp( -LAIEFT * LAI/BASAL ) )                  ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
+  TV2     = min(FSMAX, FSMAX * exp( -LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
   FS      = TV2                                                               ! Simon record site filling fraction
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearance
   GTILV   = TILV  * RGRTV                                                     ! Simon deleted NOHARV switch
@@ -463,6 +465,7 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
   TILVG1  = TILV  * RGRTVG1
   if (DAYL > DAYLG1G2) then                                                   ! Generative tiller elongation controlled by DAYL
     TILG1G2 = TILG1 * RGRTG1G2
+!    TILG1G2 = TILG1 * RGRTG1G2 * TGE                                          ! Simon added temperature response
   else if (YDAYL < DAYL) then
     TILG1G2 = 0.                                                              ! no conversion yet
   else

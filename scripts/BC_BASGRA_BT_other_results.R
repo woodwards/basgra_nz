@@ -23,9 +23,9 @@ for (s in 1:nSites){
   # modify simulation length if desired
   # year_start     <- as.integer(2011)
   # doy_start      <- as.integer(244) # 1 September
-  year_stop      <- as.integer(2017)
+  # year_stop      <- as.integer(2017)
   # year_stop      <- as.integer(2014)
-  doy_stop       <- as.integer(151) # 31 May
+  # doy_stop       <- as.integer(151) # 31 May
   NDAYS_all <- NDAYS # will need to restore this for other functions
   NDAYS          <- as.integer(difftime(
     as.Date(doy_stop -1, origin=paste(year_stop ,1,1,sep="-")), 
@@ -87,7 +87,7 @@ for (s in 1:nSites){
   # export output using functions in initialise_BASGRA_general.R
   file_table  = paste(scenario, "/basgra_trace_table_", s, ".txt", sep="")
   file_plot   = paste(scenario, "/basgra_trace_plots_", s, ".png", sep="")
-  main_title <- paste("SITE ",s," MAP (",sitenames[s],")",sep="") 
+  main_title <- paste("SITE ",s," MAP (",region[s],")",sep="") 
   export_output(file_table=file_table, file_plot=file_plot, main_title=main_title,
                 list_output=list_output, leg=leg, leg_title="SCENARIOS")
   

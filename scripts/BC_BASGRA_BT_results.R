@@ -15,6 +15,9 @@ suppressMessages({
 dyn.load(BASGRA_DLL)
 graphics.off()
 
+# additional outputs to plot
+extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
+
 # memory management        
 library(pryr)
 mem_used() # 1.18Gb
@@ -214,7 +217,10 @@ if (TRUE){
   # plot predictive results for each site (and collect residuals into a dataframe) ####
   residual_df <- vector("list", nSites * nBCvar)
   sitenames <- gsub( "\\.R", "", sub(".*BASGRA_","",sitesettings_filenames), ignore.case=TRUE )
-  sitenames <- c("Northland", "Waikato", "Canterbury")
+  region <- case_when(
+    str_detect(sitenames, "Northland") ~ "Northland",
+    str_detect(sitenames, "Scott") ~ "Waikato",
+    str_detect(sitenames, "Lincoln") ~ "Canterbury")
   s <- 1
   for (s in 1:nSites){ 
 
@@ -263,10 +269,12 @@ if (TRUE){
                                        error=bt_error)
         # error function gets sampled on top of parameter variation
         confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        confidenceBand <- pmax(confidenceBand, 0.0)
         predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
         predictedMedian_obs <- predictedMedian[bt_obs_rows]
         predicted <- pred$posteriorPredictivePredictionInterval[2,]
         predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
+        predictionBand <- pmax(predictionBand, 0.0)
         x <- pred$posteriorPredictiveSimulations[,bt_obs_rows]
         if (length(bt_obs_rows)>1){
           bt_pred_mean <- colMeans(x)
@@ -378,7 +386,7 @@ if (TRUE){
             # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
             col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
             lty=1, lwd=1)
-    mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),
+    mtext( paste("SITE ",s," (",region[s],")",sep=""),
            side=3, line=1, outer=TRUE, cex=1, font=2)   
     
     # close figure
@@ -447,9 +455,11 @@ if (TRUE){
                                          quantiles=c(0.05, 0.5, 0.95),
                                          error=bt_error)
           confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+          confidenceBand <- pmax(confidenceBand, 0.0)
           predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
           predicted <- pred$posteriorPredictivePredictionInterval[2,]
           predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
+          predictionBand <- pmax(predictionBand, 0.0)
           plotTimeSeries(       predicted = predicted,
                                 confidenceBand = confidenceBand,
                                 predictionBand = predictionBand,
@@ -473,7 +483,7 @@ if (TRUE){
               # col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
               col   =c(NA,  "red",    "lightblue",  "blue",     "darkblue",   "grey",       "black"), 
               lty=1, lwd=1)
-      mtext( paste("SITE ",s," (",sitenames[s],")",sep=""),
+      mtext( paste("SITE ",s," (",region[s],")",sep=""),
              side=3, line=1, outer=TRUE, cex=1, font=2) 
       
       # close figure
@@ -491,7 +501,7 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=c("Leaf C", "Stem C", "Dead Leaf C", "Root C", "Total Tillers", "Soil Moisture")),
+      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
     ) %>% 
@@ -602,8 +612,33 @@ if (TRUE){
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     facet_wrap(~var_name, scale="free") +
     theme_few() 
+  # print(plot3b)
+  # png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  # print(plot3b)
+  # dev.off()
+
+  # residuals bias and precision #2
+  temp <- filter(residual_df, 
+                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
+                 obs_wts>0) %>%  
+    mutate(xjitter=runif(n())*0.1-0.05)
+  plot3b <- temp %>% 
+    ggplot() +
+    labs(title="Residual Bias", x="Model Median", y="", colour="Region", fill="Region") +
+    # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2, ymax=pred_max2, fill=region, colour=region), alpha=0.1) +
+    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min, ymax=pred_max, fill=region, colour=region), alpha=0.3) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
+    # geom_errorbar(mapping=aes(x=pred_med, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
+    # geom_errorbarh(mapping=aes(y=pred_med, xmin=pred_min, xmax=pred_max, colour=region)) +
+    geom_point(mapping=aes(x=pred_med, y=obs_vals, colour=region)) +
+    geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
+    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    facet_wrap(~var_name, scale="free") +
+    theme_few() 
   print(plot3b)
-  png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
+  png(paste(scenario, "/residual_data2.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3b)
   dev.off()
   
