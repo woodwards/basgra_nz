@@ -42,21 +42,34 @@ bt_likelihood <- function(par){
 bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 
 # construct setup
+opts <- list(
+  packages=list("BayesianTools"), 
+  variables=as.list(c(
+    "sc", "ip_BC_site", "icol_pChain_site", "nSites", "run_model", "NOUT", "ndata", "flogL", 
+     ls(pattern="^calc_.+"), # all variables starting with
+     ls(pattern="^database.+"), # all variables starting with
+     ls(pattern="^data_.+"), # all variables starting with
+     ls(pattern="^list_.+") # all variables starting with
+  )), 
+  dlls=list(BASGRA_DLL)
+  )
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
-                                parallel=TRUE,
-                                parallelOptions=list(dlls=list(BASGRA_DLL)),
+                                parallel=2, # how many cores? only uses 2 anyway
+                                parallelOptions=opts,
                                 names=bt_names)
 
 # construct settings (note: DREAMzs has startValue=3 internal chains by default)
 # Possibly DREAMzs has limited capability to use parallel cores
 nInternal   <- 3 # internal chains for DREAMzs
-bt_settings <- list(startValue=nInternal, 
-                    iterations=nChain/nChains, 
+bt_settings <- list(iterations=nChain/nChains,
+                    startValue=nInternal, 
+                    # startValue=matrix(1,nInternal,np_BC), 
                     nrChains=nChains, 
                     # burnin=0, # because can't analyse convergence if we discard burnin
                     burnin=nBurnin/nChains+nChains, # to give correct number of samples
-                    parallel=TRUE,
+                    parallel=TRUE, # use parallel cores as specified in createBayesianSetup?
+                    consoleUpdates=1000,
                     message=TRUE) 
 
 # run BT until stopping conditions met (these can be changed in the file BC_BASGRA_BT_stop.csv)

@@ -46,9 +46,9 @@ KLAI	0.3	0.6	0.9	4	1:nSites
 KLUETILG	0	0.5	1	4	1:nSites
 KRESPHARD	0.001	0.01	0.05	4	1:nSites
 KTIL	100	3000	5000	4	1:nSites
-LAICR	4	6	8	4	1:nSites
-LAIEFT	0.0	0.5	1	4	1:nSites
-LAITIL	2	4	6	4	1:nSites
+LAICR	0	6	8	4	1:nSites
+LAIEFT	0.0	0.5	1.0	4	1:nSites
+LAITIL	0	4	6	4	1:nSites
 LERVA	-10	-1.13	5	4	1:nSites
 LERVB	0.4	0.75	3	4	1:nSites
 LERGA	-10	-8.21	5	4	1:nSites

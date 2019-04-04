@@ -96,8 +96,8 @@ Subroutine Biomass(AGE,CLV,CRES,CST,CSTUB)
 !  CRESMX = COCRESMX * (CLV + CRES + CST)     ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMX = COCRESMX * (CLV + CST)            ! Maximum reserves in aboveground biomass (not stubble) in terms of C (not DM)
   CRESMN = FCOCRESMN * CRESMX                ! Minimum reserves in aboveground biomass (not stubble) in terms of C (not DM)
-  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds"
-!  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
+!  RESNOR = max(0.0, min(1.0, (CRES-CRESMN)/(CRESMX-CRESMN) )) ! Simon revised normalisation of CRES relative to upper and lower "bounds" (seems to break the balance)
+  RESNOR = max(0.0, min(1.0, CRES/CRESMX )) ! CRES normalised as a proportion of maximum
 end Subroutine Biomass
 
 ! Calculate phenological changes

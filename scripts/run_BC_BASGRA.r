@@ -22,7 +22,7 @@ suppressMessages({
 
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
-scenarios <- c("run_scott")
+scenarios <- c("run_mean")
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
@@ -46,6 +46,7 @@ for (scenario in scenarios){
 #### 2. RUNNING THE MCMC ####
   
   file_name <- "scripts/BC_BASGRA_BT.R"
+  # file_name <- "scripts/BC_BASGRA_BT_parallel.R"
   cat(file=stderr(), "Calling", file_name, "\n")
   source(file_name)
 
