@@ -16,6 +16,7 @@ subroutine BASGRA(PARAMS,MATRIX_WEATHER,DAYS_HARVEST,NDAYS,NOUT,y) bind(C, name 
 ! 2014-04-03: Vernalization added
 ! 2014-04-03: Lower limit of temperature-driven leaf senescence no longer zero
 ! 2018-08-01: Modified by Simon Woodward for New Zealand ryegrass simulations
+! 2019-06-09: Added C wrapper to allow model to be compiled into an R package
 !-------------------------------------------------------------------------------
 
 ! Allows access to all public objects in the other modules

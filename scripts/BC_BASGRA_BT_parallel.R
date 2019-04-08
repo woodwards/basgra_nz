@@ -15,19 +15,12 @@ suppressMessages({
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package (PARALLEL VERSION)', "\n")
 
 # parameter names
-bt_names <- if_else(parsites_BC=="1:nSites",
+bt_names <- dplyr::if_else(parsites_BC=="1:nSites",
                     as.character(parname_BC),
                     paste(parname_BC, "(", parsites_BC, ")", sep=""))
 cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 
 # likelihood function (work with scaled parameters)
-globals <- as.list(c(
-  "sc", "ip_BC_site", "icol_pChain_site", "nSites", "run_model", "NOUT", "ndata", "flogL", 
-  ls(pattern="^calc_.+"), # all variables starting with
-  ls(pattern="^database.+"), # all variables starting with
-  ls(pattern="^data_.+"), # all variables starting with
-  ls(pattern="^list_.+") # all variables starting with
-)) 
 bt_likelihood <- function(par){
   # use loop from BC_BASGRA_MCMC.R  
   candidatepValues_BC   <- par * sc
@@ -48,7 +41,17 @@ bt_likelihood <- function(par){
   return(logL1)
 }
 
+# globals
+globals <- as.list(c(
+  "sc", "ip_BC_site", "icol_pChain_site", "nSites", "run_model", "NOUT", "ndata", "flogL", 
+  ls(pattern="^calc_.+"), # all variables starting with
+  ls(pattern="^database.+"), # all variables starting with
+  ls(pattern="^data_.+"), # all variables starting with
+  ls(pattern="^list_.+") # all variables starting with
+)) 
+
 # parallel
+cat(file=stderr(), paste("Machine has", detectCores(), "cores"), "\n")
 n_cluster <- nChains
 bt_cluster <- makeCluster(n_cluster)
 clusterEvalQ(bt_cluster, library(BayesianTools))
@@ -59,24 +62,28 @@ clusterExport(bt_cluster, globals)
 bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 
 # construct setup
+paropts <- list(
+  packages=list("BayesianTools", "BASGRA"), 
+  variables=globals
+)
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
-                                # parallel=TRUE, 
-                                # parallelOptions=list(dlls=list(BASGRA_DLL)),
+                                parallel=FALSE,
+                                parallelOptions=paropts,
                                 names=bt_names)
 
 # construct settings (note: DREAMzs has startValue=3 internal chains by default)
 # Possibly DREAMzs has limited capability to use parallel cores
 nInternal   <- 3 # internal chains for DREAMzs
-bt_settings <- list(startValue=nInternal, 
-                    iterations=nChain/nChains, 
-                    # nrChains=nChains, 
-                    nrChains=1, # use external chains  
+bt_settings <- list(iterations=nChain/nChains, 
+                    # nrChains=nChains,
+                    nrChains=1, # use external chains
+                    startValue=nInternal, 
                     # burnin=0, # because can't analyse convergence if we discard burnin
-                    burnin=nBurnin/nChains+nChains # to give correct number of samples
-                    # parallel=TRUE, # can overrule parallel=FALSE in BayesianSetup
-                    # message=TRUE
-                    ) 
+                    burnin=nBurnin/nChains+nChains, # to give correct number of samples
+                    parallel=FALSE, # can overrule parallel=FALSE in BayesianSetup
+                    consoleUpdates=1000,
+                    message=TRUE) 
 
 # run BT until stopping conditions met (these can be changed in the file BC_BASGRA_BT_stop.csv)
 bt_chains <- nInternal * nChains 

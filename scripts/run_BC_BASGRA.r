@@ -45,8 +45,8 @@ for (scenario in scenarios){
   
 #### 2. RUNNING THE MCMC ####
   
-  # file_name <- "scripts/BC_BASGRA_BT.R"
-  file_name <- "scripts/BC_BASGRA_BT_parallel.R"
+  file_name <- "scripts/BC_BASGRA_BT.R"
+  # file_name <- "scripts/BC_BASGRA_BT_parallel.R"
   cat(file=stderr(), "Calling", file_name, "\n")
   source(file_name)
 

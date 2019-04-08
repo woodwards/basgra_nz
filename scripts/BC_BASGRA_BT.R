@@ -7,13 +7,14 @@ suppressMessages({
   library(BayesianTools)
   library(coda)
   library(BASGRA) # include compiled run_model() function
+  library(profvis)
 })
 
 #
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package', "\n")
 
 # parameter names
-bt_names <- if_else(parsites_BC=="1:nSites",
+bt_names <- dplyr::if_else(parsites_BC=="1:nSites",
                     as.character(parname_BC),
                     paste(parname_BC, "(", parsites_BC, ")", sep=""))
 cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
@@ -21,22 +22,25 @@ cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 # likelihood function (work with scaled parameters)
 par <- rep(1, length(bt_names)) # for testing
 s <- 1 # for testing
+stop()
 bt_likelihood <- function(par){
-  # use loop from BC_BASGRA_MCMC.R  
-  candidatepValues_BC   <- par * sc
-  for (s in 1:nSites) {
-    params         <- list_params        [[s]] # get site parameters initial values (in parameters.txt)
-    matrix_weather <- list_matrix_weather[[s]] # get site weather
-    days_harvest   <- list_days_harvest  [[s]] # get site harvest
-    NDAYS          <- list_NDAYS         [[s]] # get site NDAYS
-    # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
-    # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
-    params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
-    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT)
-    list_output[[s]]          <- output
-  }
-  # use functions from BC_BASGRA_init_general.R
-  logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
+  # profvis::profvis({for (i in 1:1000){
+    # use loop from BC_BASGRA_MCMC.R  
+    candidatepValues_BC   <- par * sc
+    for (s in 1:nSites) {
+      params         <- list_params        [[s]] # get site parameters initial values (in parameters.txt)
+      matrix_weather <- list_matrix_weather[[s]] # get site weather
+      days_harvest   <- list_days_harvest  [[s]] # get site harvest
+      NDAYS          <- list_NDAYS         [[s]] # get site NDAYS
+      # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
+      # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
+      params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
+      output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT)
+      list_output[[s]]          <- output
+    }
+    # use functions from BC_BASGRA_init_general.R
+    logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
+  # }}) # profvis
   # return likelihood
   return(logL1)
 }
