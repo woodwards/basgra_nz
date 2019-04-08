@@ -2,17 +2,10 @@ Short list of known issues/to do
 
 Issues
 
-- 64-bit R won't run the DLL properly so need to use 32-bit R
-- memory error with output object from long chains
-- burnin>0 causes BayesianTools::runMCMC() to fail on restart
 - bar plot width vanishing in some data docx reports
 - Northland soil moisture data is from different site than trial
 - botanical composition under sampling height is a very crude assumption
 - ROOTD and BASAL area dynamics are rather crude
 - generative tillers are immune to environmental death rates
-- pseudostem not modelled
-- vernalisation happens too early in the year?
-- dead and root mass may be excessive if no data to constrain them
-- 
-
-
+- pseudostem not modelled separately from leaf
+- Tiller dynamics not persistent enough. 

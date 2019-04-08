@@ -1,0 +1,11 @@
+Package: BASGRA
+Type: Package
+Title: BASic GRAssland model in an R package.
+Version: 0.0.1
+Date: 2019-04-08
+Authors@R: c(person(given="Simon", family="Woodward", role=c("aut", "cph", "cre"), email="simon.woodward@dairynz.co.nz"))
+Description: BASic GRAssland model in an R package.
+License: BSD_2_clause + file LICENSE
+LazyData: true
+NeedsCompilation: yes
+Suggests: testthat

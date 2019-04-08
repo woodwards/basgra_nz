@@ -6,6 +6,7 @@
 suppressMessages({
   library(BayesianTools)
   library(coda)
+  library(BASGRA) # include compiled run_model() function
 })
 
 #
@@ -18,6 +19,8 @@ bt_names <- if_else(parsites_BC=="1:nSites",
 cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 
 # likelihood function (work with scaled parameters)
+par <- rep(1, length(bt_names)) # for testing
+s <- 1 # for testing
 bt_likelihood <- function(par){
   # use loop from BC_BASGRA_MCMC.R  
   candidatepValues_BC   <- par * sc
@@ -29,7 +32,7 @@ bt_likelihood <- function(par){
     # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
     # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
     params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
-    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS)
+    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT)
     list_output[[s]]          <- output
   }
   # use functions from BC_BASGRA_init_general.R
@@ -43,19 +46,18 @@ bt_prior <- createBetaPrior(aa, bb, scparmin_BC[1:np_BC], scparmax_BC[1:np_BC])
 
 # construct setup
 opts <- list(
-  packages=list("BayesianTools"), 
+  packages=list("BayesianTools", "BASGRA"), 
   variables=as.list(c(
     "sc", "ip_BC_site", "icol_pChain_site", "nSites", "run_model", "NOUT", "ndata", "flogL", 
      ls(pattern="^calc_.+"), # all variables starting with
      ls(pattern="^database.+"), # all variables starting with
      ls(pattern="^data_.+"), # all variables starting with
      ls(pattern="^list_.+") # all variables starting with
-  )), 
-  dlls=list(BASGRA_DLL)
+  ))
   )
 bt_setup <- createBayesianSetup(likelihood=bt_likelihood, 
                                 prior=bt_prior, 
-                                parallel=2, # how many cores? only uses 2 anyway
+                                parallel=FALSE, 
                                 parallelOptions=opts,
                                 names=bt_names)
 
@@ -68,7 +70,7 @@ bt_settings <- list(iterations=nChain/nChains,
                     nrChains=nChains, 
                     # burnin=0, # because can't analyse convergence if we discard burnin
                     burnin=nBurnin/nChains+nChains, # to give correct number of samples
-                    parallel=TRUE, # use parallel cores as specified in createBayesianSetup?
+                    parallel=FALSE, # can overrule parallel=FALSE in BayesianSetup
                     consoleUpdates=1000,
                     message=TRUE) 
 

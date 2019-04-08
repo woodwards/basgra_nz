@@ -5,10 +5,14 @@ BT = BayesianTools R package
 NZ = New Zealand
 
 outstandings_issues.txt List of known issues with the data and model
-/docs/		miscellaneous background documents, including original BASGRA user guide
-/model/		BASGRA Fortran code and executable, also miscellaneous notes on model logic, model.cbp is a CodeBlocks Fortran Project
+/docs/		background documents, including original BASGRA user guide
+/model/		BASGRA Fortran code and DLL, miscellaneous notes on model logic, model.cbp CodeBlocks Fortran Project
 /model/output_names.tsv	list of model outputs, must match code in BASGRA.f90
-/scripts/		R scripts for running and calibrating BASGRA (independent of scenario)
-
+/model_2014/  Original 2014 BASGRA code.
+/model_inputs/  Obsolete
+/model_package/ BASGRA *.f95 Fortran code as wrapped in C to build an R package
+outstanding_issues.txt  List of outstanding issues
+project_guide.txt This document
 /raw_data/		NZ trial data and weather files, R scripts for processing these, weather and calibration data files for BASGRA
-/***scenario_name***/	Scenario files, including BC_BASGRA_MCMC_init.R, initialise_BASGRA_xxx.R, model input files (weather, harvest, calibration data, parameters_All,txt, parameters_BC.txt), figures and tables produced from BASGRA runs/calibrations
+/run_*/	Scenario files, including BC_BASGRA_MCMC_init.R, initialise_BASGRA_xxx.R, model input files (weather, harvest, calibration data, parameters_All,txt, parameters_BC.txt), figures and tables produced from BASGRA runs or calibrations
+/scripts/		R scripts for running and calibrating BASGRA (independent of scenario)

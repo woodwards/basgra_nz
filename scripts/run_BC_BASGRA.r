@@ -9,9 +9,9 @@ if (FALSE){ # detach all packages
     lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
   })
 }
-if (.Machine$sizeof.pointer==8){ # check R version
-  stop("BASGRA DLL only works with 32-bit R")
-}
+# if (.Machine$sizeof.pointer==8){ # check R version
+#   stop("BASGRA DLL only works with 32-bit R")
+# }
 graphics.off() # closes all graphics
 
 # load packages
@@ -45,8 +45,8 @@ for (scenario in scenarios){
   
 #### 2. RUNNING THE MCMC ####
   
-  file_name <- "scripts/BC_BASGRA_BT.R"
-  # file_name <- "scripts/BC_BASGRA_BT_parallel.R"
+  # file_name <- "scripts/BC_BASGRA_BT.R"
+  file_name <- "scripts/BC_BASGRA_BT_parallel.R"
   cat(file=stderr(), "Calling", file_name, "\n")
   source(file_name)
 
@@ -76,15 +76,15 @@ for (scenario in scenarios){
     suppressMessages(library(tidyverse))
     file_save <- paste(scenario, "/checkpoint_finished.RData", sep="") 
     load(file_save)  
-    BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
-    dyn.load(BASGRA_DLL) 
+    # BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
+    # dyn.load(BASGRA_DLL) 
   }
 
 } # next scenario
 
 cat(file=stderr(), "Finished BC_BASGRA.r", "\n")
 if (FALSE){
-  dyn.unload(BASGRA_DLL)
+  # dyn.unload(BASGRA_DLL)
   installr::kill_all_Rscript_s() # kills processes left from BT parallel
   closeAllConnections()
   graphics.off()

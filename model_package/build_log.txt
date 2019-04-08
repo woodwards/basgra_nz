@@ -1,0 +1,46 @@
+==> Rcmd.exe INSTALL --preclean --clean BASGRA-master
+
+* installing to library 'C:/R/R-3.5.3/library'
+* installing *source* package 'BASGRA' ...
+** libs
+
+*** arch - i386
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  parameters_site.f95 -o parameters_site.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  parameters_plant.f95 -o parameters_plant.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  environment.f95 -o environment.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  plant.f95 -o plant.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  resources.f95 -o resources.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  set_params.f95 -o set_params.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  soil.f95 -o soil.o
+C:/Rtools/3.4/mingw_32/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O3  -mtune=generic -c  basgraf.f95 -o basgraf.o
+C:/Rtools/3.4/mingw_32/bin/gcc  -I"C:/R/R-35~1.3/include" -DNDEBUG          -O3 -Wall  -std=gnu99 -mtune=generic -c basgrac.c -o basgrac.o
+C:/Rtools/3.4/mingw_32/bin/gfortran -shared -s -static-libgcc -o BASGRA.dll tmp.def basgrac.o basgraf.o environment.o parameters_plant.o parameters_site.o plant.o resources.o set_params.o soil.o -LC:/R/R-35~1.3/bin/i386 -lR
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  parameters_site.f95 -o parameters_site.o
+installing to C:/R/R-3.5.3/library/BASGRA/libs/i386
+
+*** arch - x64
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  parameters_plant.f95 -o parameters_plant.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  environment.f95 -o environment.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  plant.f95 -o plant.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  resources.f95 -o resources.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  set_params.f95 -o set_params.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  soil.f95 -o soil.o
+C:/Rtools/3.4/mingw_64/bin/gfortran  -x f95-cpp-input -fdefault-real-8 -Dweathergen  -O2  -mtune=generic -c  basgraf.f95 -o basgraf.o
+C:/Rtools/3.4/mingw_64/bin/gcc  -I"C:/R/R-35~1.3/include" -DNDEBUG          -O2 -Wall  -std=gnu99 -mtune=generic -c basgrac.c -o basgrac.o
+C:/Rtools/3.4/mingw_64/bin/gfortran -shared -s -static-libgcc -o BASGRA.dll tmp.def basgrac.o basgraf.o environment.o parameters_plant.o parameters_site.o plant.o resources.o set_params.o soil.o -LC:/R/R-35~1.3/bin/x64 -lR
+  converting help for package 'BASGRA'
+    BASGRA-internal                         html
+    run_model                               html
+installing to C:/R/R-3.5.3/library/BASGRA/libs/x64
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+    finding HTML links ... done
+** building package indices
+** testing if installed package can be loaded
+*** arch - i386
+*** arch - x64
+* DONE (BASGRA)
+In R CMD INSTALL
