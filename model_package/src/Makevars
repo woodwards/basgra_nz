@@ -1,0 +1,17 @@
+PKG_FCFLAGS += -x f95-cpp-input -fdefault-real-8 -Dweathergen
+
+C_OBJS = basgrac.o
+FT_OBJS = parameters_site.o parameters_plant.o environment.o resources.o soil.o plant.o set_params.o basgraf.o
+
+all: $(SHLIB) clean
+
+$(SHLIB): $(FT_OBJS) $(C_OBJS)
+
+resources.o set_params.o soil.o environment.o: parameters_site.o parameters_plant.o
+plant.o: environment.o
+basgraf.o: plant.o resources.o set_params.o soil.o environment.o
+basgramodule.mod: basgraf.o
+basgrac.o: basgramodule.mod
+
+clean:
+	@rm -rf *.mod *.o

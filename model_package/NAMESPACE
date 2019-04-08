@@ -1,0 +1,2 @@
+useDynLib(BASGRA, .registration=TRUE)
+exportPattern("^[[:alpha:]]+")

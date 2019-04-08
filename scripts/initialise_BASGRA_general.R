@@ -5,12 +5,12 @@ days_harvest <- matrix( as.integer(-1), nrow=100, ncol=3 ) # Simon added harv co
 
 ################################################################################
 ### 1. MODEL LIBRARY FILE & FUNCTION FOR RUNNING THE MODEL
-run_model <- function(p = params,
-                      w = matrix_weather,
-                      h = days_harvest,
-                      n = NDAYS) {
-  .Fortran('BASGRA', p,w,h,n, NOUT,matrix(0,n,NOUT))[[6]]
-}
+# run_model <- function(p = params,
+#                       w = matrix_weather,
+#                       h = days_harvest,
+#                       n = NDAYS) {
+#   .Fortran('BASGRA', p,w,h,n, NOUT,matrix(0,n,NOUT))[[6]]
+# }
 
 ################################################################################
 ### 2. FUNCTIONS FOR READING WEATHER DATA

@@ -12,7 +12,7 @@ suppressMessages({
   library(BayesianTools)
   library(coda)
 })
-dyn.load(BASGRA_DLL)
+# dyn.load(BASGRA_DLL)
 graphics.off()
 
 # additional outputs to plot

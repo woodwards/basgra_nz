@@ -2,8 +2,9 @@
 
 ## 1. GENERAL INITIALISATION ##
 source("scripts/initialise_BASGRA_general.R")
-BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
-dyn.load(BASGRA_DLL) 
+# BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
+# dyn.load(BASGRA_DLL) 
+library(BASGRA)
 
 ## 2. SITE CONDITIONS ##
 

@@ -18,7 +18,7 @@ for (s in 1:nSites){
   
   # set up
   cat(file=stderr(), paste("Running BASGRA_All with BC MAP parameters, site",s), "\n")
-  dyn.load(BASGRA_DLL) # useful for rerunning this loop
+  # dyn.load(BASGRA_DLL) # useful for rerunning this loop
   source(sitesettings_filenames[[s]]) # site initialisation
   # modify simulation length if desired
   # year_start     <- as.integer(2011)
@@ -94,7 +94,7 @@ for (s in 1:nSites){
   # restore 
   NDAYS <- NDAYS_all
   y     <- matrix(0,NDAYS,NOUT)
-  dyn.unload(BASGRA_DLL) # useful for rerunning this loop 
+  # dyn.unload(BASGRA_DLL) # useful for rerunning this loop 
 }
 
 # memory management

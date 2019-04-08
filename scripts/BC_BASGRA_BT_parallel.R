@@ -8,29 +8,11 @@ suppressMessages({
   library(BayesianTools)
   library(coda)
   library(parallel)
-  dyn.unload(BASGRA_DLL) # because we are going to use our R package version of BASGRA
-  library(BASGRA)
+  library(BASGRA) # include compiled run_model() function
 })
 
 #
 cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package (PARALLEL VERSION)', "\n")
-
-# replace old version of run_model
-run_model <- function(p = params,
-                      w = matrix_weather,
-                      h = days_harvest,
-                      n = NDAYS) {
-  # https://www.avrahamadler.com/2018/12/09/the-need-for-speed-part-1-building-an-r-package-with-fortran/
-  # check var types to avoid disaster
-  if (!is.double(p)) {storage.mode(p) <- 'double'}
-  if (!is.double(w)) {storage.mode(w) <- 'double'}
-  if (!is.double(h)) {storage.mode(h) <- 'double'}
-  if (!is.double(n)) {storage.mode(n) <- 'double'}
-  if (!is.double(NOUT)) {storage.mode(NOUT) <- 'double'}
-  # .Call is preferred over .Fortran
-  # .Fortran('basgra', p,w,h,n, NOUT,matrix(0,n,NOUT))[[6]]
-  .Call('basgra', p,w,h,n, NOUT)
-}
 
 # parameter names
 bt_names <- if_else(parsites_BC=="1:nSites",
@@ -39,9 +21,13 @@ bt_names <- if_else(parsites_BC=="1:nSites",
 cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 
 # likelihood function (work with scaled parameters)
-globals <- list("sc", "nSites", "ip_BC_site", "icol_pChain_site", "run_model", "calc_sum_logL",
-                "list_params", "list_matrix_weather", "list_days_harvest", "list_NDAYS",
-                "NOUT") 
+globals <- as.list(c(
+  "sc", "ip_BC_site", "icol_pChain_site", "nSites", "run_model", "NOUT", "ndata", "flogL", 
+  ls(pattern="^calc_.+"), # all variables starting with
+  ls(pattern="^database.+"), # all variables starting with
+  ls(pattern="^data_.+"), # all variables starting with
+  ls(pattern="^list_.+") # all variables starting with
+)) 
 bt_likelihood <- function(par){
   # use loop from BC_BASGRA_MCMC.R  
   candidatepValues_BC   <- par * sc
@@ -53,7 +39,7 @@ bt_likelihood <- function(par){
     # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
     # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
     params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
-    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS)
+    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT)
     list_output[[s]]          <- output
   }
   # use functions from BC_BASGRA_init_general.R
@@ -66,6 +52,7 @@ bt_likelihood <- function(par){
 n_cluster <- nChains
 bt_cluster <- makeCluster(n_cluster)
 clusterEvalQ(bt_cluster, library(BayesianTools))
+clusterEvalQ(bt_cluster, library(BASGRA))
 clusterExport(bt_cluster, globals)
 
 # construct priors (scaled parameter space)
@@ -87,7 +74,7 @@ bt_settings <- list(startValue=nInternal,
                     nrChains=1, # use external chains  
                     # burnin=0, # because can't analyse convergence if we discard burnin
                     burnin=nBurnin/nChains+nChains # to give correct number of samples
-                    # parallel=TRUE,
+                    # parallel=TRUE, # can overrule parallel=FALSE in BayesianSetup
                     # message=TRUE
                     ) 
 
