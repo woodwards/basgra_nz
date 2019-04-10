@@ -1,24 +1,13 @@
 # BC_BASGRA run 
 cat(file=stderr(), "Starting BC_BASGRA.r", "\n")
 
-# unload packages and remove variables
-pkgs = names(sessionInfo()$otherPkgs)
-if (FALSE){ # detach all packages
-  pkgs = paste("package:", pkgs, sep = "")
-  suppressMessages({
-    lapply(pkgs, detach, character.only=TRUE, unload=TRUE)
-  })
-}
-# if (.Machine$sizeof.pointer==8){ # check R version
-#   stop("BASGRA DLL only works with 32-bit R")
-# }
-graphics.off() # closes all graphics
+# closes all graphics
+graphics.off() 
 
 # load packages
 suppressMessages({
   library(tidyverse)
 })
-# options(warn=2) # trap warnings
 
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
@@ -28,6 +17,7 @@ for (scenario in scenarios){
   
 #### 1. INITIALISE MCMC ####
 
+  # random seed
   set.seed(1234)
   
   # initialise BC
@@ -46,7 +36,7 @@ for (scenario in scenarios){
 #### 2. RUNNING THE MCMC ####
   
   file_name <- "scripts/BC_BASGRA_BT.R"
-  # file_name <- "scripts/BC_BASGRA_BT_parallel.R"
+  file_name <- "scripts/BC_BASGRA_BT_parallel.R"
   cat(file=stderr(), "Calling", file_name, "\n")
   source(file_name)
 
@@ -92,4 +82,5 @@ if (FALSE){
 
 # open amusing browser window to tell me it's finished :)
 browseURL('https://www.youtube.com/watch?v=QH2-TGUlwu4')
+
 

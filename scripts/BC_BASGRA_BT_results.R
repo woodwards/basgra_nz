@@ -172,7 +172,7 @@ if (TRUE){
       # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
       # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
       params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
-      output                    <- run_model(params,matrix_weather,days_harvest,NDAYS)
+      output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT,matrix(0,NDAYS,NOUT))
       # list_output[[s]]          <- output
     # }
     this_output                 <- output[,data_col] 

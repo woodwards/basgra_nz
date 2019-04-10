@@ -238,7 +238,7 @@
      days_harvest <- list_days_harvest[[s]] ; NDAYS          <- list_NDAYS         [[s]]
    # Values of calibration parameters at the start of the chain
      params[ ip_BC_site[[s]] ]    <- pValues_BC[ icol_pChain_site[[s]] ]
-     output                       <- run_model(params,matrix_weather,days_harvest,NDAYS)
+     output                       <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT,matrix(0, NDAYS, NOUT))
 	   list_output[[s]]             <- output
 	   list_output_calibr_rows[[s]] <- sapply (1:ndata[s], function(i)
 	     which( output[,2]==data_year[[s]][i] & output[,3]==data_doy[[s]][i] ) # returns NULL if data date outside sim!

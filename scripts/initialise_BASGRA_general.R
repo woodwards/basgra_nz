@@ -5,12 +5,20 @@ days_harvest <- matrix( as.integer(-1), nrow=100, ncol=3 ) # Simon added harv co
 
 ################################################################################
 ### 1. MODEL LIBRARY FILE & FUNCTION FOR RUNNING THE MODEL
-# run_model <- function(p = params,
-#                       w = matrix_weather,
-#                       h = days_harvest,
-#                       n = NDAYS) {
-#   .Fortran('BASGRA', p,w,h,n, NOUT,matrix(0,n,NOUT))[[6]]
-# }
+if (FALSE){
+  # 32-bit only, DLL gets loaded in initialise_BASGRA_XXXX.r file
+  run_model <- function(p = params,
+                        w = matrix_weather,
+                        h = days_harvest,
+                        n = NDAYS,
+                        v = NOUT,
+                        y = matrix(0,n,v)) {
+    .Fortran('BASGRA', p,w,h,n,v,y)[[6]]
+  }
+} else {
+  # 32-bit or 64-bit
+  library(BASGRA) # includes run_model() function
+}
 
 ################################################################################
 ### 2. FUNCTIONS FOR READING WEATHER DATA
