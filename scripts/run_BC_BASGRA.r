@@ -9,6 +9,17 @@ suppressMessages({
   library(tidyverse)
 })
 
+# Load DLL here (parallel version uses BASGRA package instead)
+BASGRA_DLL <- "model/BASGRA_WG.DLL" # use _WG version to use own PET
+if (.Machine$sizeof.pointer==4){
+  print("32-bit R detected")
+  print("Warning: Might have memory problems")
+  dyn.load(BASGRA_DLL)
+} else if (.Machine$sizeof.pointer==8){
+  print("64-bit R detected")
+  # print(paste("Can't load", BASGRA_DLL))
+}
+
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
 scenarios <- c("run_mean")
@@ -18,7 +29,7 @@ for (scenario in scenarios){
 #### 1. INITIALISE MCMC ####
 
   # random seed
-  set.seed(1234)
+  set.seed(123)
   
   # initialise BC
   file_name <- paste(scenario, "/BC_BASGRA_MCMC_init.r", sep="")

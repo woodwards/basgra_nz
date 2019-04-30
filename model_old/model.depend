@@ -1,0 +1,33 @@
+# depslib dependency file v1.0
+1530069086 source:i:\simon\projects\tiller_persistence\basgra_nz\model\parameters_plant.f90
+
+1515966042 source:i:\simon\projects\tiller_persistence\basgra_nz\model\parameters_site.f90
+
+1529955897 source:i:\simon\projects\tiller_persistence\basgra_nz\model\environment.f90
+
+1530065441 source:i:\simon\projects\tiller_persistence\basgra_nz\model\resources.f90
+
+1530069086 source:i:\simon\projects\tiller_persistence\basgra_nz\model\set_params.f90
+
+1516825835 source:i:\simon\projects\tiller_persistence\basgra_nz\model\soil.f90
+
+1530057309 source:i:\simon\projects\tiller_persistence\basgra_nz\model\plant.f90
+
+1529542835 source:i:\simon\projects\tiller_persistence\basgra_nz\model\basgra.f90
+
+1549490286 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\parameters_plant.f90
+
+1534291288 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\parameters_site.f90
+
+1547425586 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\resources.f90
+
+1549490245 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\set_params.f90
+
+1549508663 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\environment.f90
+
+1550176626 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\soil.f90
+
+1553830311 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\plant.f90
+
+1551309968 source:c:\users\woodwards\documents\projects\tiller_persistence\basgra_nz\model\basgra.f90
+

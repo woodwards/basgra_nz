@@ -33,7 +33,7 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
   HARV   = 0
   NOHARV = 1
   HARVFR = 0.0
-!  do i=1,100 ! FIXME this is inefficient
+!  do i=1,100 !
 !    if ( (year==DAYS_HARVEST(i,1)) .and. (doy==DAYS_HARVEST(i,2)) ) then
     if ( (year==DAYS_HARVEST(HARVI,1)) .and. (doy==DAYS_HARVEST(HARVI,2)) ) then
       HARV   = 1
@@ -85,8 +85,8 @@ Subroutine Harvest(CLV,CRES,CST,CSTUB,CLVD,year,doy,DAYS_HARVEST,LAI,PHEN,TILG2,
 !  GSTUB     = (HARV   * CST * (1-HARVFRST) ) / DELT      ! Non harvested portion of CST becomes CSTUB, which quickly dies
   GSTUB     = (HARV   * CST * DIESFRST) / DELT         ! Simon allowed stem survival when HARVFRST + DIESFRST < 1
   HARVRE    = (HARV   * CRES * TV1  ) / DELT
-!  HARVTILV   = 0.                                     ! FIXME add effect of grazing on tiller death
-!  HARVTILG1   = 0.                                    ! FIXME add effect of grazing on tiller death
+!  HARVTILV   = 0.
+!  HARVTILG1   = 0.
   HARVTILG2 = (HARV   * TILG2       ) / DELT           ! TILG2 zeroed after each harvest
 end Subroutine Harvest
 
@@ -144,7 +144,7 @@ Subroutine Vernalisation(DAYL,PHEN,YDAYL,TMMN,TMMX,DAVTMP,Tsurf,VERN,VERND, DVER
 !    else if (TVERN.ge.TMMX) then
 !      DVERND = 1.0
 !	else
-!      DVERND = 1.0 ! FIXME. Also FIXME effect of vernalisation on heading date
+!      DVERND = 1.0
 !!	  Y      = (TVERN-TMMN)/(TMMX-TMMN) * 2.0 - 1.0   ! TVERN relative to max and min
 !!	  X      = acos(Y)                                ! position on first half of cos wave
 !!      DVERND = 1.0 - X / pi                           ! proportion of day below TVERN
@@ -247,10 +247,10 @@ end Subroutine HardeningSink
 Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI, GLV,GRES,GRT,GST)
   real :: CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI
   real :: GLV,GRES,GRT,GST
-!  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) FIXME remove NOHARV
-  PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1) Simon removed NOHARV
-!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves FIXME remove NOHARV, include FCOCRESMN
-  RESMOB   = max(0.0, CRES - CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves FIXME improve temp response, Simon removed NOHARV
+!  PHOT     = PARINT * TRANRF * 12. * LUEMXQ * NOHARV               ! gC m-2 d-1 Photosynthesis (12. = gC mol-1)
+  PHOT     = PARINT * TRANRF * 12. * LUEMXQ                        ! gC m-2 d-1 Photosynthesis (12. = gC mol-1), Simon removed NOHARV
+!  RESMOB   = (CRES * NOHARV / TCRES) * max(0.,min( 1.,DAVTMP/5. )) ! gC m-2 d-1	Mobilisation of reserves
+  RESMOB   = max(0.0, CRES - CRESMN) / TCRES * max(0.0, min(1.0, DAVTMP/5.0)) ! gC m-2 d-1	Mobilisation of reserves, Simon removed NOHARV
   SOURCE   = RESMOB + PHOT                                         ! gC m-2 d-1	Source strength from photsynthesis and reserve mobilisation
   RESPHARD = min(SOURCE,RESPHARDSI)                                ! gC m-2 d-1	Plant hardening respiration
   ALLOTOT  = SOURCE - RESPHARD                                     ! gC m-2 d-1	Allocation of carbohydrates to sinks other than hardening
@@ -265,8 +265,8 @@ Subroutine Growth(CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI, GLV,GRES,
   NELLVG   = PHENRF * NELLVM                                       ! leaves tiller-1 Growing leaves per elongating tiller.
 !  GLAISI   = ((LERV*TILV*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area
   GLAISI   = ((LERV*(TILV+TILG1)*NELLVM*LFWIDV) + (LERG*TILG2*NELLVG*LFWIDG)) * LSHAPE * TRANRF ! m2 leaf m-2 d-1 Potential growth rate of leaf area (Simon added TILG1)
-!  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass FIXME remove NOHARV
-!  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems FIXME remove NOHARV
+!  GLVSI    = max(0.0, (GLAISI * NOHARV / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass
+!  GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF * NOHARV) / YG)      ! gC m-2 d-1 Potential growth rate of stems
   GLVSI    = max(0.0, (GLAISI / SLANEW) / YG)              ! gC m-2 d-1 Potential growth rate of leaf mass, Simon removed NOHARV
   GSTSI    = max(0.0, (SINK1T * TILG2 * TRANRF) / YG)      ! gC m-2 d-1 Potential growth rate of stems, Simon removed NOHARV
   call Allocation(GRES,GRT,GLV,GST)
@@ -382,7 +382,7 @@ end Subroutine Senescence
      ! (loss of all biomass but keeping positive reserves). We cap it at 0.5.
      RSRDAY     = RSR3H ! In previous versions we had RSRDAY = RSR3H^8 which understimated survival
      RDRFROST   = min( 0.5, 1. - RSRDAY )             ! d-1 Relative death rate due to frost
-     RATED      = min( Dparam*(LT50MX-LT50)*(Tsurf+TsurfDiff), (LT50MX-LT50)/DELT ) ! °C d-1 Potential rate of dehardening, if below limit set by RATEDMX
+     RATED      = min( Dparam*(LT50MX-LT50)*(Tsurf+TsurfDiff), (LT50MX-LT50)/DELT ) ! ?C d-1 Potential rate of dehardening, if below limit set by RATEDMX
      DeHardRate = max(0.,min( RATEDMX, RATED ))
      if ( CLV > 0.0 ) then
        HardRate   = RESPHARD / (CLV * KRESPHARD)
@@ -400,9 +400,9 @@ Subroutine Decomposition(CLVD,DAVTMP,WCLM, DLVD,RDLVD)
   real :: EBIOMASS,CT,CP,WORMS
   real :: DTEMP,DWATER,DECOMP,RDLVD
 !  EBIOMASSMAX = 131.0              ! g m-2
-!  PSIA    = 3.0e-3                 ! Te Kowhai silt loam FIXME link to WC params
-!  PSIB    = 7.75                   ! Te Kowhai silt loam FIXME link to WC params
-!  BD      = 1.1                    ! Bulk density (Singleton pers comm) FIXME link to soil params
+!  PSIA    = 3.0e-3                 ! Te Kowhai silt loam
+!  PSIB    = 7.75                   ! Te Kowhai silt loam
+!  BD      = 1.1                    ! Bulk density (Singleton pers comm)
 !  DELD    = 0.0148                 ! Decomposition disappearance
 !  DELE    = 0.0005                 ! Earthworm disappearance
   SWCS    = WCLM                    ! Volumetric soil water content near surface (WCL = in non-frozen root zone)

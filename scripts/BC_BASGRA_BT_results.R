@@ -8,15 +8,19 @@ cat(file=stderr(), "Reading checkpoint after BASGRA calibration", "\n")
 load(file=paste(scenario, "/checkpoint_after_calibration.RData", sep=""))
 suppressMessages({
   library(tidyverse)
-  library(ggthemes)
+  library(ggthemes) # for ggplot
+  library(lemon) # helps ggplot
   library(BayesianTools)
-  library(coda)
+  library(BASGRA)
+  library(scales)
+  library(coda) # helps BayesianTools
 })
 # dyn.load(BASGRA_DLL)
 graphics.off()
 
 # additional outputs to plot
 extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
+extraOutputs <- c("TRANRF", "LAI", "TSIZE", "VERN", "TILG2", "RES", "YIELD")
 
 # memory management        
 library(pryr)
@@ -155,9 +159,9 @@ if (FALSE){
   
 }
 
-# prediction function ####
+# prediction function (old method) ####
 # https://github.com/florianhartig/BayesianTools/blob/master/Examples/PlotTimeSeriesResults.Rmd
-if (TRUE){
+if (FALSE){
   
   source("scripts/plotResiduals_BT.r") # replacement functions
   
@@ -526,41 +530,443 @@ if (TRUE){
       
 }
 
-# plot residuals using ggplot ####
+# prediction function (ggplot) ####
 if (TRUE){
-
-  cat(file=stderr(), "Plot residuals using ggplot", "\n")
   
-  # model-data plot
-  temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
-  plot1 <- temp %>% 
+  bt_predict <- function(par){ # needs s and data_col
+    # use loop from BC_BASGRA_MCMC.R  
+    candidatepValues_BC   <- par * sc
+    # for (s in 1:nSites) {
+    params         <- list_params        [[s]] # get site parameters initial values (in parameters.txt)
+    matrix_weather <- list_matrix_weather[[s]] # get site weather
+    days_harvest   <- list_days_harvest  [[s]] # get site harvest
+    NDAYS          <- list_NDAYS         [[s]] # get site NDAYS
+    # ip_BC_site[[s]] = indicies of model parameters being changed (in parameters.txt)
+    # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
+    params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
+    output                    <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT,matrix(0,NDAYS,NOUT))
+    # list_output[[s]]          <- output
+    # }
+    this_output                 <- output[,data_col] 
+    this_output[is.na(this_output)] <- -999 # catch NA
+    return(this_output)
+  }
+  
+  # error function
+  bt_error <- function(mean, par){
+    return(rnorm(length(mean), mean=mean, sd=bt_error_constant)) # copied from VSEM vignette, weird
+  }
+  
+  # statistics calculations
+  calc_rmse <- function(m,d){
+    if (length(m)==0 && length(d)==0){
+      NA_real_
+    } else {
+      sqrt(mean((m-d)^2, na.rm=TRUE))
+    }
+  }
+  calc_rsq <- function(m,d){
+    if (length(m)==0 && length(d)==0){
+      NA_real_
+    } else {
+      d[is.na(m)] <- NA
+      1-mean((m-d)^2, na.rm=TRUE)/var(d, na.rm=TRUE)
+    }
+  }
+  # https://stackoverflow.com/questions/17549762/is-there-such-colsd-in-r
+  colSds <- function(x, na.rm=TRUE) {
+    if (is.null(dim(x))){ # vector
+      return(sd(x, na.rm=na.rm))
+    } else if (na.rm) {
+      n <- colSums(!is.na(x)) # thanks @flodel
+    } else {
+      n <- nrow(x)
+    }
+    colVar <- colMeans(x*x, na.rm=na.rm) - (colMeans(x, na.rm=na.rm))^2
+    return(sqrt(colVar * n/(n-1)))
+  }
+  
+  # predictive results for each site (collect results and residuals into dataframes) ####
+  nOvar <- length(extraOutputs)
+  result_df <- vector("list", nSites * nBCvar)
+  other_df <- vector("list", nSites * nOvar)
+  residual_df <- vector("list", nSites * nBCvar)
+  sitenames <- gsub( "\\.R", "", sub(".*BASGRA_","",sitesettings_filenames), ignore.case=TRUE )
+  region <- case_when(
+    str_detect(sitenames, "Northland") ~ "Northland",
+    str_detect(sitenames, "Scott") ~ "Waikato",
+    str_detect(sitenames, "Lincoln") ~ "Canterbury")
+  s <- 1
+  for (s in 1:nSites){ 
+    
+    # predictions against data
+    cat(file=stderr(), "Get model calibration fits against data, site", s, "\n")
+
+    # loop through calibration variables
+    data_col <- 1
+    bt_pred_times <- bt_predict(scparMAP_BC)
+    i <- 1
+    for (i in 1:nBCvar){
+      data_col <- unique(data_index[[s]])[[i]] # corresponding column in output
+      datap     <- which( data_name[[s]] == as.character(outputNames[data_col]) ) # which data points are this variable?
+      bt_obs_rows <- list_output_calibr_rows[[s]][datap] # corresponding rows in output
+      bt_obs_vals <- data_value[[s]][datap]
+      bt_obs_wts <- data_weight[[s]][datap]
+      bt_obs_errs <- data_sd[[s]][datap] 
+      bt_error_constant <- data_sd[[s]][datap][1] # used in bt_error
+      bt_obs_times <- data_year[[s]][datap]+(data_doy[[s]][datap]-0.5)/366
+      bt_pred_MAP <- bt_predict(scparMAP_BC)
+      bt_pred_MAP_obs <- bt_pred_MAP[bt_obs_rows]
+      keeps <- bt_obs_wts>0
+      rmse <- calc_rmse(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
+      rsq <- calc_rsq(bt_pred_MAP_obs[keeps], bt_obs_vals[keeps])
+      keeps2 <- bt_obs_wts==0 | bt_obs_wts>0
+      rmse2 <- calc_rmse(bt_pred_MAP_obs[keeps2], bt_obs_vals[keeps2])
+      rsq2 <- calc_rsq(bt_pred_MAP_obs[keeps2], bt_obs_vals[keeps2])
+      bt_pred_ML <- bt_predict(scparMaxL_BC)
+      scparMode_BC <- parmode_BC / sc
+      bt_pred_Mode <- bt_predict(scparMode_BC)
+      if (TRUE){
+        pred <- getPredictiveIntervals(parMatrix=pChain,
+                                       model=bt_predict,
+                                       numSamples=1000,
+                                       quantiles=c(0.05, 0.5, 0.95),
+                                       error=bt_error)
+        # error function gets sampled on top of parameter variation
+        confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        confidenceBand <- pmax(confidenceBand, 0.0)
+        predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
+        predictedMedian_obs <- predictedMedian[bt_obs_rows]
+        predicted <- pred$posteriorPredictivePredictionInterval[2,]
+        predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
+        predictionBand <- pmax(predictionBand, 0.0)
+        x <- pred$posteriorPredictiveSimulations[,bt_obs_rows]
+        if (length(bt_obs_rows)>1){
+          bt_pred_mean <- colMeans(x)
+          bt_pred_sd <- colSds(x)
+        } else if (length(bt_obs_rows)==1) {
+          bt_pred_mean <- mean(x)
+          bt_pred_sd <- sd(x)
+        } else {
+          bt_pred_mean <- NA
+          bt_pred_sd <- NA
+        }
+        # collect results_df
+        temp <- tibble(
+          site_num=s,
+          site_name=sitenames[s],
+          var_name=easyNames[data_col],
+          var_units=outputUnits[data_col],
+          times=bt_pred_times,
+          pred_map=bt_pred_MAP,
+          pred_med=predictedMedian,
+          pred_min=confidenceBand[1,],
+          pred_max=confidenceBand[2,],
+          pred_min2=predictionBand[1,],
+          pred_max2=predictionBand[2,],
+          obs_vals=data_value[[s]][datap][match(bt_pred_times, bt_obs_times)],
+          obs_errs=data_sd[[s]][datap][match(bt_pred_times, bt_obs_times)],
+          obs_wts=data_weight[[s]][datap][match(bt_pred_times, bt_obs_times)],
+          pred_mean=bt_pred_mean[match(bt_pred_times, bt_obs_times)],
+          pred_sd=bt_pred_sd[match(bt_pred_times, bt_obs_times)],
+          resid_mean=pred_mean-obs_vals,
+          resid_sd=pred_sd,
+          resid_rmse=sqrt(pred_sd^2+2*resid_mean*pred_mean+(obs_vals^2-pred_mean^2)),
+          rmse=rmse,
+          rmse2=rmse2
+        )
+        result_df[[(s-1)*nBCvar+i]] <- temp
+        # collect residual_df
+        temp <- tibble(
+          site_num=s,
+          site_name=sitenames[s],
+          var_name=easyNames[data_col],
+          var_units=outputUnits[data_col],
+          times=bt_pred_times[bt_obs_rows],
+          obs_vals=data_value[[s]][datap],
+          obs_errs=data_sd[[s]][datap],
+          obs_wts=data_weight[[s]][datap],
+          pred_map=bt_pred_MAP[bt_obs_rows],
+          pred_med=predictedMedian[bt_obs_rows],
+          pred_min=confidenceBand[1,bt_obs_rows],
+          pred_max=confidenceBand[2,bt_obs_rows],
+          pred_min2=predictionBand[1,bt_obs_rows],
+          pred_max2=predictionBand[2,bt_obs_rows],
+          pred_mean=bt_pred_mean,
+          pred_sd=bt_pred_sd,
+          resid_mean=pred_mean-obs_vals,
+          resid_sd=pred_sd,
+          resid_rmse=sqrt(pred_sd^2+2*resid_mean*pred_mean+(obs_vals^2-pred_mean^2)),
+          rmse=rmse,
+          rmse2=rmse2
+        )
+        residual_df[[(s-1)*nBCvar+i]] <- temp
+      } # if 
+      
+    } # next data_col
+  
+    # predictions against other outputs 
+    cat(file=stderr(), "Get model calibration other outputs, site", s, "\n")
+    data_cols <- match(extraOutputs, outputNames)
+    
+    # loop through other selected variables (there are no observations for these variables)
+    for (i in seq_along(data_cols)){
+      data_col <- data_cols[i]
+      bt_error_constant <- 0 # used by bt_error
+      bt_pred_MAP <- bt_predict(scparMAP_BC)
+      bt_pred_ML <- bt_predict(scparMaxL_BC)
+      scparMode_BC <- parmode_BC / sc
+      bt_pred_Mode <- bt_predict(scparMode_BC)
+      if (TRUE){
+        pred <- getPredictiveIntervals(parMatrix=pChain,
+                                       model=bt_predict,
+                                       numSamples=1000,
+                                       quantiles=c(0.05, 0.5, 0.95),
+                                       error=bt_error)
+        confidenceBand <- pred$posteriorPredictiveCredibleInterval[c(1,3),]
+        confidenceBand <- pmax(confidenceBand, 0.0)
+        predictedMedian <- pred$posteriorPredictiveCredibleInterval[2,]
+        predicted <- pred$posteriorPredictivePredictionInterval[2,]
+        predictionBand <- pred$posteriorPredictivePredictionInterval[c(1,3),]
+        predictionBand <- pmax(predictionBand, 0.0)
+
+        # collect results_df
+        temp <- tibble(
+          site_num=s,
+          site_name=sitenames[s],
+          var_name=easyNames[data_col],
+          var_units=outputUnits[data_col],
+          times=bt_pred_times,
+          pred_map=bt_pred_MAP,
+          pred_med=predictedMedian,
+          pred_min=confidenceBand[1,],
+          pred_max=confidenceBand[2,],
+          pred_min2=predictionBand[1,],
+          pred_max2=predictionBand[2,],
+        )
+        other_df[[(s-1)*nOvar+i]] <- temp
+        
+      } # if
+        
+    } # next data_col
+    
+  } # next site
+
+  # tidy up results_df
+  result_df <- bind_rows(result_df) %>% 
+    mutate(
+      region=case_when(
+        str_detect(site_name, "Northland") ~ "Northland",
+        str_detect(site_name, "Scott") ~ "Waikato",
+        str_detect(site_name, "Lincoln") ~ "Canterbury"),
+      region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
+      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
+      obs_min=obs_vals-obs_errs*1.96,
+      obs_max=obs_vals+obs_errs*1.96,
+      logl=flogLi(pred_map,obs_vals,obs_errs,obs_wts)-flogLi(obs_vals,obs_vals,obs_errs,obs_wts)
+    ) %>% 
+    group_by(var_name) %>% 
+    mutate(
+      all_min=min(obs_min, pred_min, pred_min2),
+      all_max=max(obs_max, pred_max, pred_max2),
+      score=case_when(
+        obs_vals==pred_med ~ 0,
+        obs_vals==pred_max ~ 1,
+        obs_vals==pred_min ~ -1,
+        obs_vals==pred_max2 ~ 2,
+        obs_vals==pred_min2 ~ -2,
+        obs_vals>pred_med & obs_vals<pred_max ~ (obs_vals-pred_med)/(pred_max-pred_med),
+        obs_vals<pred_med & obs_vals>pred_min ~ (obs_vals-pred_med)/(pred_med-pred_min),
+        obs_vals>pred_max & obs_vals<pred_max2 ~ (obs_vals-pred_max)/(pred_max2-pred_max)+1,
+        obs_vals<pred_min & obs_vals>pred_min2 ~ (obs_vals-pred_min)/(pred_min-pred_min2)-1,
+        obs_vals>pred_max2 ~ (obs_vals-pred_max2)/(obs_errs*1.96)+2,
+        obs_vals<pred_min2 ~ (obs_vals-pred_min2)/(obs_errs*1.96)-2)
+    ) %>% 
+    ungroup()
+  
+  # tidy up other_df
+  other_df <- bind_rows(other_df) %>% 
+    mutate(
+      region=case_when(
+        str_detect(site_name, "Northland") ~ "Northland",
+        str_detect(site_name, "Scott") ~ "Waikato",
+        str_detect(site_name, "Lincoln") ~ "Canterbury"),
+      region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
+      var_name=factor(var_name, levels=unique(var_name)) # preserve order 
+    ) 
+  
+  # tidy up residual_df
+  residual_df <- bind_rows(residual_df) %>% 
+    mutate(
+      region=case_when(
+        str_detect(site_name, "Northland") ~ "Northland",
+        str_detect(site_name, "Scott") ~ "Waikato",
+        str_detect(site_name, "Lincoln") ~ "Canterbury"),
+      region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
+      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
+      obs_min=obs_vals-obs_errs*1.96,
+      obs_max=obs_vals+obs_errs*1.96
+    ) %>% 
+    group_by(var_name) %>% 
+    mutate(
+      all_min=min(obs_min, pred_min, pred_min2),
+      all_max=max(obs_max, pred_max, pred_max2),
+      score=case_when(
+        obs_vals==pred_med ~ 0,
+        obs_vals==pred_max ~ 1,
+        obs_vals==pred_min ~ -1,
+        obs_vals==pred_max2 ~ 2,
+        obs_vals==pred_min2 ~ -2,
+        obs_vals>pred_med & obs_vals<pred_max ~ (obs_vals-pred_med)/(pred_max-pred_med),
+        obs_vals<pred_med & obs_vals>pred_min ~ (obs_vals-pred_med)/(pred_med-pred_min),
+        obs_vals>pred_max & obs_vals<pred_max2 ~ (obs_vals-pred_max)/(pred_max2-pred_max)+1,
+        obs_vals<pred_min & obs_vals>pred_min2 ~ (obs_vals-pred_min)/(pred_min-pred_min2)-1,
+        obs_vals>pred_max2 ~ (obs_vals-pred_max2)/(obs_errs*1.96)+2,
+        obs_vals<pred_min2 ~ (obs_vals-pred_min2)/(obs_errs*1.96)-2)
+    ) %>% 
+    ungroup()
+
+}
+
+# plot results using ggplot ####
+if (TRUE){
+  
+  cat(file=stderr(), "Plot results using ggplot", "\n")
+
+  # tans
+  xpale <- "#FFF7BC" # SRON Fig 7 row 1
+  xlight <- "#FEC44F" # SRON Fig 7 row 1
+  xmid <- "#D95F0E" # SRON Fig 7 row 1
+  xdark <- "#993404" # SRON Fig 7 row 3
+  xdata <- "darkblue"
+  xaxis <- "#999999"
+
+  # greens 2 # https://www.color-hex.com/color-palette/5016 
+  xpale <- "#F0F7DA" 
+  xlight <- "#C9DF8A"
+  xmid <- "#77AB59" 
+  xdark <- "#36802D"
+  xdata <- "#043927" # https://graf1x.com/shades-of-green-color-palette-html-hex-rgb-code/
+  xaxis <- "#999999"
+  
+  # greens 3 # https://graf1x.com/shades-of-green-color-palette-html-hex-rgb-code/
+  
+  # calibration
+  limits <- 2011 + c(152/365, 1 + 151/365)
+  limits <- NULL
+  plot3 <- result_df %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
     ggplot() +
-    labs(title="Model-Data Plot", x="Posterior", y="Data", colour="Region") +
-    # geom_ribbon(mapping=aes(x=pred_map, ymin=pred_map-obs_errs*1.96, ymax=pred_map+obs_errs*1.96), fill="lightgrey") +
-    # geom_errorbar(mapping=aes(x=pred_map, ymin=obs_min, ymax=obs_max), colour="lightgrey") +
-    geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min2, xmax=pred_max2), colour="lightgrey") +
-    geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=pred_map, y=obs_vals, colour=region)) +
-    geom_blank(mapping=aes(x=all_min, y=all_min)) +
-    geom_blank(mapping=aes(x=all_max, y=all_max)) +
-    geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
-    # geom_smooth(mapping=aes(x=pred_map, y=obs_vals, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
-  # print(plot1)
-  # png(paste(scenario, "/residual_model_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  # print(plot1)
-  # dev.off()
+    labs(title="", x="", y="") +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    # geom_point(mapping=aes(x=times, y=obs_vals, colour=region)) +
+    # scale_color_manual(values=c(blue, green, red)) +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
+    scale_y_continuous(expand=expand_scale(0,0)) +
+    scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    facet_grid(var_name~region, scales="free_y") +
+    guides(colour=FALSE, size=FALSE) +
+    theme_few()
+  print(plot3)
+  file_name <- paste(scenario, "/calibration_2011.png", sep="")
+  file_name <- paste(scenario, "/calibration_time.png", sep="")
+  png(file_name, width=210, height=297, units="mm", type="windows", res=600)  
+  print(plot3)
+  dev.off()
+  
+  # calibration
+  limits <- 2011 + c(152/365, 1 + 151/365)
+  plot3 <- result_df %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
+    ggplot() +
+    labs(title="", x="", y="") +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    # geom_point(mapping=aes(x=times, y=obs_vals, colour=region)) +
+    # scale_color_manual(values=c(blue, green, red)) +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
+    scale_y_continuous(expand=expand_scale(0,0)) +
+    scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    facet_grid(var_name~region, scales="free_y") +
+    guides(colour=FALSE, size=FALSE) +
+    theme_few()
+  print(plot3)
+  file_name <- paste(scenario, "/calibration_2011.png", sep="")
+  png(file_name, width=210, height=297, units="mm", type="windows", res=600)  
+  print(plot3)
+  dev.off()
+  
+  # other
+  limits <- 2011 + c(152/365, 1 + 151/365)
+  limits <- NULL
+  plot3 <- other_df %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
+    ggplot() +
+    labs(title="", x="", y="") +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    # geom_point(mapping=aes(x=times, y=obs_vals), colour="xdata") +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
+    scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
+    scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    facet_grid(var_name~region, scales="free_y") +
+    theme_few()
+  print(plot3)
+  file_name <- paste(scenario, "/other_2011.png", sep="")
+  file_name <- paste(scenario, "/other_time.png", sep="")
+  png(file_name, width=210, height=297*nOvar/nBCvar, units="mm", type="windows", res=600)  
+  print(plot3)
+  dev.off()
+  
+  # other
+  limits <- 2011 + c(152/365, 1 + 151/365)
+  plot3 <- other_df %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
+    ggplot() +
+    labs(title="", x="", y="") +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
+    geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    # geom_point(mapping=aes(x=times, y=obs_vals), colour="xdata") +
+    geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
+    scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
+    scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    facet_grid(var_name~region, scales="free_y") +
+    theme_few()
+  print(plot3)
+  file_name <- paste(scenario, "/other_2011.png", sep="")
+  png(file_name, width=210, height=297*nOvar/nBCvar, units="mm", type="windows", res=600)  
+  print(plot3)
+  dev.off()
+  
+  # show_col(hue_pal()(3))
+  red <- hue_pal()(3)[1]
+  green <- hue_pal()(3)[2]
+  blue <- hue_pal()(3)[3]
   
   # residuals (data - model)/error
   temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot2 <- temp %>% 
     ggplot() +
-    labs(title="Residual Density", x="Scaled MAP Residual", y="Density", colour="Region") +
+    labs(title="Residual Density", x="", y="", colour="Region") +
     # geom_density(mapping=aes(x=(pred_map-obs_vals)/obs_errs, colour=region)) +
     stat_density(mapping=aes(x=-(pred_map-obs_vals)/obs_errs, colour=region), position="identity", fill=NA, adjust=1) +
     geom_vline(mapping=aes(xintercept=0), colour="black") +
-    scale_x_continuous(limits=c(-5, 5)) +
     theme_few() +
+    scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
+    scale_x_continuous(limits=c(-5, 5), expand=expand_scale(0,0)) +
+    scale_color_manual(values=c(blue, green, red)) +
+    scale_fill_manual(values=c(blue, green, red)) +
     facet_wrap(~var_name, scale="free")
   print(plot2)
   png(paste(scenario, "/residual_density.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
@@ -573,8 +979,9 @@ if (TRUE){
                  obs_wts>0) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3 <- temp %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Year", y="", colour="Region", fill="Region") +
+    labs(title="Residual Bias", x="", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -585,46 +992,27 @@ if (TRUE){
     geom_point(mapping=aes(x=times+xjitter, y=obs_vals-pred_med, colour=region)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free") +
+    scale_color_manual(values=c(blue, green, red)) +
+    scale_fill_manual(values=c(blue, green, red)) +
+    # scale_y_continuous(expand=expand_scale(0,0)) +
+    # scale_x_continuous(expand=expand_scale(0,0)) +
+    # facet_wrap(~var_name, scale="free_y") +
+    lemon::facet_rep_wrap(~var_name, scales="free_y", repeat.tick.labels="bottom") +
     theme_few()
   print(plot3)
   png(paste(scenario, "/residual_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3)
   dev.off()
   
-  # residuals bias and precision
-  temp <- filter(residual_df, 
-                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts>0) %>%  
-    mutate(xjitter=runif(n())*0.1-0.05)
-  plot3b <- temp %>% 
-    ggplot() +
-    labs(title="Residual Bias", x="Model Median", y="", colour="Region", fill="Region") +
-    # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
-    geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
-    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=pred_med, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
-    # geom_errorbarh(mapping=aes(y=pred_med, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=pred_med, y=obs_vals-pred_med, colour=region)) +
-    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
-    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free") +
-    theme_few() 
-  # print(plot3b)
-  # png(paste(scenario, "/residual_data.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  # print(plot3b)
-  # dev.off()
-
   # residuals bias and precision #2
   temp <- filter(residual_df, 
                  # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
                  obs_wts>0) %>%  
     mutate(xjitter=runif(n())*0.1-0.05)
   plot3b <- temp %>% 
+    mutate(var_name=paste(var_name, var_units)) %>% 
     ggplot() +
-    labs(title="Residual Bias", x="Model Median", y="", colour="Region", fill="Region") +
+    labs(title="Residual Bias", x="", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2, ymax=pred_max2, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min, ymax=pred_max, fill=region, colour=region), alpha=0.3) +
@@ -635,81 +1023,16 @@ if (TRUE){
     geom_point(mapping=aes(x=pred_med, y=obs_vals, colour=region)) +
     geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
+    scale_color_manual(values=c(blue, green, red)) +
+    scale_fill_manual(values=c(blue, green, red)) +
+    scale_y_continuous(expand=expand_scale(0,0)) +
+    scale_x_continuous(expand=expand_scale(0,0)) +
     facet_wrap(~var_name, scale="free") +
     theme_few() 
   print(plot3b)
   png(paste(scenario, "/residual_data2.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
   print(plot3b)
   dev.off()
-  
-  # model-data plot 
-  temp <- filter(residual_df, 
-                 pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts>0) 
-  plot4 <- temp %>% 
-    ggplot() +
-    labs(title="Data-Model Plot", x="Data", y="Model MAP +/- CI", colour="Region") +
-    geom_ribbon(mapping=aes(x=obs_vals, ymin=obs_vals+pred_min2-pred_min, ymax=obs_vals+pred_max2-pred_max), fill="lightgrey") +
-    # geom_errorbarh(mapping=aes(y=pred_map, xmin=obs_min, xmax=obs_max), colour="lightgrey") +
-    # geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min2, ymax=pred_max2), colour="lightgrey") +
-    geom_errorbar(mapping=aes(x=obs_vals, ymin=pred_min, ymax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=obs_vals, y=pred_map, colour=region)) +
-    geom_blank(mapping=aes(x=all_min, y=all_min)) +
-    geom_blank(mapping=aes(x=all_max, y=all_max)) +
-    geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
-    # geom_smooth(mapping=aes(x=obs_vals, y=pred_map, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
-  # print(plot4)
-  # png(paste(scenario, "/residual_data_model.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  # print(plot4)
-  # dev.off()
-
-  # residual score
-  temp <- filter(residual_df, 
-                 # pred_map>0 | obs_vals>0, # avoid Stem C data and model == 0
-                 obs_wts>0) %>%  
-    mutate(xjitter=runif(n())*0.1-0.05)
-  plot5 <- temp %>% 
-    ggplot() +
-    labs(title="Residual Score", x="Year", y="Residual Score", colour="Region") +
-    # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-2, ymax=2), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=times+xjitter, ymin=-1, ymax=1), fill="darkgrey") +
-    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
-    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=times+xjitter, y=score, colour=region)) +
-    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
-  # print(plot5)
-  # png(paste(scenario, "/residual_score_time.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  # print(plot5)
-  # dev.off()
-
-  # residual score 2
-  temp <- filter(residual_df, 
-                 # pred_map>0 | obs_vals>0,
-                 obs_wts>0) 
-  plot6 <- temp %>% 
-    ggplot() +
-    labs(title="Residual Score", x="Prediction Median", y="Residual Score", colour="Region") +
-    # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=pred_med, ymin=-2, ymax=2), fill="lightgrey") +
-    geom_ribbon(mapping=aes(x=pred_med, ymin=-1, ymax=1), fill="darkgrey") +
-    geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-obs_vals, ymax=pred_max2-obs_vals), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
-    # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min-obs_vals, ymax=pred_max-obs_vals, colour=region)) +
-    # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=pred_med, y=score, colour=region)) +
-    # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
-    facet_wrap(~var_name, scale="free")
-  # print(plot6)
-  # png(paste(scenario, "/residual_score_pred.png", sep=""), width=11, height=8, units="in", type="windows", res=300)  
-  # print(plot6)
-  # dev.off()
   
 }
 

@@ -235,7 +235,7 @@ do day = 1, NDAYS
 
   y(day, 5) = CLV
   y(day, 6) = CLVD
-  y(day, 7) = TRANRF
+  y(day, 7) = TRANRF * 100.0
   y(day, 8) = CRES
   y(day, 9) = CRT
   y(day,10) = CST
@@ -269,7 +269,7 @@ do day = 1, NDAYS
   y(day,36) = RDRTIL
   y(day,37) = GRT
   y(day,38) = RDRL                               ! = d-1 Relative leaf death rate
-  y(day,39) = VERN                               ! = Vernalisation degree
+  y(day,39) = VERN * 100.0                       ! = Vernalisation degree
 
   ! Simon added additional output variables
   y(day,40) = DRAIN
@@ -310,6 +310,7 @@ do day = 1, NDAYS
   TILG1   = TILG1           + TILVG1 - TILG1G2
   TILG2   = TILG2                    + TILG1G2
   TILTOT  = TILG1 + TILG2 + TILV                           ! "TILTOT"  = Total tiller number in # m-2
+!  BASAL   = BASAL * (1 - ABASAL) + TILTOT / (TILTOT + KTIL) * ABASAL   ! Simon model grass basal area
   BASAL   = BASAL * (1 - ABASAL) + min(1.0, TILTOT / KTIL) * ABASAL   ! Simon model grass basal area
 !  ROOTD   = ROOTD   + RROOTD                              ! Simon tied ROOTD to CRT
   ROOTD   = ROOTDM * CRT/BASAL / (CRT/BASAL + KCRT)                    ! Simon tied ROOTD to CRT like this

@@ -4,7 +4,7 @@
 ## SITE CONDITIONS
    
    # parse fortran parameter list
-   for_par <- tibble(line=readLines("model/set_params.f90")) %>%
+   for_par <- tibble(line=readLines("model_package/src/set_params.f95")) %>%
      filter(str_detect(line, "=[:blank:]pa\\(")) %>%
      mutate(var=str_extract(line,"[:alnum:]+"),
             pa=str_extract(line,"pa\\([:digit:]+\\)"),

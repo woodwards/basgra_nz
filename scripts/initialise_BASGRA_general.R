@@ -15,9 +15,14 @@ if (FALSE){
                         y = matrix(0,n,v)) {
     .Fortran('BASGRA', p,w,h,n,v,y)[[6]]
   }
+  print("Loaded BASGRA DLL version")
 } else {
   # 32-bit or 64-bit
   library(BASGRA) # includes run_model() function
+  built <- desc::desc(package="BASGRA")$get_built()$Date
+  built <- as.POSIXct(built, tz="UTC")
+  attributes(built)$tzone <- Sys.timezone()
+  print(paste("Loaded BASGRA package version", built))
 }
 
 ################################################################################
@@ -73,7 +78,7 @@ read_weather_WG <- function(y = year_start,
 ### 3. OUTPUT VARIABLES DEFINITIONS (see BASGRA.f90)
 
 # parse output list from fortran
-for_out <- tibble(line=readLines("model/BASGRA.f90")) %>%
+for_out <- tibble(line=readLines("model_package/src/BASGRAf.f95")) %>%
   filter(str_detect(line, "y\\(day,[:space:]*[:digit:]+\\)")) %>%
   mutate(yday=str_extract(line,"y\\(day,[:space:]*[:digit:]+\\)"),
          index=as.numeric(str_sub(yday,7,-2)),
@@ -82,7 +87,7 @@ for_out <- tibble(line=readLines("model/BASGRA.f90")) %>%
   )
 
 # read output names from file (Simon)
-temp <- read_tsv("model/output_names.tsv", col_types=cols()) # Simon read from file
+temp <- read_tsv("model_package/src/output_names.tsv", col_types=cols()) # Simon read from file
 outputNames <- temp$varname
 easyNames <- temp$shortname
 outputUnits <- temp$units

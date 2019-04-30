@@ -80,7 +80,7 @@ clusterEvalQ(bt_cluster, {
   library(BASGRA)
   })
 clusterExport(bt_cluster, bt_globals)
-clusterSetRNGStream(bt_cluster)
+clusterSetRNGStream(bt_cluster, 123)
 
 # run BT until stopping conditions met (these can be changed in the file BC_BASGRA_BT_stop.csv)
 bt_chains <- nInternal * nChains 

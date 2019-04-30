@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="model" />
+		<Option pch_mode="2" />
+		<Option compiler="gfortran" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/model" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="gfortran" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-DBUILD_DLL" />
+					<Add option="-fPIC" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/model" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="gfortran" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-DBUILD_DLL" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-O3" />
+			<Add option="-fdefault-real-8" />
+			<Add option="-x f95-cpp-input" />
+			<Add option="-Dweathergen" />
+			<Add option="-c" />
+		</Compiler>
+		<Linker>
+			<Add option="-shared" />
+			<Add option="-o BASGRA_WG.DLL" />
+		</Linker>
+		<Unit filename="src/basgraf.f95" />
+		<Unit filename="src/environment.f95" />
+		<Unit filename="src/output_names.tsv" />
+		<Unit filename="src/parameters_All.txt" />
+		<Unit filename="src/parameters_BC.txt" />
+		<Unit filename="src/parameters_plant.f95" />
+		<Unit filename="src/parameters_site.f95" />
+		<Unit filename="src/plant.f95" />
+		<Unit filename="src/resources.f95" />
+		<Unit filename="src/set_params.f95" />
+		<Unit filename="src/soil.f95" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
