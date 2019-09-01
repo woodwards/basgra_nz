@@ -19,6 +19,7 @@ cat(file=stderr(), paste('Adjustable parameters =', length(bt_names)), "\n")
 # likelihood function (work with scaled parameters)
 par <- rep(1, length(bt_names)) # for testing
 s <- 1 # for testing
+.count_calls <- 0 # trace function calls
 bt_likelihood <- function(par){
   # profvis::profvis({for (i in 1:1000){
     # use loop from BC_BASGRA_MCMC.R  
@@ -32,6 +33,7 @@ bt_likelihood <- function(par){
       # icol_pChain_site[[s]] = indices of calibration parameters being used (in parameters_BC.txt)
       params[ ip_BC_site[[s]] ] <- candidatepValues_BC[ icol_pChain_site[[s]] ]
       list_output[[s]] <- run_model(params,matrix_weather,days_harvest,NDAYS,NOUT,list_output[[s]])
+      assign(".count_calls", .count_calls + 1, envir = .GlobalEnv)
     }
     # use functions from BC_BASGRA_init_general.R
     logL1 <- calc_sum_logL( list_output ) # likelihood function in BC_BASGRA_init_general.R
@@ -96,11 +98,12 @@ repeat{
       cat(file=stderr(), " ", "\n")
     }))
   }
-  
+
   # assess convergence  
   bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
   cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
   cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
+  cat(file=stderr(), paste("Total calls =", .count_calls), "\n")
   # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
   # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
   bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])

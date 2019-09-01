@@ -19,8 +19,9 @@ suppressMessages({
 graphics.off()
 
 # additional outputs to plot
-extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
-extraOutputs <- c("TRANRF", "LAI", "TSIZE", "VERN", "TILG2", "RES", "YIELD")
+calibOutputs <- c("BASAL", "CLV", "CST", "CLVD", "CRT", "TILTOT", "WCLM")
+# extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
+extraOutputs <- c("RLEAF", "LAI", "RDRL", "VERN", "TILG2", "RES", "HARVFR")
 
 # memory management        
 library(pryr)
@@ -120,15 +121,6 @@ if (TRUE){
   dev.off()
   par(oldpar)
   
-}
-
-# prior and posterior histograms (old Basgra one is nicer) ####
-if (FALSE){
-  cat(file=stderr(), "Plot prior/posterior histograms", "\n")
-  png( paste(scenario, "/BC_parameter_histograms_BT.png", sep=""),
-       width=11*3, height=8*3, units="in", type="windows", res=300)  
-  marginalPlot(bt_out, start=post_start, end=post_end) # prior and posterior histograms (scaled parameters)
-  dev.off()
 }
 
 # gelman convergence plots (multiple plots) ####
@@ -505,7 +497,6 @@ if (FALSE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
     ) %>% 
@@ -760,7 +751,6 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96,
       logl=flogLi(pred_map,obs_vals,obs_errs,obs_wts)-flogLi(obs_vals,obs_vals,obs_errs,obs_wts)
@@ -792,7 +782,6 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=unique(var_name)) # preserve order 
     ) 
   
   # tidy up residual_df
@@ -803,7 +792,6 @@ if (TRUE){
         str_detect(site_name, "Scott") ~ "Waikato",
         str_detect(site_name, "Lincoln") ~ "Canterbury"),
       region=factor(region, levels=c("Northland", "Waikato", "Canterbury")),
-      var_name=factor(var_name, levels=unique(var_name)), # preserve order 
       obs_min=obs_vals-obs_errs*1.96,
       obs_max=obs_vals+obs_errs*1.96
     ) %>% 
@@ -848,11 +836,11 @@ if (TRUE){
   xdark <- "#36802D"
   xdata <- "#043927" # https://graf1x.com/shades-of-green-color-palette-html-hex-rgb-code/
   xaxis <- "#999999"
+  xgrey <- "grey"
   
   # greens 3 # https://graf1x.com/shades-of-green-color-palette-html-hex-rgb-code/
   
   # calibration
-  limits <- 2011 + c(152/365, 1 + 151/365)
   limits <- NULL
   plot3 <- result_df %>% 
     mutate(var_name=paste(var_name, var_units)) %>% 
@@ -860,19 +848,21 @@ if (TRUE){
     labs(title="", x="", y="") +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
-    geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5, na.rm=TRUE) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5, na.rm=TRUE) +
+    # geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    geom_point(mapping=aes(x=times, y=obs_vals, colour=factor(obs_wts)), size=2, na.rm=TRUE) +
     # geom_point(mapping=aes(x=times, y=obs_vals, colour=region)) +
     # scale_color_manual(values=c(blue, green, red)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
     scale_y_continuous(expand=expand_scale(0,0)) +
     scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    scale_colour_manual(values=c("1"=xdata, "0"="grey")) +
     facet_grid(var_name~region, scales="free_y") +
     guides(colour=FALSE, size=FALSE) +
-    theme_few()
+    theme_few() +
+    theme(panel.grid.major.x=element_line(colour=xgrey))
   print(plot3)
-  file_name <- paste(scenario, "/calibration_2011.png", sep="")
   file_name <- paste(scenario, "/calibration_time.png", sep="")
   png(file_name, width=210, height=297, units="mm", type="windows", res=600)  
   print(plot3)
@@ -886,14 +876,16 @@ if (TRUE){
     labs(title="", x="", y="") +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
-    geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5, na.rm=TRUE) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5, na.rm=TRUE) +
+    # geom_point(mapping=aes(x=times, y=obs_vals, size=-logl), colour=xdata) +
+    geom_point(mapping=aes(x=times, y=obs_vals, colour=factor(obs_wts)), size=2, na.rm=TRUE) +
     # geom_point(mapping=aes(x=times, y=obs_vals, colour=region)) +
     # scale_color_manual(values=c(blue, green, red)) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
-    scale_y_continuous(expand=expand_scale(0,0)) +
+    scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
     scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
+    scale_colour_manual(values=c("1"=xdata, "0"="grey")) +
     facet_grid(var_name~region, scales="free_y") +
     guides(colour=FALSE, size=FALSE) +
     theme_few()
@@ -904,7 +896,6 @@ if (TRUE){
   dev.off()
   
   # other
-  limits <- 2011 + c(152/365, 1 + 151/365)
   limits <- NULL
   plot3 <- other_df %>% 
     mutate(var_name=paste(var_name, var_units)) %>% 
@@ -912,16 +903,16 @@ if (TRUE){
     labs(title="", x="", y="") +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5, na.rm=TRUE) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5, na.rm=TRUE) +
     # geom_point(mapping=aes(x=times, y=obs_vals), colour="xdata") +
     geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
     scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
     scale_x_continuous(expand=expand_scale(0,0), limits=limits) +
     facet_grid(var_name~region, scales="free_y") +
-    theme_few()
+    theme_few() +
+    theme(panel.grid.major.x=element_line(colour=xgrey))
   print(plot3)
-  file_name <- paste(scenario, "/other_2011.png", sep="")
   file_name <- paste(scenario, "/other_time.png", sep="")
   png(file_name, width=210, height=297*nOvar/nBCvar, units="mm", type="windows", res=600)  
   print(plot3)
@@ -935,8 +926,8 @@ if (TRUE){
     labs(title="", x="", y="") +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min2, ymax=pred_max2), fill=xpale, colour=xlight, size=0.5) +
     geom_ribbon(mapping=aes(x=times, ymin=pred_min, ymax=pred_max), fill=xlight, colour=xlight, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5) +
-    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5) +
+    geom_line(mapping=aes(x=times, y=pred_med), colour=xmid, size=0.5, na.rm=TRUE) +
+    geom_line(mapping=aes(x=times, y=pred_map), colour=xdark, size=0.5, na.rm=TRUE) +
     # geom_point(mapping=aes(x=times, y=obs_vals), colour="xdata") +
     geom_abline(mapping=aes(slope=0, intercept=0), colour=xaxis, size=0.5) +
     scale_y_continuous(expand=expand_scale(c(0,0.05),0)) +
@@ -958,7 +949,7 @@ if (TRUE){
   temp <- filter(residual_df, obs_wts>0, pred_map>0 | obs_vals>0) # avoid Stem C data and model == 0
   plot2 <- temp %>% 
     ggplot() +
-    labs(title="Residual Density", x="", y="", colour="Region") +
+    labs(title="", x="", y="", colour="Region") +
     # geom_density(mapping=aes(x=(pred_map-obs_vals)/obs_errs, colour=region)) +
     stat_density(mapping=aes(x=-(pred_map-obs_vals)/obs_errs, colour=region), position="identity", fill=NA, adjust=1) +
     geom_vline(mapping=aes(xintercept=0), colour="black") +
@@ -981,7 +972,7 @@ if (TRUE){
   plot3 <- temp %>% 
     mutate(var_name=paste(var_name, var_units)) %>% 
     ggplot() +
-    labs(title="Residual Bias", x="", y="", colour="Region", fill="Region") +
+    labs(title="", x="", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=times+xjitter, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_med, ymax=pred_max2-pred_med, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=times+xjitter, ymin=pred_min-pred_med, ymax=pred_max-pred_med, fill=region, colour=region), alpha=0.3) +
@@ -989,7 +980,7 @@ if (TRUE){
     # geom_errorbar(mapping=aes(x=times+xjitter, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
     # geom_errorbar(mapping=aes(x=times+xjitter, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
     # geom_errorbarh(mapping=aes(y=obs_vals, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=times+xjitter, y=obs_vals-pred_med, colour=region)) +
+    geom_point(mapping=aes(x=times+xjitter, y=obs_vals-pred_med, colour=region), na.rm=TRUE) +
     geom_abline(mapping=aes(slope=0, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     scale_color_manual(values=c(blue, green, red)) +
@@ -1012,7 +1003,7 @@ if (TRUE){
   plot3b <- temp %>% 
     mutate(var_name=paste(var_name, var_units)) %>% 
     ggplot() +
-    labs(title="Residual Bias", x="", y="", colour="Region", fill="Region") +
+    labs(title="", x="", y="", colour="Region", fill="Region") +
     # geom_ribbon(mapping=aes(x=pred_med, ymin=-obs_errs*1.96, ymax=obs_errs*1.96), fill="lightgrey") +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min2, ymax=pred_max2, fill=region, colour=region), alpha=0.1) +
     geom_ribbon(mapping=aes(x=pred_med, ymin=pred_min, ymax=pred_max, fill=region, colour=region), alpha=0.3) +
@@ -1020,7 +1011,7 @@ if (TRUE){
     # geom_errorbar(mapping=aes(x=pred_med, ymin=pred_min2-pred_min, ymax=pred_max2-pred_max), colour="grey", width=0.1) +
     # geom_errorbar(mapping=aes(x=pred_med, ymin=obs_min-pred_med, ymax=obs_max-pred_med, colour=region)) +
     # geom_errorbarh(mapping=aes(y=pred_med, xmin=pred_min, xmax=pred_max, colour=region)) +
-    geom_point(mapping=aes(x=pred_med, y=obs_vals, colour=region)) +
+    geom_point(mapping=aes(x=pred_med, y=obs_vals, colour=region), na.rm=TRUE) +
     geom_abline(mapping=aes(slope=1, intercept=0), colour="black") +
     # geom_smooth(mapping=aes(x=times, y=resid_mean, colour=region), method="lm", se=FALSE) +
     scale_color_manual(values=c(blue, green, red)) +
@@ -1034,6 +1025,54 @@ if (TRUE){
   print(plot3b)
   dev.off()
   
+}
+
+# prior and posterior histograms (old Basgra one is nicer?) ####
+if (TRUE){
+  cat(file=stderr(), "Plot prior/posterior histograms", "\n")
+  post_df <- as.data.frame(pChain %*% diag(sc)) 
+  names(post_df) <- colnames(pChain)
+  post_df <- gather(post_df) %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)")==FALSE)
+  prior_df <- vector("list", nBCvar)
+  for (i in seq_along(parname_BC)){
+    key <- colnames(pChain)[i]
+    x <- seq(parmin_BC[i],parmax_BC[i],(parmax_BC[i]-parmin_BC[i])/100)
+    y <- dbeta((x-parmin_BC[i])/(parmax_BC[i]-parmin_BC[i]), aa[i], bb[i])/(parmax_BC[i]-parmin_BC[i])
+    xmap <- scparMAP_BC[i]*sc[i]
+    ymap <- dbeta((xmap-parmin_BC[i])/(parmax_BC[i]-parmin_BC[i]), aa[i], bb[i])/(parmax_BC[i]-parmin_BC[i])
+    prior_df[[i]] <- tibble(key=key, x=x, y=y, xmap=xmap, ymap=ymap)
+  }
+  prior_df <- bind_rows(prior_df) %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)")==FALSE)
+  my_pretty_breaks <- function(n = 5, ...) {
+    n_default <- n
+    function(x, n = n_default) {
+      minx <- min(x)
+      maxx <- max(x)
+      midx <- (minx+maxx)/2
+      x2 <- midx+(x-midx)*0.9
+      breaks <- pretty(x2, n, ...)
+      names(breaks) <- attr(breaks, "labels")
+      breaks
+    }
+  }
+  plot1 <- ggplot(data=prior_df) +
+    labs(title="", x="", y="") +
+    geom_line(mapping=aes(x=x, y=y), colour=xmid, size=1) +
+    geom_histogram(data=post_df, mapping=aes(x=value, y=..density..), fill=xlight, bins=30) +
+    geom_line(mapping=aes(x=x, y=y), colour=xmid, size=1) +
+    geom_point(mapping=aes(x=xmap, y=ymap), colour=xdata, size=3, na.rm=TRUE) +
+    theme_few() +
+    theme(panel.spacing.x=unit(9, "mm"), plot.margin=unit(c(0,5,0,0), "mm")) +
+    # theme(axis.text=element_text(size=9)) +
+    scale_x_continuous(expand=expand_scale(0,0), breaks=my_pretty_breaks(n=2, min.n=2)) +
+    scale_y_continuous(expand=expand_scale(0,0), breaks=NULL) +
+    facet_wrap(vars(key), scales="free")
+  print(plot1)
+  png( paste(scenario, "/BC_parameter_histograms_BT.png", sep=""),
+       width=210*1.5, height=210*1.5, units="mm",
+       type="windows", res=600)  
+  print(plot1)
+  dev.off()
 }
 
 # memory management

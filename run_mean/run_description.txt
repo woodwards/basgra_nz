@@ -1,5 +1,2 @@
-Fit with parallel processing but excluding CRT and BASAL data.
-Fit to BASAL still good. A lot more root.
-Didn't make much difference to fit
-Tiller still poor, effect of grazing still wrong
-
+Fit with parallel processing.
+Scenario with Lincoln rainfall.

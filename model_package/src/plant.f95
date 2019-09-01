@@ -323,11 +323,13 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
 !  if (LAI/BASAL < LAICR) then
 !    TV1 = 0.0
 !  else
-!    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR
+!    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR            ! RDRSCO/LAICR is the slope of RDRS past LAICR
 !  end if
 !  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading, see Gastal & Lemaire 2015
-!  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten
-  RDRS   = max(0.0, RDRSMX * (1.0 - exp( -RDRSCO*(LAI/BASAL-LAICR)))) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified
+  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Original
+!  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR), RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Simon modified, Type 0
+!  RDRS   = max(0.0, RDRSMX*(1.0-exp(-RDRSCO/RDRSMX*(LAI/BASAL-LAICR)))) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified, Type 1
+!  RDRS   = min(RDRSMX, RDRSMX*exp(RDRSCO/RDRSMX*(LAI/BASAL-LAICR)-1)) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified, Type 2
   RDRT   = max(RDRTMIN, RDRTEM * Tsurf)             ! d-1 Leaf turnover temperature dependent
 !  RDRT   = max(0.0, RDRTMIN + RDRTEM * Tsurf)      ! d-1 Relative leaf death rate due to high temperatures, Simon modified
 !  TV2    = NOHARV * max(RDRS,RDRT,RDRFROST,RDRTOX) ! d-1 Relative leaf death rate
@@ -457,7 +459,6 @@ Subroutine Tillering(DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, GLAI,R
 !  RLEAF   = TV1 * TRANRF * DAYLGE * ( FRACTV + PHENRF * (1-FRACTV) )          ! d-1 Leaf appearance rate
   RLEAF   = TV1 * TRANRF * ( FRACTV + PHENRF * (1-FRACTV) )                   ! d-1 Leaf appearance rate. Simon removed DAYLGE effect (Pararajasingham and Hunt 1995)
 !  TV2     = max( 0.0, min(FSMAX, LAITIL - LAIEFT*LAI/BASAL ))                 ! tillers site-1 Ratio of tiller appearance and leaf apearance rates
-!  TV2     = max( 0.0, min(FSMAX, FSMAX - LAIEFT*(LAI/BASAL-LAITIL) ))         ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modified, Gastal & Lemaire 2015
   TV2     = min(FSMAX, FSMAX * exp( - LAIEFT * (LAI/BASAL-LAITIL) ))           ! tillers site-1 Ratio of tiller appearance and leaf apearance rates, Simon modifed
   FS      = TV2                                                               ! Simon record site filling fraction
   RGRTV   = max( 0.0       , TV2 * RESNOR * RLEAF )                           ! d-1 Relative rate of vegetative tiller appearance

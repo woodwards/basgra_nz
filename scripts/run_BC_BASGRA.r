@@ -23,6 +23,7 @@ if (.Machine$sizeof.pointer==4){
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
 scenarios <- c("run_mean")
+run_parallel <- TRUE
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
@@ -46,8 +47,11 @@ for (scenario in scenarios){
   
 #### 2. RUNNING THE MCMC ####
   
-  file_name <- "scripts/BC_BASGRA_BT.R"
-  file_name <- "scripts/BC_BASGRA_BT_parallel.R"
+  if (run_parallel==TRUE){
+    file_name <- "scripts/BC_BASGRA_BT_parallel.R"
+  } else {
+    file_name <- "scripts/BC_BASGRA_BT.R"
+  }
   cat(file=stderr(), "Calling", file_name, "\n")
   source(file_name)
 

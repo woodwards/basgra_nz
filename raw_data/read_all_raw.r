@@ -250,6 +250,7 @@ data_bot <- data_bot %>%
     date_bot = as_date(date_bot),
     total = round(leaf + stem + ann + wc + og + weed + dead), # should always be 100
     rgfrac =  100 * (leaf + stem) / (leaf + stem + ann + wc + og + weed), # of green
+    dead = dead * rgfrac / 100, # ryegrass dead estimate
     month = month(dmy(paste("01", month, "2011"))),
     # estimate botanicals composition below cutting height
     # Tozer data - from Ruakura only - tiller dissection only not sward

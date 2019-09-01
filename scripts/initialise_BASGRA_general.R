@@ -180,7 +180,8 @@ plot_output <- function(
   nrow_plot   = ceiling( sqrt((length(vars)+1) * 8/11) ),
   ncol_plot   = ceiling( (length(vars)+1)/nrow_plot ),
   lty         = rep(1,length(list_output)),
-  lwd         = rep(3,length(list_output)) 
+  lwd         = rep(3,length(list_output)),
+  pal        = hue_pal()(length(list_output))
 ) {
   par( mfrow=c(nrow_plot,ncol_plot), mar=c(2, 2, 2, 1), oma=c(0,0,2,0) )
   if (!is.list(list_output)) list_output <- list(list_output) ; nlist <- length(list_output)
@@ -200,18 +201,18 @@ plot_output <- function(
           xlab="", ylab="", cex.main=1, 
 #          main=paste(outputNames[c]," ",outputUnits[c],sep=""),
           main=paste(easyNames[c]," ",outputUnits[c],sep=""),
-          type='l', col=1, lty=lty[1], lwd=lwd[1], ylim=g_range, xaxt="n", yaxt="n" )
+          type='l', col=pal[1], lty=lty[1], lwd=lwd[1], ylim=g_range, xaxt="n", yaxt="n" )
     axis(1, at=t_range)
     axis(2, at=pretty(g_range))
     if (nlist >= 2) {
       for (il in 2:nlist) {
       points( list_output[[il]][,1], list_output[[il]][,c],
-              col=il, type='l', lty=lty[il], lwd=lwd[il] )            
+              col=pal[il], type='l', lty=lty[il], lwd=lwd[il] )            
       }
     }
     if ( (iv%%(nrow_plot*ncol_plot-1)==0) || (iv==nvars) ) {
       plot(1,type='n', axes=FALSE, xlab="", ylab="")
-      legend("bottomright", leg, lty=lty, lwd=lwd, col=1:nlist, title = leg_title)
+      legend("bottomright", leg, lty=lty, lwd=lwd, col=pal, title = leg_title)
     }
   }
   par(mfrow=c(1,1)) # Simon

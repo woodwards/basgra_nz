@@ -49,26 +49,26 @@ for (s in 1:nSites){
   leg[k] <- "Current"
   list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
   
-  k <- 2
-  leg[k] <- "+ Water"
-  matrix_weather <- list_matrix_weather[[s]]
-  matrix_weather[,6] <- list_matrix_weather[[3]][,6] # use Lincoln rainfall/irrigation 
-  list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
-  matrix_weather <- list_matrix_weather[[s]]
+  # k <- 2
+  # leg[k] <- "+ Water"
+  # matrix_weather <- list_matrix_weather[[s]]
+  # matrix_weather[,6] <- list_matrix_weather[[3]][,6] # use Lincoln rainfall/irrigation 
+  # list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
+  # matrix_weather <- list_matrix_weather[[s]]
   
-  k <- 3
+  k <- 2
   leg[k] <- "+ Grazing"
   days_harvest <- list_days_harvest[[3]] # use Lincoln grazing pressure
   list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
   days_harvest <- list_days_harvest[[s]]
 
-  k <- 4
-  leg[k] <- "+ Temp"
-  matrix_weather <- list_matrix_weather[[s]]
-  matrix_weather[,4] <- list_matrix_weather[[3]][,4] # use Lincoln temperature
-  matrix_weather[,5] <- list_matrix_weather[[3]][,5] # use Lincoln temperature 
-  list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
-  matrix_weather <- list_matrix_weather[[s]]
+  # k <- 4
+  # leg[k] <- "+ Temp"
+  # matrix_weather <- list_matrix_weather[[s]]
+  # matrix_weather[,4] <- list_matrix_weather[[3]][,4] # use Lincoln temperature
+  # matrix_weather[,5] <- list_matrix_weather[[3]][,5] # use Lincoln temperature 
+  # list_output[[k]] <- run_model(y = matrix(0, NDAYS, NOUT))
+  # matrix_weather <- list_matrix_weather[[s]]
 
   # export output using functions in initialise_BASGRA_general.R
   file_table  = paste(scenario, "/basgra_trace_table_", s, ".txt", sep="")
