@@ -23,7 +23,9 @@ if (.Machine$sizeof.pointer==4){
 #### point to scenario directory ####
 # scenarios <- c("run_lincoln", "run_northland", "run_scott", "run_mean")
 scenarios <- c("run_mean")
+scenarios <- c("run_mean_scenario_scott", "run_mean_scenario_northland")
 run_parallel <- TRUE
+fit_mcmc <- FALSE
 scenario <- scenarios[[1]]
 for (scenario in scenarios){
   
@@ -65,9 +67,11 @@ for (scenario in scenarios){
   
 #### 3. OTHER OUTPUTS AND PLOTTING ####
 
-  file_name <- "scripts/BC_BASGRA_BT_other_results.R"
-  cat(file=stderr(), "Calling", file_name, "\n")
-  source(file_name)
+  if (FALSE){
+    file_name <- "scripts/BC_BASGRA_BT_other_results.R"
+    cat(file=stderr(), "Calling", file_name, "\n")
+    source(file_name)
+  }
 
 #### 4. CLEAN UP ####
   

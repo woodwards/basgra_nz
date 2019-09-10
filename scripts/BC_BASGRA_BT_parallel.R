@@ -71,26 +71,42 @@ bt_globals <- setdiff(c(
   ls(pattern="^list_.+") # all variables starting with
 ), c("bt_out")) # don't include these objects
 
-# parallel setup
-n_cluster <- min(detectCores()-1, nChains)
-cat(file=stderr(), paste0("Machine has ", detectCores(), " cores, need ", nChains, ", using ", n_cluster), "\n")
-bt_cluster <- makeCluster(n_cluster)
-clusterEvalQ(bt_cluster, {
-  library(BayesianTools)
-  library(BASGRA)
-  })
-clusterExport(bt_cluster, bt_globals)
-clusterSetRNGStream(bt_cluster, 123)
-
 # run BT until stopping conditions met (these can be changed in the file BC_BASGRA_BT_stop.csv)
 bt_chains <- nInternal * nChains 
 bt_pars <- length(bt_names)
 bt_conv <- NA
 bt_time <- 0
-repeat{
+
+if (fit_mcmc==FALSE){
+  
+  # use saved posterior
+  cat(file=stderr(), "Using saved posterior\n")
+  file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
+  tempenv <- new.env()
+  load(file=file_save, envir=tempenv) # load existing calibration results into temp env
+  bt_out <- get("bt_out", tempenv) 
+  bt_length <- get("bt_length", tempenv) 
+  bt_conv <- get("bt_conv", tempenv) 
+  bt_time <- get("bt_time", tempenv) 
+  save.image(file=file_save) # get calibration results
+  rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
+  
+} else repeat {
   
   # run Bayesian Tools
   if (is.na(bt_conv)){ 
+
+    # parallel setup
+    n_cluster <- min(detectCores()-1, nChains)
+    cat(file=stderr(), paste0("Machine has ", detectCores(), " cores, need ", nChains, ", using ", n_cluster), "\n")
+    bt_cluster <- makeCluster(n_cluster)
+    clusterEvalQ(bt_cluster, {
+      library(BayesianTools)
+      library(BASGRA)
+    })
+    clusterExport(bt_cluster, bt_globals)
+    clusterSetRNGStream(bt_cluster, 123)
+    
     # first run
     print(elapsed <- system.time({
       bt_out <- parLapply(cl=bt_cluster,
@@ -104,7 +120,9 @@ repeat{
       bt_out <- createMcmcSamplerList(bt_out)
       cat(file=stderr(), " ", "\n")
     }))
+    
   } else {
+    
     # continuation
     if (nBurnin==0){
       cat(file=stderr(), paste("Greater than", conv_target, "and less than", conv_minutes, "so continuing..."), "\n")
@@ -112,6 +130,7 @@ repeat{
       cat(file=stderr(), "Restart doesn't work with nBurnin>0 so stopping...\n")
       # stop()
     }
+    
     # restart
     print(elapsed <- system.time({
       bt_out <- parLapply(cl=bt_cluster,
@@ -123,7 +142,13 @@ repeat{
       bt_out <- createMcmcSamplerList(bt_out)
       cat(file=stderr(), " ", "\n")
     }))
+    
   }
+  
+  # read stopping criterion from file (allows us to change it on the fly)
+  conv_criteria <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE) 
+  conv_target <- conv_criteria[1,1]
+  conv_minutes <- conv_criteria[2,1]
   
   # assess convergence  
   bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
@@ -138,47 +163,32 @@ repeat{
   bt_time <- bt_time + elapsed[[3]]/60
   cat(file=stderr(), paste("Elapsed time =", round(bt_time,2), "minutes"), "\n")
   
-  # read stopping criterion from file (allows us to change it on the fly)
-  conv_criteria <- read.csv("scripts/BC_BASGRA_BT_stop.csv", header=FALSE) 
-  conv_target <- conv_criteria[1,1]
-  conv_minutes <- conv_criteria[2,1]
   if ((bt_conv <= conv_target) || (bt_time >= conv_minutes)){
+    
+    # stop parallel
+    stopParallel(bayesianSetup=bt_setup)
+    stopCluster(bt_cluster)
+    
+    # report convergence
+    cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
+    psf <- gelmanDiagnostics(bt_out)$psrf[,1]
+    print(round(psf,3))
+    cat(file=stderr(), paste("Convergence of worst parameter (psf)"), "\n")
+    print(round(psf[which.max(psf)],3))
+    cat(file=stderr(), paste("Multivariate convergence (mpsrf) ="), "\n")
+    print(round(bt_conv,3))
+    
+    # memory management
+    cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
+    file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
+    save.image(file=file_save)
+    rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
+    
     break
-  }
-}
+  } 
+  
+} 
 
-# run BT
-# bt_out <- runMCMC(bayesianSetup = bt_setup, 
-#                   sampler = "DREAMzs", 
-#                   settings = bt_settings)
-# cat(file=stderr(), " ", "\n")
-# bt_chains <- nInternal * nChains 
-# bt_length <- dim(bt_out[[1]]$chain[[1]])[[1]]
-# bt_pars <- length(bt_names)
-# cat(file=stderr(), paste("Total chains =", bt_chains), "\n")
-# cat(file=stderr(), paste("Total samples per chain =", bt_length), "\n")
-# # bt_conv <- gelmanDiagnostics(bt_out)$mpsrf 
-# # cat(file=stderr(), paste("Overall convergence (mpsrf) =", round(bt_conv,3)), "\n")
-# bt_conv <- max(gelmanDiagnostics(bt_out)$psrf[,1])
-# cat(file=stderr(), paste("Overall convergence (max(psf)) =", round(bt_conv,3)), "\n")
 
-# stop parallel
-stopParallel(bayesianSetup=bt_setup)
-stopCluster(bt_cluster)
-
-# report convergence
-cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
-psf <- gelmanDiagnostics(bt_out)$psrf[,1]
-print(round(psf,3))
-cat(file=stderr(), paste("Convergence of worst parameter (psf)"), "\n")
-print(round(psf[which.max(psf)],3))
-cat(file=stderr(), paste("Multivariate convergence (mpsrf) ="), "\n")
-print(round(bt_conv,3))
-
-# memory management
-cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
-file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
-save.image(file=file_save)
-rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
 
 
