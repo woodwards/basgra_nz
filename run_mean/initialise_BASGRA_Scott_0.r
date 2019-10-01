@@ -29,8 +29,8 @@ NDAYS          <- as.integer(difftime(
 
 file_weather   <- paste(scenario, "/weather_Scott.txt", sep="")
 
-file_params    <- paste(scenario, "/parameters_All.txt", sep="") # can contain multiple columns
-parcol       <- 1 # which one are we going to use? (row names are ignored)
+file_params    <- paste(parameter_location, "/parameters_All.txt", sep="") # can contain multiple columns
+parcol       <- 2 # which one are we going to use? (row names are ignored)
  
 # read harvest days (Simon) which are set up in make_weather1.r   
 file_harvest   <- paste(scenario, "/harvest_Scott_0.txt", sep="")

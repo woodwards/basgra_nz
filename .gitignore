@@ -2,10 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-README.html
+BASGRA.RCheck
 /Debug/
 /Release/
-temp.RData
 *.xls
 *.xlsx
 *.xlsm
@@ -14,3 +13,6 @@ temp.RData
 run_lincoln_*
 profile_files
 profile.html
+run_mean_*
+run_all_*
+*.tar.gz

@@ -11,9 +11,9 @@ integer :: NOHARV,HARVI
 real :: CRESMX,DAYLGE,FRACTV,GLVSI,GSTSI,LERG,LERV,LUEMXQ,NELLVG,PHENRF,PHOT,RESMOB
 real :: RDLVD, ALLOTOT,GRESSI,GSHSI,GLAISI,SOURCE,SINK1T,CSTAV,TGE
 real :: RDRFROST,RDRT,RDRL,RDRTOX,RESPGRT,RESPGSH,RESPHARD,RESPHARDSI,RESNOR,RLEAF,RplantAer,SLANEW
-real :: RATEH,reHardPeriod,RDRTIL ! Simon renamed TV2TIL to RDRTIL
+real :: RATEH,reHardPeriod,RDRTIL,RDRS,RDRW ! Simon renamed TV2TIL to RDRTIL
 real :: CRESMN,DAYLGEMX
-real :: ALLOSH, ALLORT, ALLOLV, ALLOST, FS
+real :: ALLOSH, ALLORT, ALLOLV, ALLOST, FS, ALLOFRAC
 
 contains
 
@@ -295,6 +295,7 @@ end Subroutine Growth
      ALLORT  = ALLOTOT - ALLOSH - GRES
      if (GSHSI == 0.) GSHSI = 1           ! avoid divide by zero error when GSHSI==0.
      ALLOLV  = GLVSI * (ALLOSH / GSHSI)
+     ALLOFRAC = ALLOLV / GLVSI            ! Simon fraction of allocation to leaves (non-stem shoot)
      ALLOST  = GSTSI * (ALLOSH / GSHSI)
      GLV     = ALLOLV * YG
      GST     = ALLOST * YG
@@ -312,10 +313,10 @@ Subroutine PlantRespiration(FO2,RESPHARD)
 end Subroutine PlantRespiration
 
 ! Calculate death rates
-Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
-                                 DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
+Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,PARBASE,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
+                                 DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate,RDRS,RDRW)
   integer :: doy
-  real :: CLV,CRT,CSTUB,DAYL,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE
+  real :: CLV,CRT,CSTUB,DAYL,LAI,PARBASE,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE
   real :: DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate
   real :: RDRS, TV1, TV2, RDRW
   call AnaerobicDamage(LT50,PERMgas,TANAER, dTANAER)
@@ -326,7 +327,9 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TIL
 !    TV1 = RDRSCO*(LAI/BASAL-LAICR)/LAICR            ! RDRSCO/LAICR is the slope of RDRS past LAICR
 !  end if
 !  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading, see Gastal & Lemaire 2015
-  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Original
+!  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Original
+  RDRS   = max(0.0, RDRSMX*(1 - (exp(-1.0*KLAI*LAI/BASAL)/exp(-1.0*KLAI*LAICR/BASAL))))  ! d-1 Relative leaf and tiller death rate due to shading, Simon PAR method using "LAICR" for scale
+!  RDRS   = max(0.0, RDRSMX*(1-ALLOFRAC/LAICR))  ! d-1 Relative leaf and tiller death rate due to shading, Simon ALLO method using "LAICR" for scale
 !  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR), RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Simon modified, Type 0
 !  RDRS   = max(0.0, RDRSMX*(1.0-exp(-RDRSCO/RDRSMX*(LAI/BASAL-LAICR)))) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified, Type 1
 !  RDRS   = min(RDRSMX, RDRSMX*exp(RDRSCO/RDRSMX*(LAI/BASAL-LAICR)-1)) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified, Type 2

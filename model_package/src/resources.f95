@@ -8,7 +8,8 @@ implicit none
 ! Resource variables
 real :: DTRINT    ! = MJ GR m-2 d-1 Interception of global radiation
 real :: PARAV     ! = mumol PAR m-2 s-1 Average PAR during the photoperiod
-real :: PARINT    ! = mol PAR m-2 d-1 PAR interception
+real :: PARINT    ! = mol PAR m-2 d-1 PAR captured
+real :: PARBASE   ! = mol PAR m-2 d-1 PAR remaining at base
 real :: TRANRF    ! = Transpiration realisation factor
 
 contains
@@ -21,7 +22,8 @@ Subroutine Light(DAYL,DTR,LAI,BASAL,PAR)
   else
     PARAV = 0.
   end if
-  PARINT = PAR * (1 - exp(-1.0*KLAI*LAI/BASAL))  ! PAR extinction, Simon renamed K to KLAI, adjust for BASAL area
+  PARINT = PAR * (1 - exp(-1.0*KLAI*LAI/BASAL))  ! PAR captured, Simon renamed K to KLAI, adjust for BASAL area
+  PARBASE = PAR * exp(-1.0*KLAI*LAI/BASAL)       ! PAR remaining at base, Simon
   DTRINT = DTR * (1 - exp(-0.75*KLAI*LAI/BASAL)) ! GR has different extinction, Simon renamed K to KLAI, adjust for BASAL area
 end Subroutine Light
 

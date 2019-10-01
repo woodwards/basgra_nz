@@ -80,17 +80,16 @@ bt_time <- 0
 if (fit_mcmc==FALSE){
   
   # use saved posterior
-  cat(file=stderr(), "Using saved posterior\n")
-  file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
+  cat(file=stderr(), "Using saved posterior from", parameter_location, "\n")
+  file_save <- paste(parameter_location, "/checkpoint_after_calibration.RData", sep="")
   tempenv <- new.env()
   load(file=file_save, envir=tempenv) # load existing calibration results into temp env
   bt_out <- get("bt_out", tempenv) 
   bt_length <- get("bt_length", tempenv) 
   bt_conv <- get("bt_conv", tempenv) 
   bt_time <- get("bt_time", tempenv) 
-  save.image(file=file_save) # get calibration results
-  rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
-  
+  rm(tempenv)
+
 } else repeat {
   
   # run Bayesian Tools
@@ -178,17 +177,13 @@ if (fit_mcmc==FALSE){
     cat(file=stderr(), paste("Multivariate convergence (mpsrf) ="), "\n")
     print(round(bt_conv,3))
     
-    # memory management
-    cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
-    file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
-    save.image(file=file_save)
-    rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow
-    
     break
   } 
   
 } 
 
-
-
-
+# memory management
+cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
+file_save <- paste(scenario, "/checkpoint_after_calibration.RData", sep="")
+save.image(file=file_save)
+# rm(list=setdiff(ls(), c("scenario", "scenarios"))) # avoid memory overflow (FIXME)

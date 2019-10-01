@@ -35,30 +35,30 @@
    source("scripts/fLogL_mm_Beta.R")
    
 ## SETTINGS FOR THE DIFFERENT CALIBRATION SITES (at least one site)
+   sitenames <- c()
+   sitenumbers <- c()
    sitesettings_filenames <- c()
    sitedata_filenames     <- c()
-   file_prior    <- paste(scenario, "/parameters_BC.txt", sep="")
-
-   sitesettings_filenames <- c(sitesettings_filenames,
-                               paste(scenario, "/initialise_BASGRA_Northland_0.r", sep=""))
-   sitedata_filenames     <- c(sitedata_filenames,
-                               paste(scenario, "/data_calibration_Northland_0.txt", sep=""))
-
-   sitesettings_filenames <- c(sitesettings_filenames,
-                               paste(scenario, "/initialise_BASGRA_Scott_0.r", sep=""))
-   sitedata_filenames     <- c(sitedata_filenames,
-                               paste(scenario, "/data_calibration_Scott_0.txt", sep=""))
    
-   sitesettings_filenames <- c(sitesettings_filenames,
-                               paste(scenario, "/initialise_BASGRA_Lincoln_0.r", sep=""))
-   sitedata_filenames     <- c(sitedata_filenames,
-                               paste(scenario, "/data_calibration_Lincoln_0.txt", sep=""))
+   file_prior    <- paste(parameter_location, "/parameters_BC.txt", sep="")
+
+   sitenames <- c(sitenames, "Northland")
+   sitenumbers <- c(sitenumbers, 1) # column in parameters_All.txt
+   sitesettings_filenames <- c(sitesettings_filenames, paste(scenario, "/initialise_BASGRA_Northland_0.r", sep=""))
+   sitedata_filenames     <- c(sitedata_filenames, paste(scenario, "/data_calibration_Northland_0.txt", sep=""))
+
+   sitenames <- c(sitenames, "Waikato")
+   sitenumbers <- c(sitenumbers, 2) # column in parameters_All.txt
+   sitesettings_filenames <- c(sitesettings_filenames, paste(scenario, "/initialise_BASGRA_Scott_0.r", sep=""))
+   sitedata_filenames     <- c(sitedata_filenames, paste(scenario, "/data_calibration_Scott_0.txt", sep=""))
+   
+   sitenames <- c(sitenames, "Canterbury")
+   sitenumbers <- c(sitenumbers, 3) # column in parameters_All.txt
+   sitesettings_filenames <- c(sitesettings_filenames, paste(scenario, "/initialise_BASGRA_Lincoln_0.r", sep=""))
+   sitedata_filenames     <- c(sitedata_filenames, paste(scenario, "/data_calibration_Lincoln_0.txt", sep=""))
    
    nSites                 <- length(sitedata_filenames)
    sitelist               <- list() ; length(sitelist) <- nSites
-   
-   # additional outputs to plot
-   extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "TRANRF", "RES", "YIELD")
    
    # Specify data uncertainties (the max of: cv for relative uncertainty, sd for absolute)   
    # These are used in BC_BASGRA_MCMC_init_general.r to set the data uncertainites

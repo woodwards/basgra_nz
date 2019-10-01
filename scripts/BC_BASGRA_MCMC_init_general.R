@@ -179,15 +179,19 @@
    # i <- which(params[ip_BC]<parmin_BC | params[ip_BC]>parmax_BC)
    # # parname_BC[i]
    
-   ip_BC_site   <- sitelist ; icol_pChain_site <- sitelist
+   # map calibration parameters to model parameters
+   ip_BC_site   <- sitelist ; # model parameters
+   icol_pChain_site <- sitelist # calibration parameters
    for (p in 1:np_BC) {
-     for ( s in 1:nSites ) {
-       if( s %in% eval( parse( text = parsites_BC[p] ) ) ) {
-         ip_BC_site[[s]]       <- cbind( ip_BC_site[[s]]      , ip_BC[p] )
-         icol_pChain_site[[s]] <- cbind( icol_pChain_site[[s]], p        )
+     for ( s in 1:nSites ) { # run number
+       ss <- sitenumbers[s] # Simon allowed mix and match sites
+       if( ss %in% eval( parse( text = parsites_BC[p] ) ) ) {
+         ip_BC_site[[s]]       <- cbind( ip_BC_site[[s]]      , ip_BC[p] ) 
+         icol_pChain_site[[s]] <- cbind( icol_pChain_site[[s]], p        ) 
        }
      }
    }
+   
  # We scale all parameters by dividing by the mean of the absolute extremes
    sc            <- rowMeans( abs( cbind(parmin_BC,parmax_BC) ) )
    scparmin_BC   <- parmin_BC / sc

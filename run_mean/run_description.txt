@@ -1,2 +1,0 @@
-Fit with parallel processing.
-Scenario with Lincoln rainfall.

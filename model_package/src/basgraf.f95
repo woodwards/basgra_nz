@@ -198,8 +198,8 @@ do day = 1, NDAYS
   call HardeningSink  (CLV,DAYL,doy,LT50,Tsurf)                  ! calculate RESPHARDSI
   call Growth         (CLV,CRES,CST,PARINT,TILG2,TILG1,TILV,TRANRF,AGE,LAI, GLV,GRES,GRT,GST) ! calculate assimilate partitioning
   call PlantRespiration(FO2,RESPHARD)                            ! calculate RplantAer
-  call Senescence     (CLV,CRT,CSTUB,doy,LAI,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
-                                                       DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate)
+  call Senescence     (CLV,CRT,CSTUB,doy,LAI,PARBASE,BASAL,LT50,PERMgas,TRANRF,TANAER,TILV,Tsurf,AGE, &
+                                                       DeHardRate,DLAI,DLV,DRT,DSTUB,dTANAER,DTILV,HardRate,RDRS,RDRW)
   call Decomposition  (CLVD,DAVTMP,WCLM,                DLVD,RDLVD)    ! Simon decomposition function
   call Tillering      (DAYL,GLV,LAI,BASAL,TILV,TILG1,TRANRF,Tsurf,VERN,AGE, &
                                                        GLAI,RGRTV,GTILV,TILVG1,TILG1G2)
@@ -224,7 +224,7 @@ do day = 1, NDAYS
   FRTILG1   =  TILG1        / (TILG1+TILG2+TILV) ! "FRTILG1" = Fraction of tillers that is in TILG1
   FRTILG2   =        TILG2  / (TILG1+TILG2+TILV) ! "FRTILG2" = Fraction of tillers that is in TILG2
   LINT      = PARINT / PAR                       ! = Percentage light interception
-  DEBUG     = TGE                         ! Output any variable as "DEBUG" for debugging purposes
+  DEBUG     = LAI/BASAL                          ! Output any variable as "DEBUG" for debugging purposes
 
   ! a script checks that these variable names match what is expected in output_names.tsv (Simon)
 
