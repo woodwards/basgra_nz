@@ -6,11 +6,15 @@
 #
 suppressMessages({
   library(BayesianTools)
-  library(parallel)
+  if (run_parallel){library(parallel)}
 })
 
 #
-cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package (PARALLEL VERSION)', "\n")
+if (run_parallel){
+  cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package (PARALLEL CORE)', "\n")
+} else {
+  cat(file=stderr(), 'Calibrating BASGRA using BayesianTools package (SINGLE CORE)', "\n")
+}
 
 # parameter names
 bt_names <- dplyr::if_else(parsites_BC=="1:nSites",
@@ -50,8 +54,9 @@ bt_setup <- createBayesianSetup(likelihood=bt_likelihood,
 # sampler settings 
 nInternal   <- 3 # internal chains for DREAMzs
 bt_settings <- list(iterations=nChain/nChains, 
-                    # nrChains=nChains,
-                    nrChains=1, # use external chains
+                    nrChains=ifelse(run_parallel, 1, nChains),
+                    # nrChains=nChains, # use internal chains for serial
+                    # nrChains=1, # use external chains for parallel
                     startValue=nInternal, 
                     # burnin=0, # because can't analyse convergence if we discard burnin
                     burnin=nBurnin/nChains+nChains, # to give correct number of samples
@@ -60,7 +65,7 @@ bt_settings <- list(iterations=nChain/nChains,
                     message=TRUE
                     ) 
 
-# globals
+# globals (only used for run_parallel)
 bt_globals <- setdiff(c(
   "sc", "ip_BC_site", "icol_pChain_site", "nSites", 
   "run_model", "NOUT", "ndata", "flogL", 
@@ -95,30 +100,44 @@ if (fit_mcmc==FALSE){
   # run Bayesian Tools
   if (is.na(bt_conv)){ 
 
-    # parallel setup
-    n_cluster <- min(detectCores()-1, nChains)
-    cat(file=stderr(), paste0("Machine has ", detectCores(), " cores, need ", nChains, ", using ", n_cluster), "\n")
-    bt_cluster <- makeCluster(n_cluster)
-    clusterEvalQ(bt_cluster, {
-      library(BayesianTools)
-      library(BASGRA)
-    })
-    clusterExport(bt_cluster, bt_globals)
-    clusterSetRNGStream(bt_cluster, 123)
-    
-    # first run
-    print(elapsed <- system.time({
-      bt_out <- parLapply(cl=bt_cluster,
-                          X=1:n_cluster,
-                          fun=function(X){
-                            runMCMC(bt_setup,
-                                    bt_settings,
-                                    sampler="DREAMzs")
-                            }
-                          )
-      bt_out <- createMcmcSamplerList(bt_out)
-      cat(file=stderr(), " ", "\n")
-    }))
+    if (run_parallel){
+      
+      # parallel setup
+      n_cluster <- min(detectCores()-1, nChains)
+      cat(file=stderr(), paste0("Machine has ", detectCores(), " cores, need ", nChains, ", using ", n_cluster), "\n")
+      bt_cluster <- makeCluster(n_cluster)
+      clusterEvalQ(bt_cluster, {
+        library(BayesianTools)
+        library(BASGRA)
+      })
+      clusterExport(bt_cluster, bt_globals)
+      clusterSetRNGStream(bt_cluster, 123)
+      
+      # parallel first run
+      print(elapsed <- system.time({
+        bt_out <- parLapply(cl=bt_cluster,
+                            X=1:n_cluster,
+                            fun=function(X){
+                              runMCMC(bt_setup,
+                                      bt_settings,
+                                      sampler="DREAMzs")
+                              }
+                            )
+        bt_out <- createMcmcSamplerList(bt_out)
+        cat(file=stderr(), " ", "\n")
+      }))
+      
+    } else {
+      
+      # serial first run
+      print(elapsed <- system.time({
+        bt_out <- runMCMC(bayesianSetup = bt_setup, 
+                          sampler = "DREAMzs", 
+                          settings = bt_settings)
+        cat(file=stderr(), " ", "\n")
+      }))
+      
+    }
     
   } else {
     
@@ -130,17 +149,29 @@ if (fit_mcmc==FALSE){
       # stop()
     }
     
-    # restart
-    print(elapsed <- system.time({
-      bt_out <- parLapply(cl=bt_cluster,
-                        X=1:n_cluster,
-                        fun=function(X, bt_out){
-                          runMCMC(bt_out[[X]])
-                          },
-                        bt_out)
-      bt_out <- createMcmcSamplerList(bt_out)
-      cat(file=stderr(), " ", "\n")
-    }))
+    if (run_parallel){
+      
+      # parallel restart
+      print(elapsed <- system.time({
+        bt_out <- parLapply(cl=bt_cluster,
+                          X=1:n_cluster,
+                          fun=function(X, bt_out){
+                            runMCMC(bt_out[[X]])
+                            },
+                          bt_out)
+        bt_out <- createMcmcSamplerList(bt_out)
+        cat(file=stderr(), " ", "\n")
+      }))
+      
+    } else {
+      
+      # serial restart
+      print(elapsed <- system.time({
+        bt_out <- runMCMC(bayesianSetup = bt_out)
+        cat(file=stderr(), " ", "\n")
+      }))
+      
+    }
     
   }
   
@@ -164,9 +195,11 @@ if (fit_mcmc==FALSE){
   
   if ((bt_conv <= conv_target) || (bt_time >= conv_minutes)){
     
-    # stop parallel
-    stopParallel(bayesianSetup=bt_setup)
-    stopCluster(bt_cluster)
+    if (run_parallel){
+      # stop parallel
+      stopParallel(bayesianSetup=bt_setup)
+      stopCluster(bt_cluster)
+    }
     
     # report convergence
     cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
@@ -181,6 +214,8 @@ if (fit_mcmc==FALSE){
   } 
   
 } 
+
+stop()
 
 # memory management
 cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")

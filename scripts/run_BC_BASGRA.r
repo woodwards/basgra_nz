@@ -22,7 +22,7 @@ if (.Machine$sizeof.pointer == 4) {
 
 #### user options ####
 # now able to calibrate and run scenarios in same batch
-run_parallel <- TRUE
+run_parallel <- FALSE
 fixpars <- FALSE
 fixpar <- c()
 single_year <- 2013
@@ -32,7 +32,7 @@ parameters <- c("run_mean", "run_mean", "run_mean", "run_mean")
 fit_mcmcs <- c(TRUE, FALSE, FALSE, FALSE)
 
 #### point to scenario directory ####
-is <- 2:4
+is <- 1
 for (i in is) {
 
   #
@@ -64,11 +64,7 @@ for (i in is) {
 
   #### 2. RUNNING THE MCMC ####
 
-  if (run_parallel == TRUE) {
-    file_name <- "scripts/BC_BASGRA_BT_parallel.R"
-  } else {
-    file_name <- "scripts/BC_BASGRA_BT.R"
-  }
+  file_name <- "scripts/BC_BASGRA_BT.R"
   cat(file = stderr(), "Calling", file_name, "\n")
   source(file_name)
 
