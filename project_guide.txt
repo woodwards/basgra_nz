@@ -6,9 +6,8 @@ NZ = New Zealand
 
 outstandings_issues.txt List of known issues with the data and model
 /docs/		background documents, including original BASGRA user guide
-/model/		BASGRA Fortran code and DLL, miscellaneous notes on model logic, model.cbp CodeBlocks Fortran Project
-/model/output_names.tsv	list of model outputs, must match code in BASGRA.f90
 /model_2014/  Original 2014 BASGRA code.
+/model/		Obsolete BASGRA Fortran code and DLL
 /model_inputs/  Obsolete
 /model_package/ BASGRA *.f95 Fortran code as wrapped in C to build an R package
 outstanding_issues.txt  List of outstanding issues

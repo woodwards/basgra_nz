@@ -21,7 +21,7 @@ graphics.off()
 # additional outputs to plot
 calibOutputs <- c("BASAL", "CLV", "CST", "CLVD", "CRT", "TILTOT", "WCLM")
 extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "VERN", "YIELD", "DEBUG")
-# extraOutputs <- c("LAI", "TSIZE", "GTILV", "DTILV", "TRANRF", "DEBUG", "YIELD")
+extraOutputs <- c("LAI", "TSIZE", "GTILV", "DTILV", "TRANRF", "DEBUG", "VERN")
 # extraOutputs <- c("RLEAF", "DEBUG", "RDRL", "VERN", "YIELD", "RES", "HARVFR")
 
 # fix parameters
@@ -864,7 +864,7 @@ if (TRUE) {
     # geom_point(mapping=aes(x=times, y=obs_vals, colour=site_name)) +
     # scale_color_manual(values=c(blue, green, red)) +
     geom_abline(mapping = aes(slope = 0, intercept = 0), colour = xaxis, size = 0.5) +
-    geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
+    # geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
     scale_y_continuous(expand = expand_scale(0, 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     scale_colour_manual(values = c("1" = xdata, "0" = "grey")) +
@@ -872,7 +872,7 @@ if (TRUE) {
     guides(colour = FALSE, size = FALSE) +
     theme_few() +
     theme(panel.grid.major.x = element_line(colour = xgrey))
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/calibration_time.png", sep = "")
   png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -916,7 +916,7 @@ if (TRUE) {
     guides(colour = FALSE, size = FALSE) +
     theme_few() +
     theme(panel.grid.major.x = element_line(colour = xgrey))
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/calibration_time_diff.png", sep = "")
   png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -943,7 +943,7 @@ if (TRUE) {
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     guides(colour = FALSE, size = FALSE) +
     theme_few()
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, ".png", sep = "")
   png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -970,7 +970,7 @@ if (TRUE) {
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     guides(colour = FALSE, size = FALSE) +
     theme_few()
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, "_diff.png", sep = "")
   png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -988,13 +988,13 @@ if (TRUE) {
     geom_line(mapping = aes(x = times, y = pred_map), colour = xdark, size = 0.5, na.rm = TRUE) +
     # geom_point(mapping=aes(x=times, y=obs_vals), colour="xdata") +
     geom_abline(mapping = aes(slope = 0, intercept = 0), colour = xaxis, size = 0.5) +
-    geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
+    # geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     theme_few() +
     theme(panel.grid.major.x = element_line(colour = xgrey))
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/other_time.png", sep = "")
   png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -1033,7 +1033,7 @@ if (TRUE) {
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     theme_few() +
     theme(panel.grid.major.x = element_line(colour = xgrey))
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/other_time_diff.png", sep = "")
   png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -1055,7 +1055,7 @@ if (TRUE) {
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     theme_few()
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, ".png", sep = "")
   png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -1077,7 +1077,7 @@ if (TRUE) {
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     facet_grid(var_name2 ~ site_name, scales = "free_y") +
     theme_few()
-  print(plot3)
+  # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, "_diff.png", sep = "")
   png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
   print(plot3)
@@ -1103,7 +1103,7 @@ if (TRUE) {
     scale_color_manual(values=palette) +
     scale_fill_manual(values=palette) +
     facet_wrap(~var_name, scale = "free")
-  print(plot2)
+  # print(plot2)
   png(paste(scenario, "/residual_density.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
   print(plot2)
   dev.off()
@@ -1136,7 +1136,7 @@ if (TRUE) {
     # facet_wrap(~var_name, scale="free_y") +
     lemon::facet_rep_wrap(~var_name2, scales = "free_y", repeat.tick.labels = "bottom") +
     theme_few()
-  print(plot3)
+  # print(plot3)
   png(paste(scenario, "/residual_time.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
   print(plot3)
   dev.off()
@@ -1168,28 +1168,19 @@ if (TRUE) {
     scale_x_continuous(expand = expand_scale(0, 0)) +
     facet_wrap(~var_name2, scale = "free") +
     theme_few()
-  print(plot3b)
+  # print(plot3b)
   png(paste(scenario, "/residual_data2.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
   print(plot3b)
   dev.off()
 }
 
-# prior and posterior histograms (old Basgra one is nicer?) ####
+# prior and posterior histograms ####
 if (TRUE) {
   cat(file = stderr(), "Plot prior/posterior histograms", "\n")
   post_df <- as.data.frame(pChain %*% diag(sc))
   names(post_df) <- colnames(pChain)
-  post_df <- gather(post_df) %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)") == FALSE)
+  post_df <- gather(post_df)
   prior_df <- vector("list", nBCvar)
-  for (i in seq_along(parname_BC)) {
-    key <- colnames(pChain)[i]
-    x <- seq(parmin_BC[i], parmax_BC[i], (parmax_BC[i] - parmin_BC[i]) / 100)
-    y <- dbeta((x - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
-    xmap <- scparMAP_BC[i] * sc[i]
-    ymap <- dbeta((xmap - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
-    prior_df[[i]] <- tibble(key = key, x = x, y = y, xmap = xmap, ymap = ymap)
-  }
-  prior_df <- bind_rows(prior_df) %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)") == FALSE)
   my_pretty_breaks <- function(n = 5, ...) {
     n_default <- n
     function(x, n = n_default) {
@@ -1202,19 +1193,39 @@ if (TRUE) {
       breaks
     }
   }
+  i <- 1
+  for (i in seq_along(parname_BC)) {
+    key2 <- colnames(pChain)[i]
+    x <- seq(parmin_BC[i], parmax_BC[i], (parmax_BC[i] - parmin_BC[i]) / 100)
+    y <- dbeta((x - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
+    xmap <- scparMAP_BC[i] * sc[i]
+    # ymap <- dbeta((xmap - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
+    temp <- ggplot() + 
+      geom_histogram(data = post_df %>% filter(key == key2),
+                     mapping = aes(x = value, y = ..density..), bins = 30) +
+      scale_x_continuous(expand = expand_scale(0, 0), breaks = my_pretty_breaks(n = 2, min.n = 2))
+    temp <- layer_data(temp)
+    j <- which(abs(temp$x - xmap) == min(abs(temp$x - xmap)))
+    ymap <- temp$density[j]
+    prior_df[[i]] <- tibble(key = key2, x = x, y = y, xmap = xmap, ymap = ymap)
+  }
+  prior_df <- bind_rows(prior_df) 
+  post_df <- post_df %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)") == FALSE)
+  prior_df <- prior_df %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)") == FALSE)
   plot1 <- ggplot(data = prior_df) +
     labs(title = "", x = "", y = "") +
     geom_line(mapping = aes(x = x, y = y), colour = xmid, size = 1) +
     geom_histogram(data = post_df, mapping = aes(x = value, y = ..density..), fill = xlight, bins = 30) +
     geom_line(mapping = aes(x = x, y = y), colour = xmid, size = 1) +
-    geom_point(mapping = aes(x = xmap, y = ymap), colour = xdata, size = 3, na.rm = TRUE) +
+    # geom_point(mapping = aes(x = xmap, y = ymap), colour = xdata, size = 3, na.rm = TRUE) +
+    geom_segment(mapping = aes(x = xmap, xend = xmap, y = 0, yend = ymap), colour = xdata, size = 1) +
     theme_few() +
     theme(panel.spacing.x = unit(9, "mm"), plot.margin = unit(c(0, 5, 0, 0), "mm")) +
     # theme(axis.text=element_text(size=9)) +
     scale_x_continuous(expand = expand_scale(0, 0), breaks = my_pretty_breaks(n = 2, min.n = 2)) +
     scale_y_continuous(expand = expand_scale(0, 0), breaks = NULL) +
     facet_wrap(vars(key), scales = "free")
-  print(plot1)
+  # print(plot1)
   png(paste(scenario, "/BC_parameter_histograms_BT.png", sep = ""),
     width = 210 * 1.5, height = 210 * 1.5, units = "mm",
     type = "windows", res = 600

@@ -114,12 +114,12 @@ BD           = pa(97)
 HARVFRD      = pa(98)
 EBIOMAX      = pa(99)
 KTIL         = pa(100)
-RDRWMAX      = pa(101) ! obsolete
+RDRWMAX      = pa(101)
 BASALI       = pa(102)
 ABASAL       = pa(103)
 TVERNDMN     = pa(104)
 DAYLGEMN     = pa(105)
-RGRSTUB      = pa(106) ! obsolete
+TRANRFCR     = pa(106)
 DELE         = pa(107)
 DELD         = pa(108)
 

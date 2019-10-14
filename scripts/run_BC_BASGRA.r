@@ -22,17 +22,17 @@ if (.Machine$sizeof.pointer == 4) {
 
 #### user options ####
 # now able to calibrate and run scenarios in same batch
-run_parallel <- FALSE
+run_parallel <- TRUE
 fixpars <- FALSE
 fixpar <- c()
 single_year <- 2013
-base_s <- 2
-scenarios <- c("run_mean", "run_mean_scenario_northland_temp", "run_mean_scenario_scott_temp", "run_mean_scenario_lincoln_temp")
-parameters <- c("run_mean", "run_mean", "run_mean", "run_mean")
-fit_mcmcs <- c(TRUE, FALSE, FALSE, FALSE)
+base_s <- 1
+scenarios <- c("run_mean", "run_mean/scenario_northland", "run_mean/scenario_scott")
+parameters <- c("run_mean", "run_mean", "run_mean")
+fit_mcmcs <- c(TRUE, FALSE, FALSE)
 
 #### point to scenario directory ####
-is <- 1
+is <- 1:3
 for (i in is) {
 
   #

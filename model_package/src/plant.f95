@@ -328,7 +328,7 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,PARBASE,BASAL,LT50,PERMgas,TRANRF,TA
 !  end if
 !  RDRS   = min(TV1, RDRSMX)                         ! d-1 Relative leaf and tiller death rate due to shading, see Gastal & Lemaire 2015
 !  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR)/LAICR, RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Original
-  RDRS   = max(0.0, RDRSMX*(1 - (exp(-1.0*KLAI*LAI/BASAL)/exp(-1.0*KLAI*LAICR/BASAL))))  ! d-1 Relative leaf and tiller death rate due to shading, Simon PAR method using "LAICR" for scale
+  RDRS   = max(0.0, RDRSMX*(1 - exp(-1.0*KLAI*LAI/BASAL)/exp(-1.0*KLAI*LAICR/BASAL)))  ! d-1 Relative leaf and tiller death rate due to shading, Simon PAR method using "LAICR" for scale
 !  RDRS   = max(0.0, RDRSMX*(1-ALLOFRAC/LAICR))  ! d-1 Relative leaf and tiller death rate due to shading, Simon ALLO method using "LAICR" for scale
 !  RDRS   = max(0.0, min(RDRSCO*(LAI/BASAL-LAICR), RDRSMX)) ! d-1 Relative leaf and tiller death rate due to shading, rewritten on one line, Simon modified, Type 0
 !  RDRS   = max(0.0, RDRSMX*(1.0-exp(-RDRSCO/RDRSMX*(LAI/BASAL-LAICR)))) ! d-1 Relative leaf and tiller death rate due to shading, Simon modified, Type 1
@@ -339,9 +339,9 @@ Subroutine Senescence(CLV,CRT,CSTUB,doy,LAI,PARBASE,BASAL,LT50,PERMgas,TRANRF,TA
 !  RDRTIL = NOHARV * max(RDRS,     RDRFROST,RDRTOX) ! d-1 Relative death rate of non-elongating tillers
 ! Simon try different ways to combine death rates to make parameters more responsive
 ! Maximum stress
-  RDRW   = RDRTILMIN*(1-TRANRF)                     ! d-1 Simon Relative death rate due to water stress
+  RDRW   = RDRWMAX*(1-TRANRF/TRANRFCR)                     ! d-1 Simon Relative death rate due to water stress
   TV2    = max(RDRS,RDRFROST,RDRTOX,RDRT,RDRW)      ! d-1 Relative leaf death rate
-  RDRTIL = max(RDRS,RDRFROST,RDRTOX,RDRW)           ! d-1 Relative death rate of non-elongating tillers
+  RDRTIL = max(RDRS,RDRFROST,RDRTOX     ,RDRW,RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers
 ! Euclidean combination
 !  TV2    = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRT*RDRT)           ! d-1 Relative leaf death rate
 !  RDRTIL = sqrt(RDRS*RDRS+RDRW*RDRW+RDRFROST*RDRFROST+RDRTOX*RDRTOX+RDRTILMIN*RDRTILMIN) ! d-1 Relative death rate of non-elongating tillers, Simon added background death rate

@@ -99,11 +99,11 @@ BD	1.25	1	1.25	BD	kg l-1	Bulk density of soil
 HARVFRD	0.2	0.2	0.2	HARVFRD	-	Relative harvest fraction of CLVD
 EBIOMAX	131	131	131	EBIOMAX	-	Earthworm biomass max
 KTIL	4000	4000	4000	KTIL	m-2	Tiller density at half basal area
-RDRWMAX	0	0	0	RDRWMAX	d-1	Maximum death rate due to water stress
+RDRWMAX	0.05	0.05	0.05	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1	1	1	BASALI	-	Grass basal area
 ABASAL	0	0	0	ABASAL	d-1	Grass basal area response rate
 TVERNDMN	10	10	10	TVERNDMN	d	Minimum vernalisation days
 DAYLGEMN	0	0	0	DAYLGEMN	-	Minimum daylength growth effect
-RGRSTUB	0.2	0.2	0.2	RGRSTUB	-	Relative growth rate of stubble/pseudostem
+TRANRFCR	0.1	0.1	0.1	TRANRFCR	-	Critical water stress for tiller death
 DELE	0.0005	0.0005	0.0005	DELE	-	Litter disappearance due to earthworms
 DELD	0.0148	0.0148	0.0148	DELD	-	Litter disappearance due to decomposition

@@ -202,6 +202,7 @@ if (fit_mcmc==FALSE){
     }
     
     # report convergence
+    cat(file=stderr(), paste("Less than", conv_target, "or greater than", conv_minutes, "so accepted..."), "\n")
     cat(file=stderr(), paste("Convergence of individual parameters (psf)"), "\n")
     psf <- gelmanDiagnostics(bt_out)$psrf[,1]
     print(round(psf,3))
@@ -214,8 +215,6 @@ if (fit_mcmc==FALSE){
   } 
   
 } 
-
-stop()
 
 # memory management
 cat(file=stderr(), 'Saving checkpoint after BASGRA calibration', "\n")
