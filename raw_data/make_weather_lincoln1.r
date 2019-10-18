@@ -89,6 +89,13 @@ irrig <- irrig %>%
 data3 <- data2 %>% 
   left_join(irrig, by=c("year", "doy")) %>%
   select(-month, -date)
+data3 %>% 
+  filter(as.numeric(year) + doy / 1000 >= 2011.121 & as.numeric(year) + doy / 1000 <= 2017.120) %>% 
+  summarise(
+    rain = sum(rain_mm)/6,
+    pet = sum(priestley_mm)/6,
+    irrig = sum(irrig_mm, na.rm=TRUE)/6
+    ) %>% print()
 data3 <- data3 %>% 
   mutate(rain_mm = if_else(is.na(irrig_mm), rain_mm, rain_mm + irrig_mm)) %>% 
   select(-irrig_mm)
@@ -96,4 +103,5 @@ data3 <- data3 %>%
 # write BASGRA weather file
 write_tsv(data3, 'raw_data/weather_Lincoln.txt')
 print('Remember to copy weather to scenario folder!')
+
 

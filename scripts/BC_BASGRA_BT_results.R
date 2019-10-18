@@ -18,11 +18,28 @@ suppressMessages({
 # dyn.load(BASGRA_DLL)
 graphics.off()
 
+# weather summary
+cat(file = stderr(), "Weather summary by site\n")
+lapply(1:nSites, function(i){
+  c(
+    list_NDAYS[[i]],
+    mean(list_matrix_weather[[i]][1:NDAYS,3]), # rad
+    mean(list_matrix_weather[[i]][1:NDAYS,4]), # tmin
+    mean(list_matrix_weather[[i]][1:NDAYS,5]), # tmax
+    sum(list_matrix_weather[[i]][1:NDAYS,6])/6, # rain
+    sum(list_matrix_weather[[i]][1:NDAYS,7])/6 # pet
+  )
+}) %>% print()
+
 # additional outputs to plot
-calibOutputs <- c("BASAL", "CLV", "CST", "CLVD", "CRT", "TILTOT", "WCLM")
-extraOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "VERN", "YIELD", "DEBUG")
-extraOutputs <- c("LAI", "TSIZE", "GTILV", "DTILV", "TRANRF", "DEBUG", "VERN")
-# extraOutputs <- c("RLEAF", "DEBUG", "RDRL", "VERN", "YIELD", "RES", "HARVFR")
+if (fit_mcmc){
+  calibOutputs <- c("BASAL", "CLV", "CST", "CLVD", "CRT", "TILTOT", "WCLM")
+  otherOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "VERN", "YIELD", "DEBUG")
+  otherOutputs <- c("LAI", "TSIZE", "GTILV", "DTILV", "TRANRF", "YIELD", "VERN")
+} else {
+  otherOutputs <- c("LAI", "TSIZE", "BASAL", "TILTOT", "VERN", "CRT", "YIELD")
+}
+# otherOutputs <- c("RLEAF", "DEBUG", "RDRL", "VERN", "YIELD", "RES", "HARVFR")
 
 # fix parameters
 params
@@ -453,7 +470,7 @@ if (TRUE && fit_mcmc) {
 #            width=11, height=8, units="in", type="windows", res=300)
 #
 #       # set up plot grid
-#       data_cols <- match(extraOutputs, outputNames)
+#       data_cols <- match(otherOutputs, outputNames)
 #       noutputsMeasured     <- length(data_cols)
 #       nrowsPlots           <- ceiling(sqrt(noutputsMeasured+1))
 #       ncolsPlots           <- ceiling((noutputsMeasured+1)/nrowsPlots)
@@ -603,7 +620,7 @@ if (TRUE) {
   }
 
   # predictive results for each site (collect results and residuals into dataframes) ####
-  nOvar <- length(extraOutputs)
+  nOvar <- length(otherOutputs)
   result_df <- vector("list", nSites * nBCvar)
   other_df <- vector("list", nSites * nOvar)
   residual_df <- vector("list", nSites * nBCvar)
@@ -669,6 +686,7 @@ if (TRUE) {
         temp <- tibble(
           site_num = s,
           site_name = sitenames[s],
+          var_name0 = outputNames[data_col],
           var_name = easyNames[data_col],
           var_units = outputUnits[data_col],
           var_name2 = paste(var_name, var_units),
@@ -696,6 +714,7 @@ if (TRUE) {
         temp <- tibble(
           site_num = s,
           site_name = sitenames[s],
+          var_name0 = outputNames[data_col],
           var_name = easyNames[data_col],
           var_units = outputUnits[data_col],
           var_name2 = paste(var_name, var_units),
@@ -723,7 +742,7 @@ if (TRUE) {
 
     # predictions against other outputs
     cat(file = stderr(), "Get model calibration other outputs, site", s, "\n")
-    data_cols <- match(extraOutputs, outputNames)
+    data_cols <- match(otherOutputs, outputNames)
 
     # loop through other selected variables (there are no observations for these variables)
     for (i in seq_along(data_cols)) {
@@ -752,6 +771,7 @@ if (TRUE) {
         temp <- tibble(
           site_num = s,
           site_name = sitenames[s],
+          var_name0 = outputNames[data_col],
           var_name = easyNames[data_col],
           var_units = outputUnits[data_col],
           var_name2 = paste(var_name, var_units),
@@ -853,6 +873,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting calibration variables against data", "\n")
   limits <- NULL
   plot3 <- result_df %>%
+    filter(var_name0 %in% calibOutputs) %>% 
     ggplot() +
     labs(title = "", x = "", y = "") +
     geom_ribbon(mapping = aes(x = times, ymin = pred_min2, ymax = pred_max2), fill = xpale, colour = xlight, size = 0.5) +
@@ -874,7 +895,7 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey))
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time.png", sep = "")
-  png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
 
@@ -882,6 +903,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting calibration variables differences", "\n")
   limits <- NULL
   temp <- result_df %>%
+    filter(var_name0 %in% calibOutputs) %>% 
     group_by(var_name, times) %>%
     arrange(site_name) %>% 
     mutate(
@@ -918,7 +940,7 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey))
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time_diff.png", sep = "")
-  png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -926,6 +948,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting calibration variables single year", "\n")
   limits <- single_year + c(152 / 365, 1 + 151 / 365)
   plot3 <- result_df %>%
+    filter(var_name0 %in% calibOutputs) %>% 
     ggplot() +
     labs(title = "", x = "", y = "") +
     geom_ribbon(mapping = aes(x = times, ymin = pred_min2, ymax = pred_max2), fill = xpale, colour = xlight, size = 0.5) +
@@ -945,7 +968,7 @@ if (TRUE) {
     theme_few()
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, ".png", sep = "")
-  png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -972,7 +995,7 @@ if (TRUE) {
     theme_few()
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, "_diff.png", sep = "")
-  png(file_name, width = 210, height = 297, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -980,6 +1003,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting other variables ", "\n")
   limits <- NULL
   plot3 <- other_df %>%
+    filter(var_name0 %in% otherOutputs) %>% 
     ggplot() +
     labs(title = "", x = "", y = "") +
     geom_ribbon(mapping = aes(x = times, ymin = pred_min2, ymax = pred_max2), fill = xpale, colour = xlight, size = 0.5) +
@@ -996,7 +1020,7 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey))
   # print(plot3)
   file_name <- paste(scenario, "/other_time.png", sep = "")
-  png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1004,6 +1028,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting other variables differences", "\n")
   limits <- NULL
   temp <- other_df %>%
+    filter(var_name0 %in% otherOutputs) %>% 
     group_by(var_name, times) %>%
     arrange(site_name) %>% 
     mutate(
@@ -1035,7 +1060,7 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey))
   # print(plot3)
   file_name <- paste(scenario, "/other_time_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1043,6 +1068,7 @@ if (TRUE) {
   cat(file = stderr(), "Plotting other variables single year", "\n")
   limits <- single_year + c(152 / 365, 1 + 151 / 365)
   plot3 <- other_df %>%
+    filter(var_name0 %in% otherOutputs) %>% 
     ggplot() +
     labs(title = "", x = "", y = "") +
     geom_ribbon(mapping = aes(x = times, ymin = pred_min2, ymax = pred_max2), fill = xpale, colour = xlight, size = 0.5) +
@@ -1057,7 +1083,7 @@ if (TRUE) {
     theme_few()
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, ".png", sep = "")
-  png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1079,7 +1105,7 @@ if (TRUE) {
     theme_few()
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, "_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 * nOvar / nBCvar, units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
   print(plot3)
   dev.off()
   

@@ -26,7 +26,7 @@ LFWIDV	0.0044	0.0044	0.0044	LFWIDV	m	Leaf width on non-elongating tillers
 NELLVM	1.3	1.3	1.3	NELLVM	tiller-1	Number of elongating leaves per non-elongating tiller
 PHENCR	0.6144	0.6144	0.6144	PHENCR	-	Phenological stage above which elongation and appearance of leaves on elongating tillers decreases
 PHY	63	63	63	PHY	°C d	Phyllochron
-RDRSCO	0.1074	0.1074	0.1074	RDRSCO	d-1	Relative death rate of leaves and non-elongating tillers due to shading when LAI is twice the threshold (LAICR)
+RDRSCO	0.1074	0.1074	0.1074	RDRSCO	d-1	Increase in relative death rate of leaves and non-elongating tillers due to shading per unit of LAI above LAICR
 RDRSMX	0.0669	0.0669	0.0669	RDRSMX	d-1	Maximum relative death rate of leaves and non-elongating tillers due to shading
 RDRTEM	0.0015	0.0015	0.0015	RDRTEM	d-1 °C-1	Proportionality of leaf senescence with temperature
 RGENMX	0.01	0.01	0.01	RGENMX	d-1	Maximum relative rate of tillers becoming elongating tillers
@@ -98,7 +98,7 @@ FGRESSI	0.5	0.5	0.5	FGRESSI	-	CRES sink strength factor
 BD	1.25	1	1.25	BD	kg l-1	Bulk density of soil
 HARVFRD	0.2	0.2	0.2	HARVFRD	-	Relative harvest fraction of CLVD
 EBIOMAX	131	131	131	EBIOMAX	-	Earthworm biomass max
-KTIL	4000	4000	4000	KTIL	m-2	Tiller density at half basal area
+KBASAL	3	3	3	KBASAL	?	Constant at half basal area
 RDRWMAX	0.05	0.05	0.05	RDRWMAX	d-1	Maximum death rate due to water stress
 BASALI	1	1	1	BASALI	-	Grass basal area
 ABASAL	0	0	0	ABASAL	d-1	Grass basal area response rate

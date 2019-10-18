@@ -310,8 +310,10 @@ do day = 1, NDAYS
   TILG1   = TILG1           + TILVG1 - TILG1G2
   TILG2   = TILG2                    + TILG1G2
   TILTOT  = TILG1 + TILG2 + TILV                           ! "TILTOT"  = Total tiller number in # m-2
-!  BASAL   = BASAL * (1 - ABASAL) + TILTOT / (TILTOT + KTIL) * ABASAL   ! Simon model grass basal area
-  BASAL   = BASAL * (1 - ABASAL) + min(1.0, TILTOT / KTIL) * ABASAL   ! Simon model grass basal area
+!  BASAL   = BASAL * (1 - ABASAL) + TILTOT / (TILTOT + KBASAL) * ABASAL   ! Simon model grass basal area
+!  BASAL   = BASAL * (1 - ABASAL) + min(1.0, TILTOT / KBASAL) * ABASAL   ! Simon model grass basal area
+  BASAL   = BASAL * (1 - ABASAL) + min(1.0, LAI / KBASAL) * ABASAL   ! Simon model grass basal area
+!  BASAL   = BASAL * (1 - ABASAL) + min(1.0, (1-exp(-KLAI*LAI)) / (1-exp(-KLAI*KBASAL)) ) * ABASAL   ! Simon model grass basal area
 !  ROOTD   = ROOTD   + RROOTD                              ! Simon tied ROOTD to CRT
   ROOTD   = ROOTDM * CRT/BASAL / (CRT/BASAL + KCRT)                    ! Simon tied ROOTD to CRT like this
   VERND   = VERND   + DVERND
