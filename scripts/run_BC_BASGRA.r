@@ -29,7 +29,8 @@ single_year <- 2013
 base_s <- 1
 scenarios <- c("run_mean", "run_mean/scenario_northland", "run_mean/scenario_scott")
 parameters <- c("run_mean", "run_mean", "run_mean")
-fit_mcmcs <- c(TRUE, FALSE, FALSE)
+fit_mcmcs <- c(FALSE, FALSE, FALSE)
+plot_varsets <- c(1, 2, 2)
 
 #### point to scenario directory ####
 is <- 1:3
@@ -38,6 +39,7 @@ for (i in is) {
   #
   scenario <- scenarios[i]
   fit_mcmc <- fit_mcmcs[i]
+  plot_varset <- plot_varsets[i]
   parameter_location <- parameters[i]
   cat(file = stderr(), "\nStarting scenario", scenario, "\n")
   if (!fit_mcmc){

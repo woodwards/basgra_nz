@@ -21,25 +21,26 @@ graphics.off()
 # weather summary
 cat(file = stderr(), "Weather summary by site\n")
 lapply(1:nSites, function(i){
-  c(
-    list_NDAYS[[i]],
-    mean(list_matrix_weather[[i]][1:NDAYS,3]), # rad
-    mean(list_matrix_weather[[i]][1:NDAYS,4]), # tmin
-    mean(list_matrix_weather[[i]][1:NDAYS,5]), # tmax
-    sum(list_matrix_weather[[i]][1:NDAYS,6])/6, # rain
-    sum(list_matrix_weather[[i]][1:NDAYS,7])/6 # pet
+  data.frame(
+    site = i,
+    NDAYS = list_NDAYS[[i]],
+    avRn = mean(list_matrix_weather[[i]][1:NDAYS,3]), # rad
+    avTmin = mean(list_matrix_weather[[i]][1:NDAYS,4]), # tmin
+    avTmax = mean(list_matrix_weather[[i]][1:NDAYS,5]), # tmax
+    avRain = sum(list_matrix_weather[[i]][1:NDAYS,6])/6, # rain
+    avPET = sum(list_matrix_weather[[i]][1:NDAYS,7])/6 # pet
   )
-}) %>% print()
+}) %>% bind_rows() %>% print(row.names = FALSE)
 
 # additional outputs to plot
-if (fit_mcmc){
+if (plot_varset == 1){
   calibOutputs <- c("BASAL", "CLV", "CST", "CLVD", "CRT", "TILTOT", "WCLM")
-  otherOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "VERN", "YIELD", "DEBUG")
-  otherOutputs <- c("LAI", "TSIZE", "GTILV", "DTILV", "TRANRF", "YIELD", "VERN")
-} else {
+#  otherOutputs <- c("LAI", "TSIZE", "RGRTV", "RDRTIL", "VERN", "YIELD", "DEBUG")
+  otherOutputs <- c("LAI", "TSIZE", "HARVFR", "TILG2", "RES", "YIELD", "VERN")
+  # otherOutputs <- c("RLEAF", "DEBUG", "RDRL", "VERN", "YIELD", "RES", "HARVFR")
+} else if (plot_varset == 2){
   otherOutputs <- c("LAI", "TSIZE", "BASAL", "TILTOT", "VERN", "CRT", "YIELD")
 }
-# otherOutputs <- c("RLEAF", "DEBUG", "RDRL", "VERN", "YIELD", "RES", "HARVFR")
 
 # fix parameters
 params
@@ -74,6 +75,12 @@ ML <- function(bayesianOutput, ...) {
   return(list(parametersML = samples[best, 1:nPars], valuesML = samples[best, (nPars + 1):(nPars + 3)]))
 }
 
+# define MED function
+MED <- function(bayesianOutput, ...) {
+  samples <- getSample(bayesianOutput, ...)
+  return(list(parametersMED = apply(samples, 2, FUN = median)))
+}
+
 # store best par
 # all <- getSample(bt_out, start=post_start, end=post_end)
 scparMAP_BC <- MAP(bt_out, start = post_start, end = post_end)$parametersMAP
@@ -85,6 +92,8 @@ logMaxL_final <- scparMaxL_BC_values[[1]]
 params_BC_MAP <- scparMAP_BC * sc
 names(params_BC_MAP) <- parname_BC
 cat(file = stderr(), paste("MAP parameter values"), "\n")
+scparMED_BC <- MED(bt_out, start = post_start, end = post_end)$parametersMED
+scparMED_BC * sc
 print(round(params_BC_MAP, 4))
 
 # correlation matrix ####
@@ -889,10 +898,10 @@ if (TRUE) {
     scale_y_continuous(expand = expand_scale(0, 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     scale_colour_manual(values = c("1" = xdata, "0" = "grey")) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     guides(colour = FALSE, size = FALSE) +
     theme_few() +
-    theme(panel.grid.major.x = element_line(colour = xgrey))
+    theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
@@ -934,10 +943,10 @@ if (TRUE) {
     scale_y_continuous(expand = expand_scale(0, 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     scale_colour_manual(values = c("1" = xdata, "0" = "grey")) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     guides(colour = FALSE, size = FALSE) +
     theme_few() +
-    theme(panel.grid.major.x = element_line(colour = xgrey))
+    theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time_diff.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
@@ -963,9 +972,10 @@ if (TRUE) {
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     scale_colour_manual(values = c("1" = xdata, "0" = "grey")) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     guides(colour = FALSE, size = FALSE) +
-    theme_few()
+    theme_few() +
+    theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, ".png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
@@ -990,9 +1000,10 @@ if (TRUE) {
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
     scale_colour_manual(values = c("1" = xdata, "0" = "grey")) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     guides(colour = FALSE, size = FALSE) +
-    theme_few()
+    theme_few() +
+    theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, "_diff.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
@@ -1015,9 +1026,9 @@ if (TRUE) {
     # geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     theme_few() +
-    theme(panel.grid.major.x = element_line(colour = xgrey))
+    theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_time.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
@@ -1055,9 +1066,9 @@ if (TRUE) {
     geom_abline(mapping = aes(slope = 0, intercept = pred_med_mean), colour = "red", size = 0.5) +
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
     theme_few() +
-    theme(panel.grid.major.x = element_line(colour = xgrey))
+    theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_time_diff.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
@@ -1079,8 +1090,9 @@ if (TRUE) {
     geom_abline(mapping = aes(slope = 0, intercept = 0), colour = xaxis, size = 0.5) +
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
-    theme_few()
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
+    theme_few() +
+    theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, ".png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
@@ -1101,8 +1113,9 @@ if (TRUE) {
     geom_abline(mapping = aes(slope = 0, intercept = 0), colour = xaxis, size = 0.5) +
     scale_y_continuous(expand = expand_scale(c(0, 0.05), 0)) +
     scale_x_continuous(expand = expand_scale(0, 0), limits = limits) +
-    facet_grid(var_name2 ~ site_name, scales = "free_y") +
-    theme_few()
+    facet_grid(var_name2 ~ site_name, scales = "free_y", switch = "y") +
+    theme_few() +
+    theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, "_diff.png", sep = "")
   png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
@@ -1225,6 +1238,7 @@ if (TRUE) {
     x <- seq(parmin_BC[i], parmax_BC[i], (parmax_BC[i] - parmin_BC[i]) / 100)
     y <- dbeta((x - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
     xmap <- scparMAP_BC[i] * sc[i]
+    xmed <- scparMED_BC[i] * sc[i]
     # ymap <- dbeta((xmap - parmin_BC[i]) / (parmax_BC[i] - parmin_BC[i]), aa[i], bb[i]) / (parmax_BC[i] - parmin_BC[i])
     temp <- ggplot() + 
       geom_histogram(data = post_df %>% filter(key == key2),
@@ -1233,7 +1247,9 @@ if (TRUE) {
     temp <- layer_data(temp)
     j <- which(abs(temp$x - xmap) == min(abs(temp$x - xmap)))
     ymap <- temp$density[j]
-    prior_df[[i]] <- tibble(key = key2, x = x, y = y, xmap = xmap, ymap = ymap)
+    j <- which(abs(temp$x - xmed) == min(abs(temp$x - xmed)))
+    ymed <- temp$density[j]
+    prior_df[[i]] <- tibble(key = key2, x = x, y = y, xmap = xmap, ymap = ymap, xmed = xmed, ymed = ymed)
   }
   prior_df <- bind_rows(prior_df) 
   post_df <- post_df %>% filter(str_detect(key, "I\\([1-9]:[1-9]\\)") == FALSE)
@@ -1244,6 +1260,7 @@ if (TRUE) {
     geom_histogram(data = post_df, mapping = aes(x = value, y = ..density..), fill = xlight, bins = 30) +
     geom_line(mapping = aes(x = x, y = y), colour = xmid, size = 1) +
     # geom_point(mapping = aes(x = xmap, y = ymap), colour = xdata, size = 3, na.rm = TRUE) +
+    geom_segment(mapping = aes(x = xmed, xend = xmed, y = 0, yend = ymed), colour = xmid, size = 1) +
     geom_segment(mapping = aes(x = xmap, xend = xmap, y = 0, yend = ymap), colour = xdata, size = 1) +
     theme_few() +
     theme(panel.spacing.x = unit(9, "mm"), plot.margin = unit(c(0, 5, 0, 0), "mm")) +
