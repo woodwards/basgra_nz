@@ -5,7 +5,6 @@ library(scales)
 cat(file=stderr(), "Reading checkpoint after BASGRA results", "\n")
 load(file=paste(scenario, "/checkpoint_after_results.RData", sep=""))
 
-source("scripts/BC_export_parModes.R")
 # source("scripts/BC_plot_parameters_traceplots.R") # very slow! but useful for convergence check
 # source("scripts/BC_plot_parameters_priorbeta_histograms.R") # now using gpplot version
 # outputMax[which(outputNames=="CLV")] <- 200 # it's pretty awkward to set these programmatically
