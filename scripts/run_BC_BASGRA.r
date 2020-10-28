@@ -1,5 +1,5 @@
-# BC_BASGRA run
-cat(file = stderr(), "Starting BC_BASGRA.r", "\n")
+# run_BC_BASGRA
+cat(file = stderr(), "Starting run_BC_BASGRA.r", "\n")
 
 # closes all graphics
 graphics.off()

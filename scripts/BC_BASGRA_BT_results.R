@@ -904,7 +904,8 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
 
@@ -949,7 +950,8 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_time_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -978,7 +980,8 @@ if (TRUE) {
     theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, ".png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1006,7 +1009,8 @@ if (TRUE) {
     theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/calibration_", single_year, "_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(calibOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1031,7 +1035,8 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_time.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1071,7 +1076,8 @@ if (TRUE) {
     theme(panel.grid.major.x = element_line(colour = xgrey), strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_time_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1095,7 +1101,8 @@ if (TRUE) {
     theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, ".png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1118,7 +1125,8 @@ if (TRUE) {
     theme(strip.placement = "outside")
   # print(plot3)
   file_name <- paste(scenario, "/other_", single_year, "_diff.png", sep = "")
-  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", type = "windows", res = 600)
+  png(file_name, width = 210, height = 297 / 7 * length(otherOutputs), units = "mm", 
+      type = "windows", res = 600)
   print(plot3)
   dev.off()
   
@@ -1143,7 +1151,8 @@ if (TRUE) {
     scale_fill_manual(values=palette) +
     facet_wrap(~var_name, scale = "free")
   # print(plot2)
-  png(paste(scenario, "/residual_density.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
+  png(paste(scenario, "/residual_density.png", sep = ""), 
+      width = 11, height = 8, units = "in", type = "windows", res = 600)
   print(plot2)
   dev.off()
 
@@ -1176,7 +1185,8 @@ if (TRUE) {
     lemon::facet_rep_wrap(~var_name2, scales = "free_y", repeat.tick.labels = "bottom") +
     theme_few()
   # print(plot3)
-  png(paste(scenario, "/residual_time.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
+  png(paste(scenario, "/residual_time.png", sep = ""), 
+      width = 11, height = 8, units = "in", type = "windows", res = 600)
   print(plot3)
   dev.off()
 
@@ -1208,7 +1218,8 @@ if (TRUE) {
     facet_wrap(~var_name2, scale = "free") +
     theme_few()
   # print(plot3b)
-  png(paste(scenario, "/residual_data2.png", sep = ""), width = 11, height = 8, units = "in", type = "windows", res = 300)
+  png(paste(scenario, "/residual_data2.png", sep = ""), 
+      width = 11, height = 8, units = "in", type = "windows", res = 600)
   print(plot3b)
   dev.off()
 }
@@ -1276,6 +1287,9 @@ if (TRUE) {
   print(plot1)
   dev.off()
 }
+
+# write map
+source("scripts/BC_export_parModes.R")
 
 # memory management
 cat(file = stderr(), "Saving checkpoint after BASGRA results", "\n")

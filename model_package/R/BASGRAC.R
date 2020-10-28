@@ -10,10 +10,15 @@ run_model <- function(p = params,
   if (!is.integer(n)) {storage.mode(n) <- 'integer'}
   if (!is.integer(v)) {storage.mode(v) <- 'integer'}
   if (!is.double(y)) {storage.mode(y) <- 'double'}
-  if (nrow(y)!=n | ncol(y)!=v){
+  if (nrow(y) !=n | ncol(y) != v){
     stop("Error: y matrix is wrong shape in run_model()")
   }
   .Call(c_BASGRA, p, w, h, n, v, y)
+}
+
+# http://r-pkgs.had.co.nz/src.html
+.onUnload <- function (libpath){
+  library.dynam.unload("mypackage", libpath)
 }
 
 # original

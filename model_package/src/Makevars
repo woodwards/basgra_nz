@@ -14,4 +14,4 @@ basgramodule.mod: basgraf.o
 basgrac.o: basgramodule.mod
 
 clean:
-@rm -rf *.mod *.o
+	rm -rf *.mod *.o
