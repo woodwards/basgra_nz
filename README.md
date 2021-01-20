@@ -9,3 +9,7 @@ The BASGRA NZ project tracks modifications to BASGRA for application to perennia
 
 * see project_guide.txt
 * see outstanding_issues.txt
+
+Extensions to BASGRA_NZ have been carried out by Komanawa Solutions, who also implemented a Python wrapper:
+
+https://github.com/Komanawa-Solutions-Ltd/BASGRA_NZ_PY
